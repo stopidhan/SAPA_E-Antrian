@@ -7,6 +7,33 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// ==========================================
+// Booking — Pendaftaran Antrean Online
+// ==========================================
+Route::get('/booking', function () {
+    return view('booking.login');
+})->name('booking.login');
+
+Route::get('/booking/dashboard', function () {
+    return view('booking.dashboard');
+})->name('booking.dashboard');
+
+Route::get('/booking/konfirmasi', function () {
+    return view('booking.konfirmasi');
+})->name('booking.konfirmasi');
+
+Route::get('/booking/tiket', function () {
+    return view('booking.tiket');
+})->name('booking.tiket');
+
+Route::get('/booking/riwayat', function () {
+    return view('booking.riwayat');
+})->name('booking.riwayat');
+
+Route::get('/booking/inventory', function () {
+    return view('booking.inventory');
+})->name('booking.inventory');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
