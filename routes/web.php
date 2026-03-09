@@ -67,6 +67,36 @@ Route::get('/operator', function () {
     return view('operator.index');
 })->name('operator.dashboard');
 
+
+// ==========================================
+Route::get('/superadmin', function () {
+    return view('Pages.AdminInstansi.superAdmin');
+})->name('superadmin.dashboard');
+
+Route::get('/profile-instance', function () {
+    return view('Pages.AdminInstansi.profileInstance');
+})->name('profile.instance');
+
+Route::get('/report', function () {
+    return view('Pages.AdminInstansi.report');
+})->name('superadmin.report');
+
+Route::get('/management-user', function () {
+    return view('Pages.AdminInstansi.managementUser');
+})->name('management.user');
+
+Route::get('/activity-log', function () {
+    return view('Pages.AdminInstansi.activityLog');
+})->name('activity.log');
+
+Route::get('/supervisor', function () {
+    return view('Pages.KepalaLayanan.superVisor');
+})->name('supervisor.dashboard');
+
+Route::get('/content', function () {
+    return view('Pages.StaffKonten.staffContent');
+})->name('content.dashboard');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
