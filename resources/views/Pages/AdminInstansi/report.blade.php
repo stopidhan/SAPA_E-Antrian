@@ -13,6 +13,41 @@
     $waitingQueue = 15;
     $servingQueue = 8;
 
+    $statCards = [
+        [
+            'label' => 'Total Antrean',
+            'value' => $totalQueue,
+            'color' => 'text-gray-800',
+            'sub' => '+12% dari kemarin',
+            'icon' =>
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
+        ],
+        [
+            'label' => 'Selesai Dilayani',
+            'value' => $completedQueue,
+            'color' => 'text-green-600',
+            'sub' => $completionRate . '% dari total',
+            'icon' =>
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        ],
+        [
+            'label' => 'Rata-rata Waktu',
+            'value' => number_format($avgServiceTime, 1) . ' mnt',
+            'color' => 'text-blue-600',
+            'sub' => 'Per pelayanan',
+            'icon' =>
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        ],
+        [
+            'label' => 'Sedang Menunggu',
+            'value' => $waitingQueue,
+            'color' => 'text-orange-600',
+            'sub' => $servingQueue . ' sedang dilayani',
+            'icon' =>
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>',
+        ],
+    ];
+
     $services = [
         (object) ['id' => 1, 'name' => 'Pelayanan Umum'],
         (object) ['id' => 2, 'name' => 'Administrasi KTP'],
@@ -24,6 +59,16 @@
         (object) ['name' => 'Siti Rahayu'],
         (object) ['name' => 'Ahmad Fauzi'],
     ];
+
+    $serviceOptions = [['value' => 'all', 'label' => 'Semua Layanan']];
+    foreach ($services as $service) {
+        $serviceOptions[] = ['value' => $service->id, 'label' => $service->name];
+    }
+
+    $operatorOptions = [['value' => 'all', 'label' => 'Semua Operator']];
+    foreach ($operators as $op) {
+        $operatorOptions[] = ['value' => $op->name, 'label' => $op->name];
+    }
 
     $queueData = collect([
         (object) [
@@ -91,7 +136,7 @@
 @endphp
 
 @section('content')
-    <div class="min-h-screen bg-gray-50" x-data="reportsPage()">
+    <div class="bg-gray-50" x-data="reportsPage()">
 
         <div class="container mx-auto p-6 space-y-6">
             {{-- ===== FILTER SECTION ===== --}}
@@ -105,164 +150,58 @@
                 </div>
 
                 <form method="GET" action="#" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
-                        <input type="date" name="start_date" value="{{ $today }}"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Akhir</label>
-                        <input type="date" name="end_date" value="{{ $today }}"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-gray-700">Layanan</label>
-                        <select name="service_id"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="all">Semua Layanan</option>
-                            @foreach ($services as $service)
-                                <option value="{{ $service->id }}">{{ $service->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-sm font-medium text-gray-700">Operator</label>
-                        <select name="operator"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="all">Semua Operator</option>
-                            @foreach ($operators as $op)
-                                <option value="{{ $op->name }}">{{ $op->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <form method="GET" action="#" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <x-input-date name="start_date" label="Tanggal Mulai" value="{{ $today }}" />
+                        <x-input-date name="end_date" label="Tanggal Akhir" value="{{ $today }}" />
+                        <x-input-dropdown name="service_id" label="Layanan" :options="$serviceOptions" value="all" />
+                        <x-input-dropdown name="operator" label="Operator" :options="$operatorOptions" value="all" />
+                    </form>
                 </form>
             </div>
 
             {{-- ===== STATISTICS CARDS ===== --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @php
-                    $statCards = [
-                        ['Total Antrean', $totalQueue, 'text-gray-800', '+12% dari kemarin', 'users'],
-                        [
-                            'Selesai Dilayani',
-                            $completedQueue,
-                            'text-green-600',
-                            $completionRate . '% dari total',
-                            'check',
-                        ],
-                        [
-                            'Rata-rata Waktu',
-                            number_format($avgServiceTime, 1) . ' mnt',
-                            'text-blue-600',
-                            'Per pelayanan',
-                            'clock',
-                        ],
-                        [
-                            'Sedang Menunggu',
-                            $waitingQueue,
-                            'text-orange-600',
-                            $servingQueue . ' sedang dilayani',
-                            'trending',
-                        ],
-                    ];
-                @endphp
-                @foreach ($statCards as [$label, $value, $color, $sub, $icon])
-                    <div class="bg-white rounded-2xl border shadow-sm p-5">
-                        <div class="flex items-start justify-between mb-2">
-                            <p class="text-sm font-medium text-gray-600">{{ $label }}</p>
-                            <div class="text-gray-300">
-                                @if ($icon === 'users')
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                @elseif ($icon === 'check')
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @elseif ($icon === 'clock')
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @else
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                    </svg>
-                                @endif
-                            </div>
-                        </div>
-                        <p class="text-2xl font-bold {{ $color }}">{{ $value }}</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ $sub }}</p>
-                    </div>
-                @endforeach
+                <x-card :cards="$statCards" />
             </div>
 
             {{-- ===== CHARTS TABS ===== --}}
-            <div x-data="{ chartTab: 'service' }">
-                <div class="flex items-center justify-between mb-4">
-                    {{-- Tab switcher --}}
-                    <div class="bg-gray-100 p-1 rounded-xl inline-flex gap-1">
-                        @foreach ([['service', 'Per Layanan'], ['hourly', 'Per Jam'], ['type', 'Tipe Registrasi']] as [$t, $l])
-                            <button @click="chartTab = '{{ $t }}'"
-                                :class="chartTab === '{{ $t }}' ? 'bg-white shadow text-blue-700 font-semibold' :
-                                    'text-gray-500 hover:text-gray-700'"
-                                class="px-4 py-2 rounded-lg text-sm transition-all">
-                                {{ $l }}
-                            </button>
-                        @endforeach
-                    </div>
-
-                    {{-- Export buttons --}}
-                    <div class="flex gap-2">
-                        <a href="#"
-                            class="flex items-center gap-2 px-4 py-2 border bg-white border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Export PDF
-                        </a>
-                        <a href="#"
-                            class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            Export Excel
-                        </a>
-                    </div>
-                </div>
+            <x-tab :tabs="[
+                ['id' => 'service', 'label' => 'Per Layanan'],
+                ['id' => 'hourly', 'label' => 'Per Jam'],
+                ['id' => 'type', 'label' => 'Tipe Registrasi'],
+            ]">
+                @slot('header')
+                    <x-button variant="white"
+                        icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>'>
+                        Export PDF
+                    </x-button>
+                    <x-button variant="success"
+                        icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'>
+                        Export Excel
+                    </x-button>
+                @endslot
 
                 {{-- Per Layanan --}}
-                <div x-show="chartTab === 'service'">
-                    <div class="bg-white rounded-2xl border shadow-sm p-6">
-                        <h3 class="font-bold mb-1">Antrean Per Layanan</h3>
-                        <p class="text-sm text-gray-500 mb-4">Jumlah antrean untuk setiap jenis layanan</p>
-                        {{-- <canvas id="chart-per-service" style="height:380px"></canvas> --}}
-                    </div>
+                <div x-show="activeTab === 'service'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
+                    <h3 class="font-bold mb-1">Antrean Per Layanan</h3>
+                    <p class="text-sm text-gray-500 mb-4">Jumlah antrean untuk setiap jenis layanan</p>
+                    {{-- <canvas id="chart-per-service" style="height:380px"></canvas> --}}
                 </div>
 
                 {{-- Per Jam --}}
-                <div x-show="chartTab === 'hourly'">
-                    <div class="bg-white rounded-2xl border shadow-sm p-6">
-                        <h3 class="font-bold mb-1">Antrean Per Jam</h3>
-                        <p class="text-sm text-gray-500 mb-4">Distribusi antrean berdasarkan waktu</p>
-                        {{-- <canvas id="chart-per-hour" style="height:380px"></canvas> --}}
-                    </div>
+                <div x-show="activeTab === 'hourly'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
+                    <h3 class="font-bold mb-1">Antrean Per Jam</h3>
+                    <p class="text-sm text-gray-500 mb-4">Distribusi antrean berdasarkan waktu</p>
+                    {{-- <canvas id="chart-per-hour" style="height:380px"></canvas> --}}
                 </div>
 
                 {{-- Tipe Registrasi --}}
-                <div x-show="chartTab === 'type'">
-                    <div class="bg-white rounded-2xl border shadow-sm p-6">
-                        <h3 class="font-bold mb-1">Tipe Registrasi</h3>
-                        <p class="text-sm text-gray-500 mb-4">Perbandingan registrasi online vs onsite</p>
-                        {{-- <canvas id="chart-reg-type" style="height:380px"></canvas> --}}
-                    </div>
+                <div x-show="activeTab === 'type'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
+                    <h3 class="font-bold mb-1">Tipe Registrasi</h3>
+                    <p class="text-sm text-gray-500 mb-4">Perbandingan registrasi online vs onsite</p>
+                    {{-- <canvas id="chart-reg-type" style="height:380px"></canvas> --}}
                 </div>
-            </div>
+            </x-tab>
 
             {{-- ===== DATA TABLE ===== --}}
             <div class="bg-white rounded-2xl border shadow-sm">
@@ -270,58 +209,44 @@
                     <h3 class="font-bold">Detail Data Antrean</h3>
                     <p class="text-sm text-gray-500 mt-0.5">Rincian lengkap setiap antrean</p>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                @foreach (['No. Antrean', 'Layanan', 'Tipe', 'Waktu Daftar', 'Waktu Selesai', 'Durasi', 'Operator', 'Status'] as $th)
-                                    <th class="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap">
-                                        {{ $th }}</th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse ($queueData as $item)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 font-mono font-bold">{{ $item->queue_number }}</td>
-                                    <td class="px-4 py-3">{{ $item->service_name }}</td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="px-2 py-1 rounded-full text-xs font-medium
-                                            {{ $item->registration_type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600' }}">
-                                            {{ ucfirst($item->registration_type) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-500">
-                                        {{ $item->registered_at ? \Carbon\Carbon::parse($item->registered_at)->format('H:i') : '-' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-500">
-                                        {{ $item->completed_at ? \Carbon\Carbon::parse($item->completed_at)->format('H:i') : '-' }}
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        {{ $item->service_time ? $item->service_time . ' mnt' : '-' }}
-                                    </td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $item->operator_name }}</td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            class="px-2 py-1 rounded-full text-xs font-medium
-                                            {{ $item->status === 'completed'
-                                                ? 'bg-green-100 text-green-700'
-                                                : ($item->status === 'serving'
-                                                    ? 'bg-blue-100 text-blue-700'
-                                                    : 'bg-gray-100 text-gray-600') }}">
-                                            {{ $item->status === 'completed' ? 'Selesai' : ($item->status === 'serving' ? 'Dilayani' : 'Menunggu') }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center py-10 text-gray-400">Tidak ada data antrean</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+
+                <x-table :columns="[
+                    'No. Antrean',
+                    'Layanan',
+                    'Tipe',
+                    'Waktu Daftar',
+                    'Waktu Selesai',
+                    'Durasi',
+                    'Operator',
+                    'Status',
+                    'Aksi',
+                ]" :rows="$queueData" emptyMessage="Tidak ada data antrean">
+                    @foreach ($queueData as $item)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono font-bold">{{ $item->queue_number }}</td>
+                            <td class="px-4 py-3">{{ $item->service_name }}</td>
+                            <td class="px-4 py-3">
+                                <x-label-status type="registration_type" :value="$item->registration_type" />
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">
+                                {{ $item->registered_at ? \Carbon\Carbon::parse($item->registered_at)->format('H:i') : '-' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-500">
+                                {{ $item->completed_at ? \Carbon\Carbon::parse($item->completed_at)->format('H:i') : '-' }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ $item->service_time ? $item->service_time . ' mnt' : '-' }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">{{ $item->operator_name }}</td>
+                            <td class="px-4 py-3">
+                                <x-label-status type="status" :value="$item->status" />
+                            </td>
+                            <td class="px-4 py-3">
+                                <x-action-buttons :view="true" :edit="false" :delete="false" />
+                            </td>
+                        </tr>
+                    @endforeach
+                </x-table>
             </div>
 
         </div>

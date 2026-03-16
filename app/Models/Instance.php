@@ -10,6 +10,7 @@ class Instance extends Model
     use HasFactory;
 
     protected $fillable = [
+        'instance_code',
         'instance_name',
         'address',
         'phone',
@@ -46,4 +47,19 @@ class Instance extends Model
     {
         return $this->hasMany(MediaContent::class);
     }
+
+    public function qrCodes()
+    {
+        return $this->hasMany(QrCode::class);
+    }
+
+    // Opsional: Mutator untuk generate UUID otomatis saat create
+    // protected static function booted()
+    // {
+    //     static::creating(function ($instance) {
+    //         if (empty($instance->instance_code)) {
+    //             $instance->instance_code = Str::uuid();
+    //         }
+    //     });
+    // }
 }

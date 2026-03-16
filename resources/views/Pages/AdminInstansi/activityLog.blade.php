@@ -102,87 +102,51 @@
             'user' => (object) ['name' => 'Supervisor', 'username' => 'supervisor', 'role' => 'admin'],
         ],
     ]);
+
+    $statCards = [
+        [
+            'label' => 'Total Aktivitas',
+            'value' => $totalLogs,
+            'sub' => 'Hari ini',
+            'color' => 'text-gray-800',
+            'icon' =>
+                '<svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
+        ],
+        [
+            'label' => 'Success',
+            'value' => $successCount,
+            'sub' => $successRate . '% dari total',
+            'color' => 'text-green-700',
+            'icon' =>
+                '<svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        ],
+        [
+            'label' => 'Warning',
+            'value' => $warningCount,
+            'sub' => 'Perlu perhatian',
+            'color' => 'text-amber-700',
+            'icon' =>
+                '<svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>',
+        ],
+        [
+            'label' => 'Error',
+            'value' => $errorCount,
+            'sub' => 'Memerlukan tindakan',
+            'color' => 'text-red-700',
+            'icon' =>
+                '<svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        ],
+    ];
     // ────────────────────────────────────────────────────────────────────────
 @endphp
 
 @section('content')
-    <div class="min-h-screen bg-gray-50" x-data="activityLogPage()">
-        <div class="container mx-auto px-4 py-6 space-y-6">
+    <div class="bg-gray-50" x-data="activityLogPage()">
+        <div class="container mx-auto p-6 space-y-6">
 
             {{-- Statistic Card --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @php
-                    $statCards = [
-                        [
-                            'label' => 'Total Aktivitas',
-                            'value' => $totalLogs,
-                            'sub' => 'Hari ini',
-                            'color' => 'text-gray-800',
-                            'bg' => 'bg-gray-100',
-                            'icon' => 'activity',
-                        ],
-                        [
-                            'label' => 'Success',
-                            'value' => $successCount,
-                            'sub' => $successRate . '% dari total',
-                            'color' => 'text-green-700',
-                            'bg' => 'bg-green-100',
-                            'icon' => 'check',
-                        ],
-                        [
-                            'label' => 'Warning',
-                            'value' => $warningCount,
-                            'sub' => 'Perlu perhatian',
-                            'color' => 'text-amber-700',
-                            'bg' => 'bg-amber-100',
-                            'icon' => 'warning',
-                        ],
-                        [
-                            'label' => 'Error',
-                            'value' => $errorCount,
-                            'sub' => 'Memerlukan tindakan',
-                            'color' => 'text-red-700',
-                            'bg' => 'bg-red-100',
-                            'icon' => 'error',
-                        ],
-                    ];
-                @endphp
-                @foreach ($statCards as $s)
-                    <div class="bg-white rounded-2xl border shadow-sm p-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm text-gray-500">{{ $s['label'] }}</p>
-                            <div class="w-9 h-9 {{ $s['bg'] }} rounded-xl flex items-center justify-center">
-                                @if ($s['icon'] === 'activity')
-                                    <svg class="w-5 h-5 {{ $s['color'] }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                @elseif($s['icon'] === 'check')
-                                    <svg class="w-5 h-5 {{ $s['color'] }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @elseif($s['icon'] === 'warning')
-                                    <svg class="w-5 h-5 {{ $s['color'] }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                @else
-                                    <svg class="w-5 h-5 {{ $s['color'] }}" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                @endif
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold {{ $s['color'] }}">{{ $s['value'] }}</p>
-                        <p class="text-xs text-gray-400 mt-1">{{ $s['sub'] }}</p>
-                    </div>
-                @endforeach
+                <x-card :cards="$statCards" />
             </div>
 
             {{-- Filter Section --}}
@@ -195,80 +159,44 @@
                     <h2 class="font-bold">Filter Activity Log</h2>
                 </div>
                 <form method="GET" action="#" class="p-5">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
 
+                    {{-- Grid untuk filter lainnya --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {{-- Pencarian --}}
-                        <div class="space-y-1.5">
-                            <label
-                                class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Pencarian</label>
-                            <div class="relative">
-                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <input type="text" name="search" value="" placeholder="Cari user, aksi..."
-                                    class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
-                            </div>
+                        <div class="lg:col-span-4">
+                            <x-search-bar name="search" placeholder="Cari user, aksi..." />
                         </div>
 
                         {{-- Tanggal Mulai --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Tanggal
-                                Mulai</label>
-                            <input type="date" name="start_date" value="{{ date('Y-m-d') }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
-                        </div>
+                        <x-input-date name="start_date" label="Tanggal Mulai" value="{{ date('Y-m-d') }}" />
 
                         {{-- Tanggal Akhir --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Tanggal
-                                Akhir</label>
-                            <input type="date" name="end_date" value="{{ date('Y-m-d') }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
-                        </div>
+                        <x-input-date name="end_date" label="Tanggal Akhir" value="{{ date('Y-m-d') }}" />
 
                         {{-- Kategori --}}
-                        <div class="space-y-1.5">
-                            <label
-                                class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Kategori</label>
-                            <select name="category"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500">
-                                <option value="all">Semua Kategori</option>
-                                <option value="auth">🔐 Authentication</option>
-                                <option value="queue">📋 Queue Management</option>
-                                <option value="config">⚙ Configuration</option>
-                                <option value="user">👤 User Management</option>
-                                <option value="content">🖼 Content</option>
-                                <option value="service">🏢 Service</option>
-                            </select>
-                        </div>
+                        <x-input-dropdown name="category" label="Kategori" :options="[
+                            ['value' => 'all', 'label' => 'Semua Kategori'],
+                            ['value' => 'auth', 'label' => 'Authentication'],
+                            ['value' => 'queue', 'label' => 'Queue Management'],
+                            ['value' => 'config', 'label' => 'Configuration'],
+                            ['value' => 'user', 'label' => 'User Management'],
+                            ['value' => 'content', 'label' => 'Content'],
+                            ['value' => 'service', 'label' => 'Service'],
+                        ]" value="all" />
 
                         {{-- Status --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</label>
-                            <select name="status"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500">
-                                <option value="all">Semua Status</option>
-                                <option value="success">✅ Success</option>
-                                <option value="warning">⚠️ Warning</option>
-                                <option value="error">❌ Error</option>
-                                <option value="info">ℹ️ Info</option>
-                            </select>
-                        </div>
-
-
+                        <x-input-dropdown name="status" label="Status" :options="[
+                            ['value' => 'all', 'label' => 'Semua Status'],
+                            ['value' => 'success', 'label' => 'Success'],
+                            ['value' => 'warning', 'label' => 'Warning'],
+                            ['value' => 'error', 'label' => 'Error'],
+                            ['value' => 'info', 'label' => 'Info'],
+                        ]" value="all" />
                     </div>
 
                     <div class="flex items-center gap-3 mt-4">
-                        <button type="submit"
-                            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors">
-                            Terapkan Filter
-                        </button>
-                        <a href="#"
-                            class="px-5 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-colors">
-                            Reset Filter
-                        </a>
+                        <x-button variant="primary">Terapkan Filter</x-button>
+                        <x-button variant="white">Reset Filter</x-button>
                         <span class="text-sm text-gray-500 ml-auto">
                             Menampilkan {{ $logs->count() }} dari {{ $totalLogs }} aktivitas
                         </span>
@@ -457,10 +385,9 @@
                         @endif
                     </div>
                 </div>
-
             </div>
-
         </div>
+    </div>
     </div>
 @endsection
 
