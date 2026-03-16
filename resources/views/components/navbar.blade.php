@@ -10,7 +10,7 @@
             'label' => 'Data Instansi',
             'url' => 'profile-instance',
             'icon' =>
-                '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" stroke="currentColor" stroke-width="0" fill="none"/><path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5zM9 22V12h6v10"/></svg>',
+                '<svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>',
         ],
         [
             'label' => 'Laporan & Statistik',
@@ -130,7 +130,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
-                    <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -139,14 +139,13 @@
                     </div>
                     <span class="text-sm font-semibold text-gray-700 hidden sm:block">{{ $navbarUserName }}</span>
                 </div>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-500 text-sm font-semibold rounded-lg hover:bg-gray-50 hover:text-red-500 hover:border-red-200 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <x-button variant="outline-danger" size="md"
+                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
-                    <span class="hidden sm:block">Logout</span>
-                </button>
+                    </svg>'>
+                    Logout
+                </x-button>
             </div>
         </div>
     </nav>
@@ -168,7 +167,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
-                    <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,14 +176,13 @@
                     </div>
                     <span class="text-sm font-semibold text-gray-700">{{ $navbarUserName }}</span>
                 </div>
-                <button
-                    class="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-500 text-sm font-semibold rounded-lg hover:bg-gray-50 hover:text-red-500 hover:border-red-200 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <x-button variant="outline-danger" size="md"
+                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
+                    </svg>'>
                     Logout
-                </button>
+                </x-button>
             </div>
         </div>
     </nav>
