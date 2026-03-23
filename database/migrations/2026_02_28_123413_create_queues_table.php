@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_counter_id')->nullable()->constrained();
             $table->foreignId('customer_id')->nullable()->constrained();
-            $table->foreignId('service_category_id')->constrained();
+            $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
 
             $table->string('queue_number');
 

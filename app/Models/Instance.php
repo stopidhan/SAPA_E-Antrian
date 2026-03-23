@@ -23,9 +23,9 @@ class Instance extends Model
         return $this->hasMany(User::class);
     }
 
-    public function serviceCategories()
+    public function services()
     {
-        return $this->hasMany(ServiceCategory::class);
+        return $this->hasMany(Service::class);
     }
 
     public function serviceCounters()

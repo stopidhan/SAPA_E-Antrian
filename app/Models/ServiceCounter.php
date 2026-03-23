@@ -4,22 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Traits\BelongsToInstance;
 
 class ServiceCounter extends Model
 {
-    use HasFactory, BelongsToInstance;
+    use HasFactory;
 
     protected $fillable = [
         'instance_id',
-        'counter_name',
-        'counter_code',
+        'service_id',
+        'counter_number',
         'is_active'
     ];
 
     public function instance()
     {
         return $this->belongsTo(Instance::class);
+    }
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
     }
 
     public function queues()

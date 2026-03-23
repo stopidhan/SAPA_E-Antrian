@@ -6,13 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Traits\BelongsToInstance;
 
-class ServiceCategory extends Model
+class Service extends Model
 {
     use HasFactory, BelongsToInstance;
 
+    protected $table = 'services';
+
     protected $fillable = [
         'instance_id',
-        'category_name',
+        'service_name',
         'queue_prefix',
         'description',
         'is_active'
@@ -21,6 +23,11 @@ class ServiceCategory extends Model
     public function instance()
     {
         return $this->belongsTo(Instance::class);
+    }
+
+    public function counters()
+    {
+        return $this->hasMany(ServiceCounter::class);
     }
 
     public function queues()

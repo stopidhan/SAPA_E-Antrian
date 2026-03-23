@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceCounterController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -96,6 +99,14 @@ Route::get('/supervisor', function () {
 Route::get('/content', function () {
     return view('Pages.StaffKonten.staffContent');
 })->name('content.dashboard');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('services', ServiceController::class);
+    Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
+    Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])->name('services.toggle');
+});
+
+// --- TESTES ---
 
 Route::get('/dashboard', function () {
     return view('dashboard');
