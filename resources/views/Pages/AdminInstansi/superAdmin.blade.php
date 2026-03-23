@@ -69,11 +69,144 @@
                             </form>
                         </div>
 
-                        {{-- Services Management --}}
+                        {{-- Services Management (Integrated with Counters) --}}
                         <div class="bg-white rounded-2xl border shadow-sm">
                             <div class="p-6 border-b flex items-center justify-between">
                                 <div>
-                                    <h2 class="text-lg font-bold">Manajemen Layanan</h2>
+                                    <h2 class="text-lg font-bold">Manajemen Layanan & Konter</h2>
+                                    <p class="text-sm text-gray-500 mt-0.5">Kelola layanan dan konter yang tersedia di
+                                        sistem antrean</p>
+                                </div>
+                                <x-button type="button" variant="success" @click="openServiceDialog()"
+                                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
+                                    Tambah Layanan
+                                </x-button>
+                            </div>
+
+                            <div class="p-6 space-y-4">
+
+                                {{-- Empty state --}}
+                                <template x-if="services.length === 0">
+                                    <div class="text-center py-10 text-gray-500">
+                                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                        <p class="mb-4">Belum ada layanan yang ditambahkan</p>
+                                        <button @click="openServiceDialog()"
+                                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Tambah Layanan Pertama
+                                        </button>
+                                    </div>
+                                </template>
+
+                                {{-- Service List with Counters --}}
+                                <template x-for="service in services" :key="service.id">
+                                    <div
+                                        class="border rounded-xl overflow-hidden hover:border-blue-200 hover:shadow-md transition-all">
+
+                                        {{-- Service Header --}}
+                                        <div
+                                            class="p-4 bg-gradient-to-r from-blue-50 to-transparent flex items-center justify-between">
+                                            <div class="flex items-center gap-4 flex-1">
+                                                <div
+                                                    class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-blue-700 font-bold text-sm">
+                                                    <span x-text="service.queue_prefix"></span>
+                                                </div>
+                                                <div>
+                                                    <div class="font-semibold" x-text="service.service_name"></div>
+                                                    <p class="text-sm text-gray-500" x-text="service.description"></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-3">
+                                                <template x-if="service.is_active">
+                                                    <x-label-status :value="'active'" />
+                                                </template>
+                                                <template x-if="!service.is_active">
+                                                    <x-label-status :value="'inactive'" />
+                                                </template>
+
+                                                <div class="flex items-center gap-2 ml-4">
+                                                    <button @click="toggleService(service.id)"
+                                                        class="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                                        title="Toggle status">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                        </svg>
+                                                    </button>
+                                                    <button @click="editService(service)"
+                                                        class="p-2 text-gray-400 hover:text-yellow-600 transition-colors"
+                                                        title="Edit">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button @click="deleteService(service.id)"
+                                                        class="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                                        title="Delete">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Service Counters List --}}
+                                        <div class="border-t px-4 py-3 bg-gray-50">
+                                            <div class="text-sm font-medium text-gray-600 mb-3">Konter Melayani Layanan
+                                                Ini:</div>
+
+                                            <template x-if="service.counters && service.counters.length > 0">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <template x-for="counter in service.counters" :key="counter.id">
+                                                        <div
+                                                            class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1">
+                                                            <span class="text-sm font-medium text-gray-700"
+                                                                x-text="`Konter ${counter.counter_number}`"></span>
+                                                            <template x-if="counter.is_active">
+                                                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                                            </template>
+                                                            <template x-if="!counter.is_active">
+                                                                <span class="w-2 h-2 rounded-full bg-gray-300"></span>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+
+                                            <template x-if="!service.counters || service.counters.length === 0">
+                                                <p class="text-sm text-gray-400 italic">Belum ada konter yang melayani
+                                                    layanan ini</p>
+                                            </template>
+                                        </div>
+
+                                    </div>
+                                </template>
+
+                            </div>
+                        </div>
+
+                        {{-- Services Counter Management --}}
+                        <div class="bg-white rounded-2xl border shadow-sm">
+                            <div class="p-6 border-b flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-lg font-bold">Manajemen Konter Layanan</h2>
                                     <p class="text-sm text-gray-500 mt-0.5">Kelola layanan yang tersedia di sistem antrean
                                     </p>
                                 </div>
@@ -96,7 +229,8 @@
                                         <p class="mb-4">Belum ada layanan yang ditambahkan</p>
                                         <button @click="openAddDialog()"
                                             class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M12 4v16m8-8H4" />
                                             </svg>
@@ -138,70 +272,6 @@
                                                 <span class="text-gray-600">Estimasi Waktu :</span>
                                                 <span class="font-medium text-gray-500">15 menit</span>
                                             </div>
-                                        </div>
-
-                                        {{-- Action Buttons --}}
-                                        <div class="flex ml-auto items-center">
-                                            <x-action-buttons :toggle="true" />
-                                        </div>
-                                    </div>
-                                </template>
-
-                            </div>
-                        </div>
-
-                        {{-- Services Category Management --}}
-                        <div class="bg-white rounded-2xl border shadow-sm">
-                            <div class="p-6 border-b flex items-center justify-between">
-                                <div>
-                                    <h2 class="text-lg font-bold">Manajemen Kategori Layanan</h2>
-                                    <p class="text-sm text-gray-500 mt-0.5">Kelola kategori layanan yang tersedia di sistem
-                                        antrean
-                                    </p>
-                                </div>
-                                <x-button type="submit" variant="success"
-                                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
-                                    Tambah Kategori Layanan
-                                </x-button>
-                            </div>
-
-                            <div class="p-6 space-y-4">
-
-                                {{-- Empty state --}}
-                                <template x-if="services.length === 0">
-                                    <div class="text-center py-10 text-gray-500">
-                                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                        </svg>
-                                        <p class="mb-4">Belum ada layanan yang ditambahkan</p>
-                                        <button @click="openAddDialog()"
-                                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 4v16m8-8H4" />
-                                            </svg>
-                                            Tambah Layanan Pertama
-                                        </button>
-                                    </div>
-                                </template>
-
-                                {{-- Service Category List --}}
-                                <template x-for="service in services" :key="service.id">
-                                    <div
-                                        class="border rounded-xl p-4 flex items-stretch hover:border-blue-200 transition-colors">
-
-                                        {{-- Service Info --}}
-                                        <div class="flex items-center gap-3">
-                                            <div class="font-semibold mb-1" x-text="service.name"></div>
-                                            <template x-if="service.is_active">
-                                                <x-label-status :value="'active'" />
-                                            </template>
-                                            <template x-if="!service.is_active">
-                                                <x-label-status :value="'inactive'" />
-                                            </template>
                                         </div>
 
                                         {{-- Action Buttons --}}
@@ -270,105 +340,140 @@
     <script>
         function adminDashboard() {
             return {
-                dialogOpen: false,
+                services: [],
                 editingService: null,
-                config: {
-                    ttsEnabled: true,
-                    autoCallEnabled: false,
-                    callRepeatCount: 3,
-                },
-                services: [{
-                        id: 1,
-                        name: 'Pendaftaran KTP',
-                        code: 'A',
-                        color: '#3B82F6',
-                        is_active: true,
-                        estimated_time: 10
-                    },
-                    {
-                        id: 2,
-                        name: 'Layanan SIM',
-                        code: 'B',
-                        color: '#10B981',
-                        is_active: true,
-                        estimated_time: 15
-                    },
-                    {
-                        id: 3,
-                        name: 'Layanan STNK',
-                        code: 'C',
-                        color: '#F59E0B',
-                        is_active: false,
-                        estimated_time: 20
-                    },
-                ],
-                form: {
-                    name: '',
-                    code: '',
-                    estimatedTime: 15,
-                    color: '#3B82F6',
+                serviceForm: {},
+                countersList: [],
+                showServiceDialog: false,
+
+                init() {
+                    this.fetchServices();
                 },
 
-                get activeServicesCount() {
-                    return this.services.filter(s => s.is_active).length;
-                },
-
-                toggleService(service) {
-                    service.is_active = !service.is_active;
-                },
-
-                deleteService(id) {
-                    const service = this.services.find(s => s.id === id);
-                    if (confirm(`Hapus layanan ${service ? service.name : ''}?`)) {
-                        this.services = this.services.filter(s => s.id !== id);
-                    }
-                },
-
-                saveService() {
-                    if (this.editingService) {
-                        const idx = this.services.findIndex(s => s.id === this.editingService.id);
-                        if (idx !== -1) {
-                            this.services[idx] = {
-                                ...this.services[idx],
-                                name: this.form.name,
-                                code: this.form.code,
-                                estimated_time: this.form.estimatedTime,
-                                color: this.form.color,
-                            };
-                        }
-                    } else {
-                        this.services.push({
-                            id: Date.now(),
-                            name: this.form.name,
-                            code: this.form.code,
-                            estimated_time: this.form.estimatedTime,
-                            color: this.form.color,
-                            is_active: true,
+                async fetchServices() {
+                    try {
+                        const response = await fetch('/services', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
                         });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.services = result.data;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching services:', error);
                     }
-                    this.dialogOpen = false;
                 },
 
-                openAddDialog() {
-                    this.editingService = null;
-                    this.form = {
-                        name: '',
-                        code: '',
-                        estimatedTime: 15,
-                        color: '#3B82F6'
-                    };
-                    this.dialogOpen = true;
+                openServiceDialog(service = null) {
+                    if (service) {
+                        this.editingService = JSON.parse(JSON.stringify(service));
+                        this.serviceForm = {
+                            service_name: service.service_name,
+                            queue_prefix: service.queue_prefix,
+                            description: service.description,
+                            is_active: service.is_active,
+                        };
+                        this.countersList = JSON.parse(JSON.stringify(service.counters || []));
+                    } else {
+                        this.editingService = null;
+                        this.serviceForm = {
+                            service_name: '',
+                            queue_prefix: '',
+                            description: '',
+                            is_active: true,
+                        };
+                        this.countersList = [];
+                    }
+                    this.showServiceDialog = true;
                 },
 
-                openEditDialog(service) {
-                    this.editingService = service;
-                    this.form = {
-                        name: service.name,
-                        code: service.code,
-                        estimatedTime: service.estimated_time,
-                        color: service.color,
+                addCounter() {
+                    this.countersList.push({
+                        id: null,
+                        counter_number: '',
+                    });
+                },
+
+                removeCounter(index) {
+                    this.countersList.splice(index, 1);
+                },
+
+                async saveService() {
+                    const url = this.editingService ?
+                        `/services/${this.editingService.id}` :
+                        '/services';
+                    const method = this.editingService ? 'PATCH' : 'POST';
+
+                    const payload = {
+                        ...this.serviceForm,
+                        counters: this.countersList,
                     };
-                    this.dialogOpen = true;
+
+                    try {
+                        const response = await fetch(url, {
+                            method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                            },
+                            body: JSON.stringify(payload),
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.fetchServices();
+                            this.showServiceDialog = false;
+                        } else {
+                            alert(result.message || 'Terjadi kesalahan');
+                        }
+                    } catch (error) {
+                        console.error('Error saving service:', error);
+                    }
+                },
+
+                async deleteService(id) {
+                    if (!confirm('Hapus layanan dan semua counter-nya?')) return;
+
+                    try {
+                        const response = await fetch(`/services/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                            },
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.fetchServices();
+                        }
+                    } catch (error) {
+                        console.error('Error deleting service:', error);
+                    }
+                },
+
+                async toggleService(id) {
+                    try {
+                        const response = await fetch(`/services/${id}/toggle`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                            },
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.fetchServices();
+                        }
+                    } catch (error) {
+                        console.error('Error toggling service:', error);
+                    }
+                },
+
+                editService(service) {
+                    this.openServiceDialog(service);
                 },
             };
         }

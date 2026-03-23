@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'instance_id',  // Tambahkan ini
+        'role',
+        'is_active',
     ];
 
     /**

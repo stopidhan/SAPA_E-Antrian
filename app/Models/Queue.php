@@ -32,6 +32,11 @@ class Queue extends Model
         return $this->belongsTo(Instance::class);
     }
 
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);
