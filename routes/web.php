@@ -1,38 +1,32 @@
 <?php
 
+use App\Http\Controllers\BookingOnlineController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('booking.register');
 });
 
 // ==========================================
 // Booking — Pendaftaran Antrean Online
 // ==========================================
-Route::get('/booking', function () {
-    return view('booking.login');
-})->name('booking.login');
-
-Route::get('/booking/dashboard', function () {
-    return view('booking.dashboard');
-})->name('booking.dashboard');
+Route::get('/booking', [BookingOnlineController::class, 'halamanRegister'])->name('booking.register');
+Route::post('/booking', [BookingOnlineController::class, 'prosesRegister'])->name('booking.register.submit');
+Route::get('/booking/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
+Route::post('/booking/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
 Route::get('/booking/konfirmasi', function () {
     return view('booking.konfirmasi');
 })->name('booking.konfirmasi');
 
-Route::get('/booking/tiket', function () {
-    return view('booking.tiket');
-})->name('booking.tiket');
+Route::get('/booking/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
 
 Route::get('/booking/riwayat', function () {
     return view('booking.riwayat');
 })->name('booking.riwayat');
 
-Route::get('/booking/inventory', function () {
-    return view('booking.inventory');
-})->name('booking.inventory');
+Route::get('/booking/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
 
 // ==========================================
 // Kiosk — Mesin Kiosk Layar Sentuh (On-Site)

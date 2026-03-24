@@ -19,38 +19,16 @@
 <body class="bg-gray-200 antialiased">
 
 @php
-    $slug = request('layanan', 'pelayanan-kk');
-
-    $tiketData = [
-        'pelayanan-ktp' => (object)[
-            'nomorAntrean' => 'A-024',
-            'kodeBooking'  => 'BKG-32624504',
-            'layanan'      => 'Pelayanan KTP',
-        ],
-        'pelayanan-kk' => (object)[
-            'nomorAntrean' => 'B-007',
-            'kodeBooking'  => 'BKG-41283756',
-            'layanan'      => 'Pelayanan KK',
-        ],
-        'pelayanan-akta' => (object)[
-            'nomorAntrean' => 'C-012',
-            'kodeBooking'  => 'BKG-58493102',
-            'layanan'      => 'Pelayanan Akta',
-        ],
-    ];
-
-    $currentTiket = $tiketData[$slug] ?? $tiketData['pelayanan-kk'];
-    $nomorAntrean  = $currentTiket->nomorAntrean;
-    $kodeBooking   = $currentTiket->kodeBooking;
-    $layanan       = $currentTiket->layanan;
-    $nama          = 'Khairuddin Al Fadhilah';
-    $whatsapp      = '081234567890';
-
-    // Batas waktu kedatangan: 30 menit dari sekarang (simulasi)
-    $batasWaktu    = now()->addMinutes(30)->toIso8601String();
+    $nomorAntrean = $nomorAntrean ?? '-';
+    $kodeBooking = $kodeBooking ?? '-';
+    $layanan = $layanan ?? 'Layanan';
+    $nama = $nama ?? session('nama', '-');
+    $whatsapp = $whatsapp ?? session('whatsapp', '-');
+    $batasWaktu = $batasWaktu ?? now()->toIso8601String();
+    $isExpired = (bool) ($isExpired ?? false);
 @endphp
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== HEADER SUKSES (Hijau) ====== --}}
     <div class="bg-emerald-600 rounded-b-[2.5rem] px-6 pt-10 pb-20 text-center relative overflow-hidden">
@@ -67,17 +45,19 @@
     </div>
 
     {{-- ====== CARD UTAMA (Menimpa header) ====== --}}
-    <div class="flex-1 px-5 -mt-12 pb-28 relative z-10 space-y-4">
+    <div class="flex-1 px-4 sm:px-5 -mt-12 pb-28 relative z-10 space-y-4">
         <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
 
             {{-- Badge Tersimpan --}}
-            <div class="flex items-center justify-center gap-2 bg-emerald-50 border-b border-emerald-100 py-2">
+            <div class="flex items-center justify-center gap-2 {{ $isExpired ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100' }} border-b py-2">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p class="text-[11px] font-semibold text-emerald-700">Tiket Tersimpan di Perangkat Anda</p>
+                <p class="text-[11px] font-semibold {{ $isExpired ? 'text-red-700' : 'text-emerald-700' }}">
+                    {{ $isExpired ? 'Tiket Hangus (Tidak Bisa Digunakan)' : 'Tiket Tersimpan di Perangkat Anda' }}
+                </p>
             </div>
 
             {{-- Countdown Timer --}}
-            <div class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}')" x-init="startTimer()">
+            <div class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}', {{ $isExpired ? 'true' : 'false' }})" x-init="startTimer()">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     <div class="flex items-center justify-center gap-2 mb-1.5">
                         <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -100,7 +80,7 @@
                         </div>
                     </div>
                     <p class="text-[10px] text-amber-600 mt-2 leading-relaxed" x-show="!expired">Segera menuju instansi sebelum waktu habis</p>
-                    <p class="text-[10px] text-red-600 font-bold mt-2" x-show="expired" x-cloak>Waktu kedatangan telah habis! Hubungi petugas.</p>
+                    <p class="text-[10px] text-red-600 font-bold mt-2" x-show="expired" x-cloak>Waktu kedatangan habis. Tiket hangus dan tidak bisa dipakai lagi.</p>
                 </div>
             </div>
 
@@ -109,7 +89,7 @@
                 <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-widest mb-3">QR Code Anda</p>
 
                 {{-- QR Placeholder --}}
-                <div class="w-40 h-40 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto border-2 border-dashed border-gray-200">
+                <div class="w-40 h-40 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto border-2 border-dashed border-gray-200 relative overflow-hidden">
                     <div class="text-center">
                         <svg class="w-14 h-14 text-gray-300 mx-auto mb-1.5" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
@@ -117,6 +97,11 @@
                         </svg>
                         <p class="text-[10px] text-gray-400 font-medium">QR Code</p>
                     </div>
+                    @if($isExpired)
+                        <div class="absolute inset-0 bg-red-700/75 backdrop-blur-[1px] flex items-center justify-center px-2">
+                            <p class="text-white text-xs font-bold text-center">TIKET HANGUS</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -201,11 +186,11 @@
     </div>
 
     {{-- ====== TOMBOL AKSI (STICKY BOTTOM) ====== --}}
-    <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+    <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-4 sm:px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         {{-- Unduh QR Full Width --}}
-        <button class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 border-blue-300 text-blue-600 text-xs font-bold rounded-xl hover:bg-blue-50 active:bg-blue-100 transition">
+        <button class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 text-xs font-bold rounded-xl transition {{ $isExpired ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-300 text-blue-600 hover:bg-blue-50 active:bg-blue-100' }}" {{ $isExpired ? 'disabled' : '' }}>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-            Unduh Gambar QR Code
+            {{ $isExpired ? 'Tiket Hangus' : 'Unduh Gambar QR Code' }}
         </button>
         {{-- Dashboard --}}
         <a href="{{ route('booking.dashboard') }}"
@@ -218,10 +203,14 @@
 
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-    function countdown(deadline) {
+    function countdown(deadline, alreadyExpired = false) {
         return {
             hours: '00', minutes: '00', seconds: '00', expired: false, interval: null,
             startTimer() {
+                if (alreadyExpired) {
+                    this.expired = true;
+                    return;
+                }
                 const end = new Date(deadline).getTime();
                 this.update(end);
                 this.interval = setInterval(() => this.update(end), 1000);

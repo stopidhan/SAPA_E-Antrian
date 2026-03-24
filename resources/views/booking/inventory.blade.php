@@ -19,37 +19,10 @@
 <body class="bg-gray-200 antialiased">
 
 @php
-    $savedTickets = [
-        (object)[
-            'nomor'      => 'A-024',
-            'kode'       => 'BKG-32624504',
-            'layanan'    => 'Pelayanan KTP',
-            'kodeHuruf'  => 'A',
-            'tanggal'    => '04 Mar 2026',
-            'status'     => 'Menunggu',
-            'batasWaktu' => now()->addMinutes(18)->toIso8601String(),
-            'warnaBg'    => 'bg-blue-600',
-            'warnaText'  => 'text-blue-600',
-            'warnaLight' => 'bg-blue-50',
-            'warnaBorder'=> 'border-blue-100',
-        ],
-        (object)[
-            'nomor'      => 'B-007',
-            'kode'       => 'BKG-41283756',
-            'layanan'    => 'Pelayanan KK',
-            'kodeHuruf'  => 'B',
-            'tanggal'    => '04 Mar 2026',
-            'status'     => 'Menunggu',
-            'batasWaktu' => now()->addMinutes(25)->toIso8601String(),
-            'warnaBg'    => 'bg-emerald-600',
-            'warnaText'  => 'text-emerald-600',
-            'warnaLight' => 'bg-emerald-50',
-            'warnaBorder'=> 'border-emerald-100',
-        ],
-    ];
+    $savedTickets = collect($savedTickets ?? []);
 @endphp
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== TOP BAR ====== --}}
     <nav class="bg-white sticky top-0 z-30 shadow-sm">
@@ -63,10 +36,10 @@
     </nav>
 
     {{-- ====== CONTENT ====== --}}
-    <div class="flex-1 px-4 py-4">
+    <div class="flex-1 px-4 sm:px-5 py-4">
 
         {{-- Summary --}}
-        <div class="flex items-center gap-2 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
             <div class="flex-1 bg-white border border-gray-100 rounded-lg px-2.5 py-2.5 text-center shadow-sm">
                 <p class="text-sm font-black text-emerald-600">{{ collect($savedTickets)->where('status', 'Menunggu')->count() }}</p>
                 <p class="text-[9px] text-gray-400 font-medium">Menunggu</p>
@@ -85,7 +58,7 @@
 
         {{-- Ticket List --}}
         @if(count($savedTickets) > 0)
-        <div class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             @foreach($savedTickets as $ticket)
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 {{-- Status Banner --}}
@@ -94,8 +67,8 @@
                         <svg class="w-3.5 h-3.5 {{ $ticket->warnaText }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span class="text-[10px] font-semibold {{ $ticket->warnaText }}">Tersimpan</span>
                     </div>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white/80 text-[9px] font-semibold text-amber-600 rounded-full border border-amber-200">
-                        <span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span> {{ $ticket->status }}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white/80 text-[9px] font-semibold {{ $ticket->isExpired ? 'text-red-600 border-red-200' : 'text-amber-600 border-amber-200' }} rounded-full border">
+                        <span class="w-1.5 h-1.5 {{ $ticket->isExpired ? 'bg-red-400' : 'bg-amber-400 animate-pulse' }} rounded-full"></span> {{ $ticket->status }}
                     </span>
                 </div>
 
@@ -105,7 +78,7 @@
                         <div class="flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="text-[10px] font-semibold text-amber-700" x-show="!expired">Sisa waktu datang</span>
-                            <span class="text-[10px] font-bold text-red-600" x-show="expired" x-cloak>Waktu habis!</span>
+                            <span class="text-[10px] font-bold text-red-600" x-show="expired" x-cloak>Tiket hangus!</span>
                         </div>
                         <div class="flex items-center gap-0.5" x-show="!expired">
                             <span class="bg-white text-[10px] font-black text-amber-700 px-1.5 py-0.5 rounded border border-amber-200" x-text="hours">00</span>
@@ -121,7 +94,7 @@
                 <div class="p-3.5">
                     <div class="flex items-center gap-3">
                         {{-- Mini QR --}}
-                        <a href="{{ route('booking.tiket', ['layanan' => strtolower(str_replace(' ', '-', $ticket->layanan))]) }}" class="shrink-0">
+                        <a href="{{ route('booking.tiket', ['queue_id' => $ticket->queueId]) }}" class="shrink-0 {{ $ticket->isExpired ? 'pointer-events-none opacity-50' : '' }}">
                             <div class="w-14 h-14 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center hover:border-blue-300 transition">
                                 <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
@@ -143,13 +116,13 @@
                     </div>
 
                     {{-- Action Buttons --}}
-                    <div class="flex items-center gap-2 mt-3">
-                        <a href="{{ route('booking.tiket', ['layanan' => strtolower(str_replace(' ', '-', $ticket->layanan))]) }}"
-                           class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mt-3">
+                        <a href="{{ route('booking.tiket', ['queue_id' => $ticket->queueId]) }}"
+                           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-white text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'bg-gray-300 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }}">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
-                            Buka QR
+                            {{ $ticket->isExpired ? 'Tiket Hangus' : 'Buka QR' }}
                         </a>
-                        <button class="flex-1 flex items-center justify-center gap-1.5 py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg hover:bg-gray-50 transition">
+                        <button class="flex-1 flex items-center justify-center gap-1.5 py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
                             Unduh QR
                         </button>
