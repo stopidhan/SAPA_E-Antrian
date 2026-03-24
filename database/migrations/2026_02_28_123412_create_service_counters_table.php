@@ -6,17 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('service_counters', function (Blueprint $table) {
             $table->id();
             $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
 
-            $table->string('counter_name');
-            $table->string('counter_code')->nullable();
+            $table->string('counter_number');
 
             $table->boolean('is_active')->default(true);
 
@@ -24,9 +21,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('service_counters');

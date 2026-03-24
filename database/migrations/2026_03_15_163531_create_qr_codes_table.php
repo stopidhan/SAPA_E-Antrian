@@ -11,14 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('instances', function (Blueprint $table) {
+        Schema::create('qr_codes', function (Blueprint $table) {
             $table->id();
-            $table->uuid('instance_code')->unique();
-            $table->string('instance_name');
-            $table->text('address')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('email')->nullable();
-            $table->string('logo')->nullable();
+            $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
+            $table->text('qr_data');
             $table->timestamps();
         });
     }
@@ -28,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('instances');
+        Schema::dropIfExists('qr_codes');
     }
 };

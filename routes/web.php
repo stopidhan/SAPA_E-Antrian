@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\BookingOnlineController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceCounterController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -60,6 +63,44 @@ Route::get('/monitor', function () {
 Route::get('/operator', function () {
     return view('operator.index');
 })->name('operator.dashboard');
+
+
+// ==========================================
+Route::get('/superadmin', function () {
+    return view('Pages.AdminInstansi.superAdmin');
+})->name('superadmin.dashboard');
+
+Route::get('/profile-instance', function () {
+    return view('Pages.AdminInstansi.profileInstance');
+})->name('profile.instance');
+
+Route::get('/report', function () {
+    return view('Pages.AdminInstansi.report');
+})->name('superadmin.report');
+
+Route::get('/management-user', function () {
+    return view('Pages.AdminInstansi.managementUser');
+})->name('management.user');
+
+Route::get('/activity-log', function () {
+    return view('Pages.AdminInstansi.activityLog');
+})->name('activity.log');
+
+Route::get('/supervisor', function () {
+    return view('Pages.KepalaLayanan.superVisor');
+})->name('supervisor.dashboard');
+
+Route::get('/content', function () {
+    return view('Pages.StaffKonten.staffContent');
+})->name('content.dashboard');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('services', ServiceController::class);
+    Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
+    Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])->name('services.toggle');
+});
+
+// --- TESTES ---
 
 Route::get('/dashboard', function () {
     return view('dashboard');
