@@ -25,7 +25,7 @@
 @php
     // Simulasi state — ubah ke true untuk melihat state "terkunci"
     $hasActiveQueue = false;
-    $namaUser = request('nama', 'Khairuddin Al Fadhilah');
+    $namaUser = session('nama', 'Khairuddin Al Fadhilah');
     $nomorAntrean = 'B-007';
 
     $services = [
@@ -89,12 +89,12 @@
     ];
 @endphp
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== TOP BAR ====== --}}
     <nav class="bg-white sticky top-0 z-30 shadow-sm">
-        <div class="flex items-center justify-between px-5 py-3.5">
-            <div class="flex items-center gap-2.5 min-w-0">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5">
+            <div class="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
                 <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
                     <span class="text-white text-[10px] font-black">SAPA</span>
                 </div>
@@ -103,7 +103,7 @@
                     <p class="text-sm font-bold text-gray-900 truncate">{{ $namaUser }}</p>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
                 <a href="{{ route('booking.inventory') }}" class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"/></svg>
                     Tiket
@@ -126,7 +126,7 @@
     </div>
     @endif
 
-    <div class="flex-1 px-5 pt-5 pb-8">
+    <div class="flex-1 px-4 sm:px-5 pt-5 pb-8">
 
         {{-- ====== STATE 1: ANTREAN AKTIF (TERKUNCI) ====== --}}
         @if($hasActiveQueue)
@@ -177,7 +177,7 @@
                     <p class="text-[11px] font-semibold text-emerald-700">Tiket Tersimpan — Siap Scan di Kiosk</p>
                 </div>
                 <div class="p-4">
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         {{-- Mini QR Preview --}}
                         <a href="{{ route('booking.tiket') }}" class="shrink-0">
                             <div class="w-20 h-20 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center hover:border-blue-300 transition">
@@ -251,7 +251,7 @@
                 </div>
                 <span class="text-[10px] text-gray-400">{{ now()->format('d M Y') }}</span>
             </div>
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex flex-col sm:flex-row items-center gap-2 mb-2">
                 <div class="flex-1 bg-indigo-50 rounded-xl px-3 py-2.5 text-center">
                     <p class="text-lg font-black text-indigo-700">{{ $totalKuota }}</p>
                     <p class="text-[9px] text-gray-400 font-medium">Total Kuota</p>
@@ -273,7 +273,7 @@
         @endif
 
         {{-- ====== STATE 2: DAFTAR LAYANAN (ACCORDION) ====== --}}
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($services as $svc)
             <div x-data="{ expanded: false }"
                  class="bg-white rounded-2xl border {{ $svc->border }} shadow-sm {{ $svc->shadow }} overflow-hidden transition-all duration-300 {{ $hasActiveQueue ? 'opacity-50 pointer-events-none' : '' }}">

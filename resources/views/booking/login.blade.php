@@ -16,10 +16,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>[x-cloak]{display:none!important}body{font-family:'Figtree',sans-serif}</style>
 </head>
-<body class="bg-gray-200 antialiased">
+<body class="bg-gray-200 antialiased md:flex md:items-center md:justify-center md:px-4">
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col"
-     x-data="{ captchaChecked: false }">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen md:min-h-[80vh] md:mt-10 bg-gray-50 relative flex flex-col">
      <div class="px-6 mt-8">
 
     {{-- ====== HEADER BIRU ====== --}}
@@ -47,7 +46,20 @@
             </div>
 
             {{-- Form --}}
-            <form action="{{ route('booking.dashboard') }}" method="GET" class="space-y-5">
+            <form action="{{ route('booking.register.submit') }}" method="POST" class="space-y-5">
+                @csrf
+
+                @if ($errors->has('booking_register'))
+                    <div class="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
+                        {{ $errors->first('booking_register') }}
+                    </div>
+                @endif
+
+                @if ($errors->has('limit_booking'))
+                    <div class="px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
+                        {{ $errors->first('limit_booking') }}
+                    </div>
+                @endif
 
                 {{-- Input: WhatsApp --}}
                 <div>
@@ -58,9 +70,13 @@
                         </span>
                         <input name="whatsapp" type="tel" inputmode="numeric" maxlength="15" required
                                placeholder="08xx xxxx xxxx"
+                               value="{{ old('whatsapp') }}"
                                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                                class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition">
                     </div>
+                    @error('whatsapp')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Input: Nama --}}
@@ -72,33 +88,31 @@
                         </span>
                         <input name="nama" type="text" required
                                placeholder="Masukkan nama lengkap"
+                               value="{{ old('nama') }}"
                                class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition">
                     </div>
+                    @error('nama')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                {{-- reCAPTCHA Tiruan --}}
+                {{-- Google reCAPTCHA --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1.5">Verifikasi Keamanan</label>
-                    <div class="flex items-center justify-between border border-gray-200 rounded-xl bg-gray-50 px-4 py-3 cursor-pointer hover:bg-gray-100 transition"
-                         @click="captchaChecked = !captchaChecked">
-                        <div class="flex items-center gap-3">
-                            <div class="w-6 h-6 border-2 rounded flex items-center justify-center transition-all"
-                                 :class="captchaChecked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'">
-                                <svg x-show="captchaChecked" x-cloak class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                            <span class="text-sm text-gray-600">Saya bukan robot</span>
-                        </div>
-                        <div class="flex flex-col items-center opacity-50">
-                            <svg class="w-7 h-7 text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                            <span class="text-[8px] text-gray-400">reCAPTCHA</span>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <div class="g-recaptcha" data-sitekey="{{ env('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI') }}"></div>
                     </div>
+                    @error('g-recaptcha-response')
+                        <p class="mt-1 text-xs text-red-600">Silakan centang reCAPTCHA terlebih dahulu.</p>
+                    @enderror
+                    @error('captcha')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Tombol Masuk --}}
                 <button type="submit"
-                        :disabled="!captchaChecked"
-                        class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-600">
+                        class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-200 transition">
                     Masuk
                 </button>
             </form>
@@ -110,5 +124,6 @@
 </div>
 
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>
