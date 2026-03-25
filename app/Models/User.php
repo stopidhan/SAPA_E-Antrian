@@ -21,7 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'instance_id',  // Tambahkan ini
+        'instance_id',
         'role',
         'is_active',
     ];

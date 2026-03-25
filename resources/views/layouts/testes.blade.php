@@ -77,7 +77,7 @@
     @stack('head-scripts')
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: window.innerWidth >= 1024, mounted: false }" x-init="$nextTick(() => mounted = true)">
 
     @includeWhen(!isset($hideNavbar) || !$hideNavbar, 'components.navbar', [
         'withSidebar' => $withSidebar ?? false,
@@ -85,7 +85,8 @@
 
     {{-- Content — margin kiri otomatis ikut lebar sidebar --}}
     @if (isset($withSidebar) && $withSidebar)
-        <div class="transition-all duration-300" :class="sidebarOpen ? 'lg:ml-[250px]' : 'lg:ml-[64px]'">
+        <div :class="mounted && 'transition-all duration-300'"
+            :style="sidebarOpen ? 'margin-left: 250px' : 'margin-left: 64px'">
             @yield('content')
         </div>
     @else

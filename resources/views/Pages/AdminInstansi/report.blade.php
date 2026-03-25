@@ -3,6 +3,7 @@
 @section('title', 'Laporan & Statistik - SAPA')
 
 @php
+
     $withSidebar = true;
 
     // {{-- Dummy data pengganti variabel dari controller --}}
@@ -222,7 +223,7 @@
                     'Aksi',
                 ]" :rows="$queueData" emptyMessage="Tidak ada data antrean">
                     @foreach ($queueData as $item)
-                        <tr class="hover:bg-gray-50">
+                        <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-4 py-3 font-mono font-bold">{{ $item->queue_number }}</td>
                             <td class="px-4 py-3">{{ $item->service_name }}</td>
                             <td class="px-4 py-3">
@@ -242,7 +243,8 @@
                                 <x-label-status type="status" :value="$item->status" />
                             </td>
                             <td class="px-4 py-3">
-                                <x-action-buttons :view="true" :edit="false" :delete="false" />
+                                <x-action-buttons :view="true" viewAction="openDetailModal" :edit="false"
+                                    :delete="false" />
                             </td>
                         </tr>
                     @endforeach

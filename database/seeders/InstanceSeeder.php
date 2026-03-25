@@ -16,6 +16,7 @@ class InstanceSeeder extends Seeder
             'address' => 'Jl. Merdeka No. 123, Kota',
             'phone' => '081234567890',
             'email' => 'kantor@kecamatan.go.id',
+            'website' => 'https://kecamatan.go.id',
             'logo' => null
         ]);
 
@@ -25,6 +26,7 @@ class InstanceSeeder extends Seeder
             'address' => 'Jl. Kesehatan No. 456, Kota',
             'phone' => '081234567891',
             'email' => 'puskesmas@kota.go.id',
+            'website' => 'https://puskesmas.kota.go.id',
             'logo' => null
         ]);
     }

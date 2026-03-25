@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ServiceCounterController;
+use App\Http\Controllers\ProfileInstanceController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -76,17 +77,9 @@ Route::get('/superadmin', function () {
     return view('Pages.AdminInstansi.superAdmin');
 })->name('superadmin.dashboard');
 
-Route::get('/profile-instance', function () {
-    return view('Pages.AdminInstansi.profileInstance');
-})->name('profile.instance');
-
 Route::get('/report', function () {
     return view('Pages.AdminInstansi.report');
 })->name('superadmin.report');
-
-Route::get('/management-user', function () {
-    return view('Pages.AdminInstansi.managementUser');
-})->name('management.user');
 
 Route::get('/activity-log', function () {
     return view('Pages.AdminInstansi.activityLog');
@@ -104,6 +97,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('services', ServiceController::class);
     Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
     Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])->name('services.toggle');
+
+    Route::get('/management-user', [UserManagementController::class, 'index'])->name('management.user');
+    Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/toggle', [UserManagementController::class, 'toggleStatus'])->name('users.toggle');
+    Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    Route::get('/profile-instance', [ProfileInstanceController::class, 'edit'])->name('profile.instance');
+    Route::patch('/profile-instance', [ProfileInstanceController::class, 'update'])->name('profile.instance.update');
+
+    Route::get('/report', [ReportController::class, 'index'])->name('superadmin.report');
+
+
 });
 
 // --- TESTES ---

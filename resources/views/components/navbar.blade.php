@@ -42,8 +42,10 @@
     {{-- ===== SIDEBAR ===== --}}
     <aside
         class="bg-white border-r border-gray-100 h-screen fixed top-0 left-0 z-50
-                  transition-all duration-300 flex flex-col overflow-hidden"
-        :class="sidebarOpen ? 'w-[250px] translate-x-0' : 'w-[64px] -translate-x-full lg:translate-x-0'">
+              flex flex-col overflow-hidden"
+        :class="[$nextTick && mounted ? 'transition-all duration-300' : '',
+            sidebarOpen ? 'w-[250px] translate-x-0' : 'w-[64px] -translate-x-full lg:translate-x-0'
+        ]">
 
         {{-- Logo Header --}}
         <div class="h-[57px] shrink-0 flex items-center border-b border-gray-100 px-3 gap-3"
@@ -109,8 +111,10 @@
     </div>
 
     {{-- Top Navbar --}}
-    <nav class="bg-white shadow-sm sticky top-0 z-30 border-b border-gray-100 transition-all duration-300"
-        :class="sidebarOpen ? 'lg:ml-[250px]' : 'lg:ml-[64px]'">
+    <nav class="bg-white shadow-sm sticky top-0 z-30 border-b border-gray-100"
+        :class="[mounted && 'transition-all duration-300',
+            sidebarOpen ? 'lg:ml-[250px]' : 'lg:ml-[64px]'
+        ]">
         <div class="px-6 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <button @click="sidebarOpen = !sidebarOpen"

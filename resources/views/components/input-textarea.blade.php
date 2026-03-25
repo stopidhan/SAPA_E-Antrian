@@ -17,8 +17,8 @@
             {{ $label }}
         </label>
     @endif
-    <textarea name="{{ $name }}" x-model="form.{{ $name }}" @input="hasChanges = true"
-        rows="{{ $rows }}" placeholder="{{ $placeholder }}"
+    <textarea name="{{ $name }}" @change="hasChanges = true" rows="{{ $rows }}"
+        placeholder="{{ $placeholder }}"
         class="{{ $textareaClass }} @if ($readonly) cursor-not-allowed pointer-events-none @endif"
         @if ($required) required @endif @if ($readonly) readonly @endif>{{ $value }}</textarea>
 </div>

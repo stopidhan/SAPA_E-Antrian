@@ -15,6 +15,7 @@ class Instance extends Model
         'address',
         'phone',
         'email',
+        'website',
         'logo'
     ];
 

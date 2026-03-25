@@ -10,7 +10,7 @@
     <div class="bg-gray-50" x-data="instansiPage()" x-init="init()">
 
         <main class="container mx-auto px-4 py-8">
-            <form id="instansi-form">
+            <form id="instansi-form" @submit.prevent="saveAll" @input="hasChanges = true">
 
                 <div class="space-y-6">
 
@@ -31,7 +31,7 @@
                             <div class="flex flex-col md:flex-row gap-8">
 
                                 {{-- Logo upload (kiri) --}}
-                                <div class="flex flex-col items-center gap-4 md:w-48 flex-shrink-0" x-data="{ preview: '' }">
+                                <div class="flex flex-col items-center gap-4 md:w-48 flex-shrink-0" x-data="{ preview: '{{ $instance->logo ? asset('storage/' . $instance->logo) : '' }}' }">
                                     <div
                                         class="w-36 h-36 bg-gray-100 rounded-xl overflow-hidden border-2 border-gray-200 flex items-center justify-center">
                                         <img x-show="preview" :src="preview" alt="Logo Instansi"
@@ -46,8 +46,19 @@
                                         </div>
                                     </div>
 
-                                    <x-button variant="dotted" size="sm" class="px-6"
-                                        icon='<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>'>
+                                    <input type="file" name="logo" id="logo-input" class="hidden" accept="image/*"
+                                        @change="
+                                            if ($el.files[0]) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => { preview = e.target.result; };
+                                                reader.readAsDataURL($el.files[0]);
+                                                hasChanges = true;
+                                            }
+                                        ">
+
+                                    <x-button type="button" variant="dotted" size="sm" class="px-6"
+                                        icon='<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>'
+                                        @click="document.getElementById('logo-input').click()">
                                         Upload Logo
                                     </x-button>
                                     <p class="text-xs text-center text-gray-400 leading-tight">
@@ -65,54 +76,45 @@
                                     <div class="grid grid-cols-4 sm:grid-cols-4 gap-4">
 
                                         <div class="col-span-4 sm:col-span-3 space-y-1.5">
-                                            <x-input-text name="nama" label="Nama Instansi"
-                                                placeholder="Nama lengkap instansi" value="" required="true" />
+                                            <x-input-text name="instance_name" label="Nama Instansi"
+                                                placeholder="Nama lengkap instansi" :value="$instance->instance_name ?? ''"
+                                                @change="hasChanges = true" required="true" />
                                         </div>
 
                                         <div class="col-span-4 sm:col-span-1 space-y-1.5">
-                                            <x-input-text name="kode" label="Kode Instansi" placeholder="Kode instansi"
-                                                value="" readonly="true" />
+                                            <x-input-text name="instance_code" label="Kode Instansi"
+                                                placeholder="Kode instansi" :value="$instance->instance_code ?? ''" readonly="true" />
                                         </div>
                                     </div>
-
-                                    {{-- Deskripsi --}}
-                                    <x-input-textarea name="deskripsi" label="Deskripsi"
-                                        placeholder="Deskripsi singkat tentang instansi" rows="3" />
-
-                                    <hr class="border-gray-100">
 
                                     {{-- Telepon & Email --}}
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {{-- Telepon --}}
-                                        <x-input-text name="telepon" label="Telepon" placeholder="(022) 1234567" />
+                                        <x-input-text name="phone" label="Telepon" placeholder="(022) 1234567"
+                                            :value="$instance->phone ?? ''" @change="hasChanges = true" />
 
                                         {{-- Email --}}
-                                        <x-input-text name="email" label="Email" placeholder="info@instansi.go.id" />
+                                        <x-input-text name="email" label="Email" placeholder="info@instansi.go.id"
+                                            :value="$instance->email ?? ''" @change="hasChanges = true" />
                                     </div>
 
                                     {{-- Website --}}
-                                    <x-input-text name="website" label="Website" placeholder="https://instansi.go.id" />
+                                    <x-input-text name="website" label="Website" placeholder="https://instansi.go.id"
+                                        :value="$instance->website ?? ''" @change="hasChanges = true" />
 
                                     <hr class="border-gray-100">
 
                                     {{-- Alamat Lengkap --}}
-                                    <x-input-textarea name="alamat" label="Alamat Lengkap"
-                                        placeholder="Jalan, nomor, RT/RW" rows="2" />
-
-                                    {{-- Kota, Provinsi, Kode Pos --}}
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <x-input-text name="kota" label="Kota / Kabupaten" placeholder="Bandung" />
-                                        <x-input-text name="provinsi" label="Provinsi" placeholder="Jawa Barat"
-                                            value="Jawa Barat" />
-                                        <x-input-number name="kode_pos" label="Kode Pos" placeholder="40117" value="40117"
-                                            maxlength="5" />
-                                    </div>
+                                    <x-input-textarea name="address" label="Alamat Lengkap"
+                                        placeholder="Jalan, nomor, RT/RW" rows="3" :value="$instance->address ?? ''"
+                                        @change="hasChanges = true" />
 
                                     <div class="flex justify-end gap-3">
-                                        <x-button type="reset" variant="white">
+                                        <x-button type="reset" variant="white" @click="resetForm">
                                             Reset
                                         </x-button>
-                                        <x-button type="submit" variant="primary">
+                                        <x-button type="submit" variant="primary"
+                                            x-bind:disabled="!hasChanges || isLoading">
                                             Simpan Perubahan
                                         </x-button>
                                     </div>
@@ -121,95 +123,9 @@
                         </div>
                     </div>
 
-                    {{-- ── Jam Operasional── --}}
-                    {{-- <div class="bg-white rounded-2xl border shadow-sm">
-                        <div class="p-6 border-b flex items-center gap-2">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <div>
-                                <h2 class="text-lg font-bold">Jam Operasional</h2>
-                                <p class="text-sm text-gray-500">Atur jam buka dan tutup untuk setiap hari (FR-26)</p>
-                            </div>
-                        </div>
-                        <div class="p-6 space-y-3">
-                            @php
-                                $hariList = [
-                                    'senin' => ['label' => 'Senin', 'key' => 0],
-                                    'selasa' => ['label' => 'Selasa', 'key' => 1],
-                                    'rabu' => ['label' => 'Rabu', 'key' => 2],
-                                    'kamis' => ['label' => 'Kamis', 'key' => 3],
-                                    'jumat' => ['label' => "Jum'at", 'key' => 4],
-                                    'sabtu' => ['label' => 'Sabtu', 'key' => 5],
-                                    'minggu' => ['label' => 'Minggu', 'key' => 6],
-                                ];
-
-                                $jam = [
-                                    'senin' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => false],
-                                    'selasa' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => false],
-                                    'rabu' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => false],
-                                    'kamis' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => false],
-                                    'jumat' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => false],
-                                    'sabtu' => ['buka' => '08:00', 'tutup' => '12:00', 'libur' => false],
-                                    'minggu' => ['buka' => '08:00', 'tutup' => '16:00', 'libur' => true],
-                                ];
-                            @endphp
-
-                            @foreach ($hariList as $hari => $meta)
-                                @php $jadwal = $jam[$hari]; @endphp
-                                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100"
-                                    x-data="{ libur: {{ $jadwal['libur'] ? 'true' : 'false' }} }">
-
-                                    <div class="w-20 text-sm font-semibold text-gray-700 flex-shrink-0">
-                                        {{ $meta['label'] }}
-                                    </div>
-
-                                    <div class="flex-1 grid grid-cols-2 gap-3" x-show="!libur">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs text-gray-500 w-10">Buka</span>
-                                            <input type="time" name="jam[{{ $hari }}][buka]"
-                                                value="{{ $jadwal['buka'] }}" @change="$dispatch('form-changed')"
-                                                class="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400">
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs text-gray-500 w-10">Tutup</span>
-                                            <input type="time" name="jam[{{ $hari }}][tutup]"
-                                                value="{{ $jadwal['tutup'] }}" @change="$dispatch('form-changed')"
-                                                class="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400">
-                                        </div>
-                                    </div>
-
-                                    <div x-show="libur" class="flex-1">
-                                        <span
-                                            class="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-semibold rounded-full">
-                                            Libur / Tutup
-                                        </span>
-                                    </div>
-
-                                    <input type="hidden" name="jam[{{ $hari }}][libur]"
-                                        :value="libur ? '1' : '0'">
-
-                                    <button type="button" @click="libur = !libur; hasChanges = true"
-                                        :class="libur
-                                            ?
-                                            'bg-blue-600 hover:bg-blue-700 text-white' :
-                                            'border border-gray-300 text-gray-600 hover:bg-gray-100'"
-                                        class="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
-                                        <span x-text="libur ? 'Aktifkan' : 'Libur'"></span>
-                                    </button>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div> --}}
-
                 </div>
             </form>
         </main>
-
-        {{-- Listen to form changes from child elements --}}
-        <div x-on:form-changed.window="hasChanges = true"></div>
 
     </div>
 @endsection
@@ -219,13 +135,7 @@
         function instansiPage() {
             return {
                 hasChanges: false,
-                form: {
-                    nama: 'Dinas Pelayanan Publik Kota Bandung',
-                    deskripsi: '',
-                    telepon: '',
-                    email: '',
-                    website: '',
-                },
+                isLoading: false,
 
                 init() {
                     window.addEventListener('beforeunload', (e) => {
@@ -236,10 +146,47 @@
                     });
                 },
 
-                saveAll() {
-                    alert('Fitur simpan belum terhubung ke backend.');
-                    this.hasChanges = false;
+                async saveAll() {
+                    this.isLoading = true;
+                    const formElement = document.getElementById('instansi-form');
+                    const formData = new FormData(formElement);
+
+                    try {
+                        const response = await fetch('{{ route('profile.instance.update') }}', {
+                            method: 'PATCH',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: formData,
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            alert(data.message);
+                            this.hasChanges = false;
+                        } else {
+                            if (data.errors) {
+                                let errorMsg = data.message + '\n\n';
+                                for (const [field, messages] of Object.entries(data.errors)) {
+                                    errorMsg += `${field}: ${messages.join(', ')}\n`;
+                                }
+                                alert(errorMsg);
+                                console.log('Validation errors:', data.errors);
+                            } else {
+                                alert(data.message || 'Gagal menyimpan perubahan.');
+                            }
+                        }
+                    } catch (error) {
+                        alert('Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.isLoading = false;
+                    }
                 },
+
+                resetForm() {
+                    location.reload();
+                }
             };
         }
     </script>
