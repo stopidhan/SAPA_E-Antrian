@@ -24,7 +24,7 @@
 <div x-data="operatorDashboard()" class="min-h-screen bg-slate-50 flex flex-col">
 
     {{-- Navbar --}}
-    @include('Pages.StaffOperatorLoket.partials.Navbar')
+    @include('operator.partials.navbar')
 
     {{-- ====== TOAST NOTIFICATIONS ====== --}}
     <div class="fixed top-4 right-6 z-50 space-y-2" style="min-width: 340px;">
@@ -59,14 +59,14 @@
 
         {{-- Kolom Kiri: Panel Antrean (col-span-8) --}}
         <div class="col-span-12 lg:col-span-8">
-            @include('Pages.StaffOperatorLoket.partials.Standby')
-            @include('Pages.StaffOperatorLoket.partials.Calling')
-            @include('Pages.StaffOperatorLoket.partials.Serving')
+            @include('operator.partials.standby')
+            @include('operator.partials.calling')
+            @include('operator.partials.serving')
         </div>
 
         {{-- Kolom Kanan: Sidebar (col-span-4) --}}
         <div class="col-span-12 lg:col-span-4 space-y-6">
-            @include('Pages.StaffOperatorLoket.partials.Sidebar')
+            @include('operator.partials.sidebar')
         </div>
 
     </div>

@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Queue;
-use App\Models\Service;
+use App\Models\ServiceCategory;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -17,7 +16,7 @@ class BookingOnlineController extends Controller
 
     public function halamanRegister()
     {
-        return view('Pages.Remoteuser.Login');
+        return view('booking.login');
     }
 
     public function prosesRegister(Request $request)
@@ -78,9 +77,9 @@ class BookingOnlineController extends Controller
             return redirect()->route('booking.dashboard');
         }
 
-        $layanans = Service::all();
+        $layanans = ServiceCategory::all();
 
-        return view('Pages.Remoteuser.Dashboard', compact('layanans'));
+        return view('booking.dashboard', compact('layanans'));
     }
 
     public function prosesAmbilAntrean(Request $request)
@@ -113,20 +112,20 @@ class BookingOnlineController extends Controller
 
         $slug = $validated['layanan'];
 
-        if (Service::query()->count() === 0) {
+        if (ServiceCategory::query()->count() === 0) {
             return back()
                 ->withErrors(['limit_booking' => 'Data layanan belum tersedia. Hubungi petugas untuk menyiapkan layanan terlebih dahulu.'])
                 ->withInput();
         }
 
-        $service = Service::query()
+        $serviceCategory = ServiceCategory::query()
             ->where('is_active', true)
             ->get()
             ->first(function ($item) use ($slug) {
-                return Str::slug($item->service_name) === $slug;
+                return Str::slug($item->category_name) === $slug;
             });
 
-        if (!$service) {
+        if (!$serviceCategory) {
             return back()
                 ->withErrors(['limit_booking' => 'Layanan tidak ditemukan atau tidak aktif.'])
                 ->withInput();
@@ -134,7 +133,7 @@ class BookingOnlineController extends Controller
 
         $customer = Customer::firstOrCreate(
             [
-                'instance_id' => $service->instance_id,
+                'instance_id' => $serviceCategory->instance_id,
                 'phone' => $whatsapp,
             ],
             [
@@ -148,18 +147,18 @@ class BookingOnlineController extends Controller
 
         $today = now()->toDateString();
         $todayQueueSequence = Queue::query()
-            ->where('instance_id', $service->instance_id)
-            ->where('service_id', $service->id)
+            ->where('instance_id', $serviceCategory->instance_id)
+            ->where('service_category_id', $serviceCategory->id)
             ->whereDate('queue_date', $today)
             ->count() + 1;
 
-        $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
+        $queuePrefix = $serviceCategory->queue_prefix ?: strtoupper(substr($serviceCategory->category_name, 0, 1));
         $queueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
 
         $queue = Queue::create([
-            'instance_id' => $service->instance_id,
+            'instance_id' => $serviceCategory->instance_id,
             'customer_id' => $customer->id,
-            'service_id' => $service->id,
+            'service_category_id' => $serviceCategory->id,
             'queue_number' => $queueNumber,
             'queue_date' => $today,
             'taken_time' => now()->format('H:i:s'),
@@ -170,7 +169,7 @@ class BookingOnlineController extends Controller
         session([
             'booking_last_queue_id' => $queue->id,
             'booking_last_queue_number' => $queue->queue_number,
-            'booking_last_service_name' => $service->service_name,
+            'booking_last_service_name' => $serviceCategory->category_name,
         ]);
 
         return redirect()->route('booking.tiket', ['queue_id' => $queue->id]);
@@ -190,7 +189,7 @@ class BookingOnlineController extends Controller
         $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
 
         $queueQuery = Queue::query()
-            ->with(['service', 'customer'])
+            ->with(['category', 'customer'])
             ->where('id', $queueId)
             ->where('queue_source', 'online');
 
@@ -218,74 +217,15 @@ class BookingOnlineController extends Controller
             $queue->refresh();
         }
 
-        return view('Pages.Remoteuser.Tiket', [
+        return view('booking.tiket', [
             'queue' => $queue,
-            'queueId' => $queue->id,
             'nama' => (string) optional($queue->customer)->name,
             'whatsapp' => (string) optional($queue->customer)->phone,
-            'layanan' => (string) optional($queue->service)->service_name,
+            'layanan' => (string) optional($queue->category)->category_name,
             'nomorAntrean' => (string) $queue->queue_number,
             'kodeBooking' => 'BKG-' . str_pad((string) $queue->id, 8, '0', STR_PAD_LEFT),
             'batasWaktu' => $batasWaktu->toIso8601String(),
             'isExpired' => $queue->queue_status === 'skipped',
-        ]);
-    }
-
-    public function tandaiTiketHangus(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'queue_id' => ['required', 'integer'],
-        ]);
-
-        $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
-
-        $queueQuery = Queue::query()
-            ->where('id', $validated['queue_id'])
-            ->where('queue_source', 'online');
-
-        if ($whatsapp !== '') {
-            $queueQuery->whereHas('customer', function ($query) use ($whatsapp) {
-                $query->where('phone', $whatsapp);
-            });
-        }
-
-        $queue = $queueQuery->first();
-
-        if (!$queue) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tiket tidak ditemukan.',
-            ], 404);
-        }
-
-        if ($queue->queue_status !== 'waiting') {
-            return response()->json([
-                'success' => true,
-                'expired' => $queue->queue_status === 'skipped',
-                'status' => $queue->queue_status,
-                'message' => 'Status tiket sudah diproses sebelumnya.',
-            ]);
-        }
-
-        $expiredAt = $queue->created_at
-            ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
-            : now()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
-
-        if (now()->lt($expiredAt)) {
-            return response()->json([
-                'success' => false,
-                'expired' => false,
-                'message' => 'Tiket belum melewati batas waktu.',
-            ], 422);
-        }
-
-        $queue->update(['queue_status' => 'skipped']);
-
-        return response()->json([
-            'success' => true,
-            'expired' => true,
-            'status' => 'skipped',
-            'message' => 'Tiket berhasil ditandai hangus.',
         ]);
     }
 
@@ -299,7 +239,7 @@ class BookingOnlineController extends Controller
 
         if ($whatsapp !== '') {
             $savedTickets = Queue::query()
-                ->with(['service', 'customer'])
+                ->with(['category', 'customer'])
                 ->where('queue_source', 'online')
                 ->whereHas('customer', function ($query) use ($whatsapp) {
                     $query->where('phone', $whatsapp);
@@ -308,7 +248,7 @@ class BookingOnlineController extends Controller
                 ->limit(20)
                 ->get()
                 ->map(function (Queue $queue) {
-                    $prefix = strtoupper((string) optional($queue->service)->queue_prefix);
+                    $prefix = strtoupper((string) optional($queue->category)->queue_prefix);
 
                     $colorMap = [
                         'A' => ['bg-blue-600', 'text-blue-600', 'bg-blue-50', 'border-blue-100'],
@@ -330,7 +270,7 @@ class BookingOnlineController extends Controller
                         'queueId' => $queue->id,
                         'nomor' => $queue->queue_number,
                         'kode' => 'BKG-' . str_pad((string) $queue->id, 8, '0', STR_PAD_LEFT),
-                        'layanan' => optional($queue->service)->service_name ?? 'Layanan',
+                        'layanan' => optional($queue->category)->category_name ?? 'Layanan',
                         'kodeHuruf' => $prefix !== '' ? $prefix : 'Q',
                         'tanggal' => optional($queue->queue_date)->format('d M Y') ?? now()->format('d M Y'),
                         'status' => $queue->queue_status === 'skipped'
@@ -346,7 +286,7 @@ class BookingOnlineController extends Controller
                 });
         }
 
-        return view('Pages.Remoteuser.Inventory', compact('savedTickets'));
+        return view('booking.inventory', compact('savedTickets'));
     }
 
     private function expireStaleOnlineWaitingQueues(): void

@@ -24,7 +24,6 @@
     $layanan = $layanan ?? 'Layanan';
     $nama = $nama ?? session('nama', '-');
     $whatsapp = $whatsapp ?? session('whatsapp', '-');
-    $queueId = $queueId ?? null;
     $batasWaktu = $batasWaktu ?? now()->toIso8601String();
     $isExpired = (bool) ($isExpired ?? false);
 @endphp
@@ -58,7 +57,7 @@
             </div>
 
             {{-- Countdown Timer --}}
-            <div class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}', {{ $isExpired ? 'true' : 'false' }}, {{ $queueId ? (int) $queueId : 'null' }}, '{{ route('booking.tiket.expire') }}')" x-init="startTimer()">
+            <div class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}', {{ $isExpired ? 'true' : 'false' }})" x-init="startTimer()">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     <div class="flex items-center justify-center gap-2 mb-1.5">
                         <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -204,9 +203,9 @@
 
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
-    function countdown(deadline, alreadyExpired = false, queueId = null, expireUrl = '') {
+    function countdown(deadline, alreadyExpired = false) {
         return {
-            hours: '00', minutes: '00', seconds: '00', expired: false, interval: null, expireRequested: false,
+            hours: '00', minutes: '00', seconds: '00', expired: false, interval: null,
             startTimer() {
                 if (alreadyExpired) {
                     this.expired = true;
@@ -221,32 +220,11 @@
                 const diff = end - now;
                 if (diff <= 0) {
                     this.hours = '00'; this.minutes = '00'; this.seconds = '00'; this.expired = true;
-                    this.requestExpire(queueId, expireUrl);
                     clearInterval(this.interval); return;
                 }
                 this.hours   = String(Math.floor(diff / 3600000)).padStart(2, '0');
                 this.minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
                 this.seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-            },
-            async requestExpire(queueId, expireUrl) {
-                if (this.expireRequested || !queueId || !expireUrl) return;
-                this.expireRequested = true;
-
-                try {
-                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-                    await fetch(expireUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': token,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ queue_id: queueId }),
-                    });
-                } catch (e) {
-                    // Keep UI state expired even if network call fails temporarily.
-                }
             }
         }
     }
