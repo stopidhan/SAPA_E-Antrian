@@ -52,11 +52,11 @@
     $current   = $layananData[$slug] ?? $layananData['pelayanan-kk'];
     $layanan   = $current->nama;
     $estimasi  = $current->estimasi;
-    $nama      = request('nama', 'Khairuddin Al Fadhilah');
-    $whatsapp  = request('wa', '081234567890');
+    $nama      = session('nama', 'Khairuddin Al Fadhilah');
+    $whatsapp  = session('whatsapp', '081234567890');
 @endphp
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== HEADER (Warna Sesuai Layanan) ====== --}}
     <div class="px-5 pt-5">
@@ -67,7 +67,7 @@
     </div>
 
     {{-- ====== CONTENT ====== --}}
-    <div class="flex-1 px-5 pb-28 relative z-10">
+    <div class="flex-1 px-4 sm:px-5 pb-28 relative z-10">
 
         {{-- Judul Konfirmasi --}}
         <div class="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
@@ -82,36 +82,44 @@
             </div>
         </div>
 
-        {{-- Card Detail Layanan --}}
-        <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-3">
-            <p class="text-[10px] font-semibold text-blue-500 uppercase tracking-widest mb-2">Detail Layanan</p>
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-500">Layanan</span>
-                    <span class="text-xs font-bold text-gray-900">{{ $layanan }}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-500">Estimasi Waktu</span>
-                    <span class="text-xs font-bold text-gray-900">{{ $estimasi }}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-500">Tanggal</span>
-                    <span class="text-xs font-bold text-gray-900">{{ now()->format('d M Y') }}</span>
+        @if ($errors->has('limit_booking'))
+            <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700">
+                {{ $errors->first('limit_booking') }}
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            {{-- Card Detail Layanan --}}
+            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <p class="text-[10px] font-semibold text-blue-500 uppercase tracking-widest mb-2">Detail Layanan</p>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Layanan</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $layanan }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Estimasi Waktu</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $estimasi }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Tanggal</span>
+                        <span class="text-xs font-bold text-gray-900">{{ now()->format('d M Y') }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Card Data Pendaftar --}}
-        <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-3">
-            <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest mb-2">Data Pendaftar</p>
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-500">Nama</span>
-                    <span class="text-xs font-bold text-gray-900">{{ $nama }}</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-500">WhatsApp</span>
-                    <span class="text-xs font-bold text-gray-900">{{ $whatsapp }}</span>
+            {{-- Card Data Pendaftar --}}
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest mb-2">Data Pendaftar</p>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Nama</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $nama }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">WhatsApp</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $whatsapp }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -143,18 +151,22 @@
     </div>
 
     {{-- ====== TOMBOL AKSI (STICKY BOTTOM) ====== --}}
-    <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-        <div class="grid grid-cols-2 gap-3">
+    <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-4 sm:px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a href="{{ route('booking.dashboard') }}"
                class="flex items-center justify-center gap-1.5 py-3.5 border-2 border-red-300 text-red-600 text-xs font-bold rounded-xl hover:bg-red-50 active:bg-red-100 transition">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 Tidak Bisa Hadir
             </a>
-            <a href="{{ route('booking.tiket', ['layanan' => $slug]) }}"
-               class="flex items-center justify-center gap-1.5 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                Ya, Saya Datang
-            </a>
+            <form action="{{ route('booking.ambil-antrean') }}" method="POST">
+                @csrf
+                <input type="hidden" name="layanan" value="{{ $slug }}">
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-1.5 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                    Ya, Saya Datang
+                </button>
+            </form>
         </div>
     </div>
 </div>

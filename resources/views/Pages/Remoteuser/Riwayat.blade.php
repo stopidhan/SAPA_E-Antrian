@@ -28,7 +28,7 @@
     ];
 @endphp
 
-<div class="max-w-md mx-auto min-h-screen bg-gray-50 relative flex flex-col">
+<div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== TOP BAR ====== --}}
     <nav class="bg-white sticky top-0 z-30 shadow-sm">
@@ -42,10 +42,10 @@
     </nav>
 
     {{-- ====== DAFTAR RIWAYAT ====== --}}
-    <div class="flex-1 px-4 py-4">
+    <div class="flex-1 px-4 sm:px-5 py-4">
 
         {{-- Summary --}}
-        <div class="flex items-center gap-2 mb-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
             <div class="flex-1 bg-white border border-gray-100 rounded-lg px-2.5 py-2 text-center shadow-sm">
                 <p class="text-sm font-black text-gray-900">{{ collect($riwayat)->where('status', 'Selesai')->count() }}</p>
                 <p class="text-[9px] text-gray-400 font-medium">Selesai</p>
@@ -61,7 +61,7 @@
         </div>
 
         {{-- List --}}
-        <div class="space-y-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             @foreach ($riwayat as $idx => $item)
             <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
                  x-data="{ open: false }">

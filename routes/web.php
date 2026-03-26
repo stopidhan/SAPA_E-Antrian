@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingOnlineController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProfileInstanceController;
@@ -8,67 +9,77 @@ use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('booking.register');
 });
 
 // ==========================================
 // Booking — Pendaftaran Antrean Online
 // ==========================================
-Route::get('/booking', function () {
-    return view('booking.login');
-})->name('booking.login');
+Route::get('/remoteuser', [BookingOnlineController::class, 'halamanRegister'])->name('booking.register');
+Route::post('/remoteuser', [BookingOnlineController::class, 'prosesRegister'])->name('booking.register.submit');
+Route::get('/remoteuser/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
+Route::post('/remoteuser/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
-Route::get('/booking/dashboard', function () {
-    return view('booking.dashboard');
-})->name('booking.dashboard');
-
-Route::get('/booking/konfirmasi', function () {
-    return view('booking.konfirmasi');
+Route::get('/remoteuser/konfirmasi', function () {
+    return view('Pages.Remoteuser.Konfirmasi');
 })->name('booking.konfirmasi');
 
-Route::get('/booking/tiket', function () {
-    return view('booking.tiket');
-})->name('booking.tiket');
+Route::get('/remoteuser/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
+Route::post('/remoteuser/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
 
-Route::get('/booking/riwayat', function () {
-    return view('booking.riwayat');
+Route::get('/remoteuser/riwayat', function () {
+    return view('Pages.Remoteuser.Riwayat');
 })->name('booking.riwayat');
 
-Route::get('/booking/inventory', function () {
-    return view('booking.inventory');
-})->name('booking.inventory');
+Route::get('/remoteuser/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
+
+Route::prefix('booking')->group(function () {
+    Route::redirect('/', '/remoteuser');
+    Route::redirect('/dashboard', '/remoteuser/dashboard');
+    Route::redirect('/konfirmasi', '/remoteuser/konfirmasi');
+    Route::redirect('/tiket', '/remoteuser/tiket');
+    Route::redirect('/riwayat', '/remoteuser/riwayat');
+    Route::redirect('/inventory', '/remoteuser/inventory');
+});
 
 // ==========================================
 // Kiosk — Mesin Kiosk Layar Sentuh (On-Site)
 // ==========================================
-Route::get('/kiosk', function () {
-    return view('kiosk.kiosk-home');
+Route::get('/on-site-user', function () {
+    return view('Pages.On-siteUser.KioskHome');
 })->name('kiosk.home');
 
-Route::get('/kiosk/input', function () {
-    return view('kiosk.kiosk-input');
+Route::get('/on-site-user/input', function () {
+    return view('Pages.On-siteUser.KioskInput');
 })->name('kiosk.input');
 
-Route::get('/kiosk/cetak', function () {
-    return view('kiosk.kiosk-cetak');
+Route::get('/on-site-user/cetak', function () {
+    return view('Pages.On-siteUser.KioskCetak');
 })->name('kiosk.cetak');
 
-Route::get('/kiosk/scan', function () {
-    return view('kiosk.kiosk-scan');
+Route::get('/on-site-user/scan', function () {
+    return view('Pages.On-siteUser.KioskScan');
 })->name('kiosk.scan');
+
+Route::prefix('kiosk')->group(function () {
+    Route::redirect('/', '/on-site-user');
+    Route::redirect('/input', '/on-site-user/input');
+    Route::redirect('/cetak', '/on-site-user/cetak');
+    Route::redirect('/scan', '/on-site-user/scan');
+});
 
 // ==========================================
 // Monitor — TV Ruang Tunggu (Public Display)
 // ==========================================
 Route::get('/monitor', function () {
-    return view('monitor.monitor');
+    return view('Pages.MonitorPublic.monitor');
 })->name('monitor.display');
 
 // ==========================================
 // Operator — Dashboard Operator Loket
 // ==========================================
-Route::get('/operator', function () {
-    return view('operator.index');
+Route::get('/staff-operator-loket', function () {
+    return view('Pages.StaffOperatorLoket.Index');
 })->name('operator.dashboard');
 
 
@@ -114,6 +125,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // --- TESTES ---
+
+Route::redirect('/operator', '/staff-operator-loket');
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');

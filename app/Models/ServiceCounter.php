@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class ServiceCounter extends Model
 {
     use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'instance_id',
+        'service_id',
+        'counter_number',
         'service_id',
         'counter_number',
         'is_active'
