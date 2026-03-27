@@ -2,19 +2,39 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Traits\BelongsToInstance;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Customer extends Model
+class Customer extends Authenticatable
 {
     use HasFactory, BelongsToInstance;
 
     protected $fillable = [
         'instance_id',
         'name',
-        'phone'
+        'phone',
+        'whatsapp_verified_at',
+        'otp_code_hash',
+        'otp_expires_at',
+        'otp_attempts',
+        'otp_last_sent_at',
+        'last_login_at',
     ];
+
+    protected $hidden = [
+        'otp_code_hash',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'whatsapp_verified_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
+            'otp_last_sent_at' => 'datetime',
+            'last_login_at' => 'datetime',
+        ];
+    }
 
     public function instance()
     {
