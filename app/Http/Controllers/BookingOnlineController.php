@@ -5,79 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Queue;
 use App\Models\Service;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class BookingOnlineController extends Controller
 {
     private const ONLINE_TICKET_EXPIRATION_MINUTES = 30;
 
-    public function halamanRegister()
-    {
-        return view('Pages.Remoteuser.Login');
-    }
-
-    public function prosesRegister(Request $request)
-    {
-        $validated = $request->validate([
-            'nama' => ['required'],
-            'whatsapp' => ['required'],
-            'g-recaptcha-response' => ['required'],
-        ]);
-
-        $captchaSecret = env('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe');
-        $allowLocalRecaptchaBypass = app()->environment('local') && env('RECAPTCHA_BYPASS_ON_LOCAL', true);
-
-        try {
-            $captchaVerify = Http::asForm()->timeout(10)->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret' => $captchaSecret,
-                'response' => $validated['g-recaptcha-response'],
-                'remoteip' => $request->ip(),
-            ]);
-        } catch (ConnectionException $e) {
-            if (!$allowLocalRecaptchaBypass) {
-                return back()
-                    ->withErrors(['captcha' => 'Gagal terhubung ke server reCAPTCHA. Silakan coba lagi.'])
-                    ->withInput();
-            }
-
-            $captchaVerify = null;
-        }
-
-        $captchaSuccess = $captchaVerify
-            ? data_get($captchaVerify->json(), 'success', false)
-            : $allowLocalRecaptchaBypass;
-
-        if (!$captchaSuccess) {
-            return back()
-                ->withErrors(['captcha' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.'])
-                ->withInput();
-        }
-
-        $whatsapp = preg_replace('/\D+/', '', $validated['whatsapp']);
-
-        session([
-            'nama' => $validated['nama'],
-            'whatsapp' => $whatsapp,
-        ]);
-
-        return redirect()->route('booking.dashboard');
-    }
-
     public function halamanDashboard()
     {
-        if (request()->hasAny(['nama', 'whatsapp'])) {
-            session([
-                'nama' => request('nama', session('nama')),
-                'whatsapp' => request('whatsapp', session('whatsapp')),
-            ]);
-
-            return redirect()->route('booking.dashboard');
-        }
-
         $layanans = Service::all();
 
         return view('Pages.Remoteuser.Dashboard', compact('layanans'));
@@ -89,20 +27,18 @@ class BookingOnlineController extends Controller
             'layanan' => ['required', 'string'],
         ]);
 
-        $nama = (string) session('nama', '');
-        $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
 
-        if ($nama === '' || $whatsapp === '') {
+        if (!$authCustomer) {
             return redirect()->route('booking.register')
-                ->withErrors(['booking_register' => 'Silakan register terlebih dahulu sebelum mengambil antrean.']);
+                ->withErrors(['booking_register' => 'Silakan login terlebih dahulu sebelum mengambil antrean.']);
         }
 
         $bookingTodayCount = Queue::query()
             ->whereDate('queue_date', now()->toDateString())
             ->where('queue_source', 'online')
-            ->whereHas('customer', function ($query) use ($whatsapp) {
-                $query->where('phone', $whatsapp);
-            })
+            ->where('customer_id', $authCustomer->id)
             ->count();
 
         if ($bookingTodayCount >= 2) {
@@ -132,18 +68,10 @@ class BookingOnlineController extends Controller
                 ->withInput();
         }
 
-        $customer = Customer::firstOrCreate(
-            [
-                'instance_id' => $service->instance_id,
-                'phone' => $whatsapp,
-            ],
-            [
-                'name' => $nama,
-            ]
-        );
-
-        if ($customer->name !== $nama) {
-            $customer->update(['name' => $nama]);
+        if ((int) $authCustomer->instance_id !== (int) $service->instance_id) {
+            return back()
+                ->withErrors(['limit_booking' => 'Akun customer tidak terdaftar pada instansi layanan ini.'])
+                ->withInput();
         }
 
         $today = now()->toDateString();
@@ -158,7 +86,7 @@ class BookingOnlineController extends Controller
 
         $queue = Queue::create([
             'instance_id' => $service->instance_id,
-            'customer_id' => $customer->id,
+            'customer_id' => $authCustomer->id,
             'service_id' => $service->id,
             'queue_number' => $queueNumber,
             'queue_date' => $today,
@@ -180,6 +108,14 @@ class BookingOnlineController extends Controller
     {
         $this->expireStaleOnlineWaitingQueues();
 
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
+
+        if (!$authCustomer) {
+            return redirect()->route('booking.register')
+                ->withErrors(['booking_register' => 'Silakan login terlebih dahulu.']);
+        }
+
         $queueId = (int) $request->query('queue_id', session('booking_last_queue_id'));
 
         if ($queueId <= 0) {
@@ -187,18 +123,11 @@ class BookingOnlineController extends Controller
                 ->withErrors(['ticket_not_found' => 'Tiket tidak ditemukan. Silakan ambil antrean terlebih dahulu.']);
         }
 
-        $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
-
         $queueQuery = Queue::query()
             ->with(['service', 'customer'])
             ->where('id', $queueId)
-            ->where('queue_source', 'online');
-
-        if ($whatsapp !== '') {
-            $queueQuery->whereHas('customer', function ($query) use ($whatsapp) {
-                $query->where('phone', $whatsapp);
-            });
-        }
+            ->where('queue_source', 'online')
+            ->where('customer_id', $authCustomer->id);
 
         $queue = $queueQuery->first();
 
@@ -237,17 +166,20 @@ class BookingOnlineController extends Controller
             'queue_id' => ['required', 'integer'],
         ]);
 
-        $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
+
+        if (!$authCustomer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi customer tidak ditemukan.',
+            ], 401);
+        }
 
         $queueQuery = Queue::query()
             ->where('id', $validated['queue_id'])
-            ->where('queue_source', 'online');
-
-        if ($whatsapp !== '') {
-            $queueQuery->whereHas('customer', function ($query) use ($whatsapp) {
-                $query->where('phone', $whatsapp);
-            });
-        }
+            ->where('queue_source', 'online')
+            ->where('customer_id', $authCustomer->id);
 
         $queue = $queueQuery->first();
 
@@ -293,58 +225,60 @@ class BookingOnlineController extends Controller
     {
         $this->expireStaleOnlineWaitingQueues();
 
-        $whatsapp = preg_replace('/\D+/', '', (string) session('whatsapp', ''));
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
 
-        $savedTickets = collect();
-
-        if ($whatsapp !== '') {
-            $savedTickets = Queue::query()
-                ->with(['service', 'customer'])
-                ->where('queue_source', 'online')
-                ->whereHas('customer', function ($query) use ($whatsapp) {
-                    $query->where('phone', $whatsapp);
-                })
-                ->orderByDesc('created_at')
-                ->limit(20)
-                ->get()
-                ->map(function (Queue $queue) {
-                    $prefix = strtoupper((string) optional($queue->service)->queue_prefix);
-
-                    $colorMap = [
-                        'A' => ['bg-blue-600', 'text-blue-600', 'bg-blue-50', 'border-blue-100'],
-                        'B' => ['bg-emerald-600', 'text-emerald-600', 'bg-emerald-50', 'border-emerald-100'],
-                        'C' => ['bg-amber-500', 'text-amber-600', 'bg-amber-50', 'border-amber-100'],
-                    ];
-
-                    $colors = $colorMap[$prefix] ?? ['bg-gray-600', 'text-gray-600', 'bg-gray-50', 'border-gray-100'];
-
-                    $statusMap = [
-                        'waiting' => 'Menunggu',
-                        'called' => 'Dipanggil',
-                        'serving' => 'Dilayani',
-                        'completed' => 'Selesai',
-                        'skipped' => 'Terlewat',
-                    ];
-
-                    return (object) [
-                        'queueId' => $queue->id,
-                        'nomor' => $queue->queue_number,
-                        'kode' => 'BKG-' . str_pad((string) $queue->id, 8, '0', STR_PAD_LEFT),
-                        'layanan' => optional($queue->service)->service_name ?? 'Layanan',
-                        'kodeHuruf' => $prefix !== '' ? $prefix : 'Q',
-                        'tanggal' => optional($queue->queue_date)->format('d M Y') ?? now()->format('d M Y'),
-                        'status' => $queue->queue_status === 'skipped'
-                            ? 'Hangus'
-                            : ($statusMap[$queue->queue_status] ?? ucfirst((string) $queue->queue_status)),
-                        'isExpired' => $queue->queue_status === 'skipped',
-                        'batasWaktu' => $queue->created_at ? $queue->created_at->copy()->addMinutes(30)->toIso8601String() : now()->addMinutes(30)->toIso8601String(),
-                        'warnaBg' => $colors[0],
-                        'warnaText' => $colors[1],
-                        'warnaLight' => $colors[2],
-                        'warnaBorder' => $colors[3],
-                    ];
-                });
+        if (!$authCustomer) {
+            return redirect()->route('booking.register')
+                ->withErrors(['booking_register' => 'Silakan login terlebih dahulu.']);
         }
+
+        $savedTickets = Queue::query()
+            ->with(['service', 'customer'])
+            ->where('queue_source', 'online')
+            ->where('customer_id', $authCustomer->id)
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->map(function (Queue $queue) {
+                $prefix = strtoupper((string) optional($queue->service)->queue_prefix);
+
+                $colorMap = [
+                    'A' => ['bg-blue-600', 'text-blue-600', 'bg-blue-50', 'border-blue-100'],
+                    'B' => ['bg-emerald-600', 'text-emerald-600', 'bg-emerald-50', 'border-emerald-100'],
+                    'C' => ['bg-amber-500', 'text-amber-600', 'bg-amber-50', 'border-amber-100'],
+                ];
+
+                $colors = $colorMap[$prefix] ?? ['bg-gray-600', 'text-gray-600', 'bg-gray-50', 'border-gray-100'];
+
+                $statusMap = [
+                    'waiting' => 'Menunggu',
+                    'called' => 'Dipanggil',
+                    'serving' => 'Dilayani',
+                    'completed' => 'Selesai',
+                    'skipped' => 'Terlewat',
+                ];
+
+                return (object) [
+                    'queueId' => $queue->id,
+                    'nomor' => $queue->queue_number,
+                    'kode' => 'BKG-' . str_pad((string) $queue->id, 8, '0', STR_PAD_LEFT),
+                    'layanan' => optional($queue->service)->service_name ?? 'Layanan',
+                    'kodeHuruf' => $prefix !== '' ? $prefix : 'Q',
+                    'tanggal' => optional($queue->queue_date)->format('d M Y') ?? now()->format('d M Y'),
+                    'status' => $queue->queue_status === 'skipped'
+                        ? 'Hangus'
+                        : ($statusMap[$queue->queue_status] ?? ucfirst((string) $queue->queue_status)),
+                    'isExpired' => $queue->queue_status === 'skipped',
+                    'batasWaktu' => $queue->created_at
+                        ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)->toIso8601String()
+                        : now()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)->toIso8601String(),
+                    'warnaBg' => $colors[0],
+                    'warnaText' => $colors[1],
+                    'warnaLight' => $colors[2],
+                    'warnaBorder' => $colors[3],
+                ];
+            });
 
         return view('Pages.Remoteuser.Inventory', compact('savedTickets'));
     }
