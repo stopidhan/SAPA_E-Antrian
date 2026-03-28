@@ -10,7 +10,10 @@ use App\Services\CustomerOtpNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Throwable;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -29,17 +32,23 @@ class CustomerAuthController extends Controller
         return view('Pages.Remoteuser.Login');
     }
 
-    public function sendOtp(SendCustomerOtpRequest $request): RedirectResponse
+    public function showRegisterForm(): View
+    {
+        return view('Pages.Remoteuser.Register');
+    }
+
+    public function register(SendCustomerOtpRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $inputName = trim((string) $validated['nama']);
         $phone = $validated['whatsapp'];
 
         $customer = Customer::query()->where('phone', $phone)->first();
 
         if ($customer) {
-            if ($customer->name !== $validated['nama']) {
-                $customer->update([
-                    'name' => $validated['nama'],
+            if (strcasecmp(trim((string) $customer->name), $inputName) !== 0) {
+                throw ValidationException::withMessages([
+                    'nama' => 'Nama tidak sesuai dengan nomor WhatsApp yang sudah terdaftar.',
                 ]);
             }
 
@@ -61,7 +70,7 @@ class CustomerAuthController extends Controller
 
             $customer = Customer::query()->create([
                 'instance_id' => $instanceId,
-                'name' => $validated['nama'],
+                'name' => $inputName,
                 'phone' => $phone,
             ]);
         }
@@ -69,19 +78,31 @@ class CustomerAuthController extends Controller
         $plainOtpCode = (string) random_int(100000, 999999);
 
         $customer->forceFill([
-            'otp_code_hash' => $plainOtpCode,
+            'otp_code_hash' => Hash::make($plainOtpCode),
             'otp_expires_at' => now()->addMinutes(self::OTP_EXPIRES_IN_MINUTES),
             'otp_attempts' => 0,
             'otp_last_sent_at' => now(),
         ])->save();
 
-        $this->otpNotificationService->send($customer, $plainOtpCode);
+        try {
+            $this->otpNotificationService->send($customer, $plainOtpCode);
+        } catch (Throwable $e) {
+            Log::error('OTP WhatsApp gagal dikirim', [
+                'customer_id' => $customer->id,
+                'phone' => $customer->phone,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'whatsapp' => 'OTP gagal dikirim ke WhatsApp. Silakan coba lagi.',
+            ]);
+        }
 
         Session::put('customer_auth.pending_customer_id', $customer->id);
         Session::put('customer_auth.pending_whatsapp', $customer->phone);
 
         return redirect()->route('booking.otp.form')
-            ->with('status', 'Kode OTP berhasil dikirim ke WhatsApp Anda (simulasi).');
+            ->with('status', 'Kode OTP berhasil dikirim ke WhatsApp Anda.');
     }
 
     public function showOtpForm(Request $request): View|RedirectResponse
@@ -128,7 +149,7 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-        if ((string) $validated['otp_code'] !== (string) $customer->otp_code_hash) {
+        if (!Hash::check((string) $validated['otp_code'], (string) $customer->otp_code_hash)) {
             $customer->increment('otp_attempts');
 
             throw ValidationException::withMessages([
@@ -152,6 +173,30 @@ class CustomerAuthController extends Controller
         Session::forget('url.intended');
 
         return redirect()->route('booking.dashboard');
+    }
+
+    public function login(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'whatsapp' => ['required', 'string'],
+        ]);
+
+        $phone = $validated['whatsapp'];
+
+        $customer = Customer::query()->where('phone', $phone)->first();
+
+        if (!$customer || !$customer->whatsapp_verified_at) {
+            throw ValidationException::withMessages([
+                'whatsapp' => 'Nomor WhatsApp belum terdaftar atau belum terverifikasi. Silakan daftar terlebih dahulu.',
+            ]);
+        }
+
+        $customer->update(['last_login_at' => now()]);
+
+        Auth::guard('customer')->login($customer);
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('booking.dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse

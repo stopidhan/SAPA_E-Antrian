@@ -33,6 +33,7 @@ class SendCustomerOtpRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'nama' => trim((string) $this->input('nama')),
             'whatsapp' => preg_replace('/\D+/', '', (string) $this->input('whatsapp')),
         ]);
     }

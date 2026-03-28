@@ -60,7 +60,7 @@
 
             <div class="mt-4 text-center">
                 <a href="{{ route('booking.register') }}" class="text-sm text-blue-700 hover:text-blue-800 font-semibold">
-                    Kembali ke halaman login
+                    Kembali ke halaman registrasi
                 </a>
             </div>
         </div>
