@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookingOnlineController;
+use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProfileInstanceController;
@@ -15,23 +16,31 @@ Route::get('/', function () {
 // ==========================================
 // Booking — Pendaftaran Antrean Online
 // ==========================================
-Route::get('/remoteuser', [BookingOnlineController::class, 'halamanRegister'])->name('booking.register');
-Route::post('/remoteuser', [BookingOnlineController::class, 'prosesRegister'])->name('booking.register.submit');
-Route::get('/remoteuser/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
-Route::post('/remoteuser/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
+Route::middleware('guest:customer')->group(function () {
+    Route::get('/remoteuser', [CustomerAuthController::class, 'showLoginForm'])->name('booking.register');
+    Route::post('/remoteuser/send-otp', [CustomerAuthController::class, 'sendOtp'])->name('booking.register.submit');
+    Route::get('/remoteuser/verifikasi-otp', [CustomerAuthController::class, 'showOtpForm'])->name('booking.otp.form');
+    Route::post('/remoteuser/verifikasi-otp', [CustomerAuthController::class, 'verifyOtp'])->name('booking.otp.verify');
+});
 
-Route::get('/remoteuser/konfirmasi', function () {
-    return view('Pages.Remoteuser.Konfirmasi');
-})->name('booking.konfirmasi');
+Route::middleware('auth:customer')->group(function () {
+    Route::get('/remoteuser/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
+    Route::post('/remoteuser/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
-Route::get('/remoteuser/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
-Route::post('/remoteuser/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
+    Route::get('/remoteuser/konfirmasi', function () {
+        return view('Pages.Remoteuser.Konfirmasi');
+    })->name('booking.konfirmasi');
 
-Route::get('/remoteuser/riwayat', function () {
-    return view('Pages.Remoteuser.Riwayat');
-})->name('booking.riwayat');
+    Route::get('/remoteuser/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
+    Route::post('/remoteuser/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
 
-Route::get('/remoteuser/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
+    Route::get('/remoteuser/riwayat', function () {
+        return view('Pages.Remoteuser.Riwayat');
+    })->name('booking.riwayat');
+
+    Route::get('/remoteuser/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
+    Route::post('/remoteuser/logout', [CustomerAuthController::class, 'logout'])->name('booking.logout');
+});
 
 Route::prefix('booking')->group(function () {
     Route::redirect('/', '/remoteuser');
