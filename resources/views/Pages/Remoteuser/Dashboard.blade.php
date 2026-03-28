@@ -25,7 +25,12 @@
 @php
     // Simulasi state — ubah ke true untuk melihat state "terkunci"
     $hasActiveQueue = false;
-    $namaUser = session('nama', 'Khairuddin Al Fadhilah');
+    // Ambil nama user dari auth guard customer jika login, fallback ke session, lalu default
+    $namaUser = null;
+    if (auth('customer')->check()) {
+        $namaUser = auth('customer')->user()->nama ?? auth('customer')->user()->name ?? null;
+    }
+    $namaUser = $namaUser ?? session('customer_nama') ?? 'Pengguna';
     $nomorAntrean = 'B-007';
 
     $services = [
@@ -112,6 +117,13 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Riwayat
                 </a>
+                <form method="POST" action="{{ route('booking.logout') }}" class="inline-flex">
+                    @csrf
+                    <button type="submit" class="flex items-center gap-1 text-[11px] font-semibold text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
     </nav>

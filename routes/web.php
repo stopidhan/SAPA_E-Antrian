@@ -17,8 +17,11 @@ Route::get('/', function () {
 // Booking — Pendaftaran Antrean Online
 // ==========================================
 Route::middleware('guest:customer')->group(function () {
-    Route::get('/remoteuser', [CustomerAuthController::class, 'showLoginForm'])->name('booking.register');
-    Route::post('/remoteuser/send-otp', [CustomerAuthController::class, 'sendOtp'])->name('booking.register.submit');
+    Route::get('/remoteuser/login', [CustomerAuthController::class, 'showLoginForm'])->name('booking.login');
+    Route::post('/remoteuser/login', [CustomerAuthController::class, 'login'])->name('booking.login.submit');
+
+    Route::get('/remoteuser', [CustomerAuthController::class, 'showRegisterForm'])->name('booking.register');
+    Route::post('/remoteuser/send-otp', [CustomerAuthController::class, 'register'])->name('booking.register.submit');
     Route::get('/remoteuser/verifikasi-otp', [CustomerAuthController::class, 'showOtpForm'])->name('booking.otp.form');
     Route::post('/remoteuser/verifikasi-otp', [CustomerAuthController::class, 'verifyOtp'])->name('booking.otp.verify');
 });
