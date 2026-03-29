@@ -29,9 +29,7 @@ Route::middleware('auth:customer')->group(function () {
     Route::get('/remoteuser/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
     Route::post('/remoteuser/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
-    Route::get('/remoteuser/konfirmasi', function () {
-        return view('Pages.Remoteuser.Konfirmasi');
-    })->name('booking.konfirmasi');
+    Route::get('/remoteuser/konfirmasi', [BookingOnlineController::class, 'halamanKonfirmasi'])->name('booking.konfirmasi');
 
     Route::get('/remoteuser/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
     Route::post('/remoteuser/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
@@ -56,21 +54,15 @@ Route::prefix('booking')->group(function () {
 // ==========================================
 // Kiosk — Mesin Kiosk Layar Sentuh (On-Site)
 // ==========================================
-Route::get('/on-site-user', function () {
-    return view('Pages.On-siteUser.KioskHome');
-})->name('kiosk.home');
+use App\Http\Controllers\KioskController;
 
-Route::get('/on-site-user/input', function () {
-    return view('Pages.On-siteUser.KioskInput');
-})->name('kiosk.input');
+Route::get('/on-site-user', [KioskController::class, 'halamanHome'])->name('kiosk.home');
+Route::get('/on-site-user/input', [KioskController::class, 'halamanInput'])->name('kiosk.input');
+Route::get('/on-site-user/cetak', [KioskController::class, 'halamanCetak'])->name('kiosk.cetak');
+Route::get('/on-site-user/scan', [KioskController::class, 'halamanScan'])->name('kiosk.scan');
 
-Route::get('/on-site-user/cetak', function () {
-    return view('Pages.On-siteUser.KioskCetak');
-})->name('kiosk.cetak');
-
-Route::get('/on-site-user/scan', function () {
-    return view('Pages.On-siteUser.KioskScan');
-})->name('kiosk.scan');
+// AJAX: Verifikasi Scan QR
+Route::post('/on-site-user/verify-scan', [KioskController::class, 'verifyScan'])->name('kiosk.verify-scan');
 
 Route::prefix('kiosk')->group(function () {
     Route::redirect('/', '/on-site-user');

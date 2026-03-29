@@ -10,6 +10,7 @@ use App\Services\CustomerOtpNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -43,58 +44,62 @@ class CustomerAuthController extends Controller
         $inputName = trim((string) $validated['nama']);
         $phone = $validated['whatsapp'];
 
-        $customer = Customer::query()->where('phone', $phone)->first();
-
-        if ($customer) {
-            if (strcasecmp(trim((string) $customer->name), $inputName) !== 0) {
-                throw ValidationException::withMessages([
-                    'nama' => 'Nama tidak sesuai dengan nomor WhatsApp yang sudah terdaftar.',
-                ]);
-            }
-
-            if ($customer->otp_last_sent_at && now()->diffInSeconds($customer->otp_last_sent_at) < self::OTP_RESEND_COOLDOWN_SECONDS) {
-                $waitSeconds = self::OTP_RESEND_COOLDOWN_SECONDS - now()->diffInSeconds($customer->otp_last_sent_at);
-
-                throw ValidationException::withMessages([
-                    'whatsapp' => 'OTP baru bisa dikirim ulang dalam ' . $waitSeconds . ' detik.',
-                ]);
-            }
-        } else {
-            $instanceId = Instance::query()->value('id');
-
-            if (!$instanceId) {
-                throw ValidationException::withMessages([
-                    'whatsapp' => 'Data instansi belum tersedia. Hubungi admin terlebih dahulu.',
-                ]);
-            }
-
-            $customer = Customer::query()->create([
-                'instance_id' => $instanceId,
-                'name' => $inputName,
-                'phone' => $phone,
-            ]);
-        }
-
-        $plainOtpCode = (string) random_int(100000, 999999);
-
-        $customer->forceFill([
-            'otp_code_hash' => Hash::make($plainOtpCode),
-            'otp_expires_at' => now()->addMinutes(self::OTP_EXPIRES_IN_MINUTES),
-            'otp_attempts' => 0,
-            'otp_last_sent_at' => now(),
-        ])->save();
-
         try {
-            $this->otpNotificationService->send($customer, $plainOtpCode);
+            DB::transaction(function () use ($phone, $inputName, &$customer, &$plainOtpCode) {
+                $customer = Customer::query()->where('phone', $phone)->lockForUpdate()->first();
+
+                if ($customer) {
+                    if (strcasecmp(trim((string) $customer->name), $inputName) !== 0) {
+                        throw ValidationException::withMessages([
+                            'nama' => 'Nama tidak sesuai dengan nomor WhatsApp yang sudah terdaftar.',
+                        ]);
+                    }
+
+                    if ($customer->otp_last_sent_at && now()->diffInSeconds($customer->otp_last_sent_at) < self::OTP_RESEND_COOLDOWN_SECONDS) {
+                        $waitSeconds = self::OTP_RESEND_COOLDOWN_SECONDS - now()->diffInSeconds($customer->otp_last_sent_at);
+
+                        throw ValidationException::withMessages([
+                            'whatsapp' => 'OTP baru bisa dikirim ulang dalam ' . $waitSeconds . ' detik.',
+                        ]);
+                    }
+                } else {
+                    $instanceId = Instance::query()->value('id');
+
+                    if (!$instanceId) {
+                        throw ValidationException::withMessages([
+                            'whatsapp' => 'Data instansi belum tersedia. Hubungi admin terlebih dahulu.',
+                        ]);
+                    }
+
+                    $customer = Customer::query()->create([
+                        'instance_id' => $instanceId,
+                        'name' => $inputName,
+                        'phone' => $phone,
+                    ]);
+                }
+
+                $plainOtpCode = (string) random_int(100000, 999999);
+
+                $customer->forceFill([
+                    'otp_code_hash' => Hash::make($plainOtpCode),
+                    'otp_expires_at' => now()->addMinutes(self::OTP_EXPIRES_IN_MINUTES),
+                    'otp_attempts' => 0,
+                    'otp_last_sent_at' => now(),
+                ])->save();
+
+                $this->otpNotificationService->send($customer, $plainOtpCode);
+            });
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Log::error('OTP WhatsApp gagal dikirim', [
-                'customer_id' => $customer->id,
-                'phone' => $customer->phone,
+                'customer_id' => $customer?->id,
+                'phone' => $customer?->phone,
                 'error' => $e->getMessage(),
             ]);
 
             throw ValidationException::withMessages([
-                'whatsapp' => 'OTP gagal dikirim ke WhatsApp. Silakan coba lagi.',
+                'whatsapp' => 'OTP gagal dikirim ke WhatsApp. Silakan coba lagi. (' . current(explode(':', $e->getMessage())) . ')',
             ]);
         }
 
@@ -179,6 +184,9 @@ class CustomerAuthController extends Controller
     {
         $validated = $request->validate([
             'whatsapp' => ['required', 'string'],
+            'cf-turnstile-response' => ['required', 'string', new \App\Rules\TurnstileRule()],
+        ], [
+            'cf-turnstile-response.required' => 'Verifikasi keamanan (Turnstile) wajib dicentang.',
         ]);
 
         $phone = $validated['whatsapp'];

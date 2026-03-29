@@ -24,7 +24,8 @@ class Queue extends Model
         'service_duration',
         'service_description',
         'queue_status',
-        'queue_source'
+        'queue_source',
+        'check_in_time'
     ];
 
     public function instance()
