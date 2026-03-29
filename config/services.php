@@ -41,4 +41,9 @@ return [
         'send_message_endpoint' => env('WABLAS_SEND_MESSAGE_ENDPOINT', 'api/send-message'),
     ],
 
+    'turnstile' => [
+        'key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

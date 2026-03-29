@@ -3,6 +3,7 @@
 namespace App\Http\Requests\CustomerAuth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\TurnstileRule;
 
 class SendCustomerOtpRequest extends FormRequest
 {
@@ -24,6 +25,17 @@ class SendCustomerOtpRequest extends FormRequest
         return [
             'nama' => ['required', 'string', 'max:100'],
             'whatsapp' => ['required', 'string', 'min:10', 'max:15', 'regex:/^[0-9]+$/'],
+            'cf-turnstile-response' => ['required', 'string', new TurnstileRule()],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'cf-turnstile-response.required' => 'Verifikasi keamanan (Turnstile) wajib dicentang.',
         ];
     }
 

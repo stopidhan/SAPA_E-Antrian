@@ -58,9 +58,9 @@
 
         {{-- Ticket List --}}
         @if(count($savedTickets) > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="space-y-4">
             @foreach($savedTickets as $ticket)
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div id="ticket-card-{{ $ticket->kode }}" class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 {{-- Status Banner --}}
                 <div class="flex items-center justify-between px-3.5 py-2 {{ $ticket->warnaLight }} border-b {{ $ticket->warnaBorder }}">
                     <div class="flex items-center gap-1.5">
@@ -79,51 +79,58 @@
                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="text-[10px] font-semibold text-amber-700" x-show="!expired">Sisa waktu datang</span>
                             <span class="text-[10px] font-bold text-red-600" x-show="expired" x-cloak>Tiket hangus!</span>
+                        <div class="w-1.5 h-1.5 rounded-full {{ $ticket->isExpired ? 'bg-red-500' : 'bg-emerald-500 animate-pulse' }}"></div>
+                        <p class="text-[10px] font-bold {{ $ticket->warnaTeks }}">{{ $ticket->statusLabel }}</p>
+                    </div>
+                    <p class="text-[10px] font-medium text-gray-400 capitalize">{{ $ticket->type }}</p>
+                </div>
+
+                {{-- Capture Area Starts Here --}}
+                <div class="bg-white">
+                    {{-- Countdown Timer --}}
+                    <div class="px-3.5 pt-3.5 pb-0" x-data="countdown('{{ $ticket->batasWaktu }}')" x-init="startTimer()">
+                        <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 flex items-center justify-between">
+                            <p class="text-[9px] font-bold text-amber-800">Batas Waktu</p>
+                            <div class="flex gap-1">
+                                <span class="text-[11px] font-black text-amber-700" x-text="`${hours}:${minutes}:${seconds}`">00:00:00</span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-0.5" x-show="!expired">
-                            <span class="bg-white text-[10px] font-black text-amber-700 px-1.5 py-0.5 rounded border border-amber-200" x-text="hours">00</span>
-                            <span class="text-amber-400 text-[10px] font-bold">:</span>
-                            <span class="bg-white text-[10px] font-black text-amber-700 px-1.5 py-0.5 rounded border border-amber-200" x-text="minutes">00</span>
-                            <span class="text-amber-400 text-[10px] font-bold">:</span>
-                            <span class="bg-white text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-200" :class="seconds <= 10 ? 'text-red-600' : 'text-amber-700'" x-text="seconds">00</span>
+                    </div>
+
+                    {{-- Ticket Content --}}
+                    <div id="ticket-clean-capture-{{ $ticket->kode }}" class="p-3.5 bg-white">
+                        <div class="flex items-center gap-3">
+                            {{-- Mini QR --}}
+                            <div class="shrink-0">
+                                <div class="w-20 h-20 bg-white rounded-xl border-2 border-gray-100 flex items-center justify-center overflow-hidden p-1.5 shadow-sm">
+                                    {!! QrCode::size(72)->generate($ticket->kode) !!}
+                                </div>
+                            </div>
+
+                            {{-- Info --}}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <div class="w-5 h-5 {{ $ticket->warnaBg }} rounded flex items-center justify-center">
+                                        <span class="text-white text-[9px] font-black">{{ $ticket->kodeHuruf }}</span>
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-900 truncate">{{ $ticket->layanan }}</p>
+                                </div>
+                                <p class="text-[10px] text-gray-400 font-bold tracking-wider">{{ $ticket->nomor }} &middot; {{ $ticket->kode }}</p>
+                                <p class="text-[10px] text-gray-400">{{ $ticket->tanggal }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Ticket Content --}}
-                <div class="p-3.5">
-                    <div class="flex items-center gap-3">
-                        {{-- Mini QR --}}
-                        <a href="{{ route('booking.tiket', ['queue_id' => $ticket->queueId]) }}" class="shrink-0 {{ $ticket->isExpired ? 'pointer-events-none opacity-50' : '' }}">
-                            <div class="w-14 h-14 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center hover:border-blue-300 transition">
-                                <svg class="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
-                                </svg>
-                            </div>
-                        </a>
-
-                        {{-- Info --}}
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <div class="w-5 h-5 {{ $ticket->warnaBg }} rounded flex items-center justify-center">
-                                    <span class="text-white text-[9px] font-black">{{ $ticket->kodeHuruf }}</span>
-                                </div>
-                                <p class="text-xs font-bold text-gray-900 truncate">{{ $ticket->layanan }}</p>
-                            </div>
-                            <p class="text-[10px] text-gray-400">{{ $ticket->nomor }} &middot; {{ $ticket->kode }}</p>
-                            <p class="text-[10px] text-gray-400">{{ $ticket->tanggal }}</p>
-                        </div>
-                    </div>
-
-                    {{-- Action Buttons --}}
+                {{-- Action Buttons (EXCLUDED) --}}
+                <div class="px-3.5 pb-3.5 pt-0 no-capture">
                     <div class="flex flex-col sm:flex-row items-center gap-2 mt-3">
                         <a href="{{ route('booking.tiket', ['queue_id' => $ticket->queueId]) }}"
                            class="flex-1 flex items-center justify-center gap-1.5 py-2 text-white text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'bg-gray-300 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }}">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
                             {{ $ticket->isExpired ? 'Tiket Hangus' : 'Buka QR' }}
                         </a>
-                        <button class="flex-1 flex items-center justify-center gap-1.5 py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                        <button onclick="downloadTicketCard('{{ $ticket->kode }}')"
+                                class="flex-1 flex items-center justify-center gap-1.5 py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
                             Unduh QR
                         </button>
                     </div>
@@ -179,8 +186,26 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
+    function downloadTicketCard(kode) {
+        const area = document.getElementById(`ticket-clean-capture-${kode}`);
+        
+        html2canvas(area, {
+            scale: 2,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Tiket-SAPA-${kode}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            console.error('Download failed:', err);
+            alert('Gagal mengunduh gambar. Silakan coba lagi.');
+        });
+    }
+
     function countdown(deadline) {
         return {
             hours: '00', minutes: '00', seconds: '00', expired: false, interval: null,
