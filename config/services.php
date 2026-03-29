@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'wablas' => [
+        'token' => env('WABLAS_TOKEN'),
+        'base_url' => env('WABLAS_URL'),
+        'send_message_endpoint' => env('WABLAS_SEND_MESSAGE_ENDPOINT', 'api/send-message'),
+    ],
+
 ];

@@ -14,6 +14,23 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('remoteuser') || $request->is('remoteuser/*') || $request->is('booking/*')) {
+                return route('booking.login');
+            }
+
+            return route('login');
+        });
+
+        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
+            // Jika pengunjung yang sedang dicek ternyata sudah ter-autentikasi sebagai customer
+            if (\Illuminate\Support\Facades\Auth::guard('customer')->check() && ($request->is('remoteuser') || $request->is('remoteuser/*') || $request->is('booking/*'))) {
+                return route('booking.dashboard');
+            }
+
+            return route('dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

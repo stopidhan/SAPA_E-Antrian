@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login Customer - SAPA E-Antrian</title>
+    <title>Register Customer - SAPA E-Antrian</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -12,8 +12,8 @@
 <body class="bg-slate-100 antialiased min-h-screen flex items-center justify-center p-4" style="font-family:'Figtree',sans-serif">
     <div class="w-full max-w-lg">
         <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl px-6 py-5 shadow-lg">
-            <h1 class="text-xl font-extrabold">Login Customer</h1>
-            <p class="text-sm text-blue-100 mt-1">Gunakan nomor WhatsApp Anda untuk masuk dengan cepat.</p>
+            <h1 class="text-xl font-extrabold">Registrasi Customer</h1>
+            <p class="text-sm text-blue-100 mt-1">Daftarkan nama dan nomor WhatsApp Anda, lalu verifikasi OTP.</p>
         </div>
 
         <div class="bg-white rounded-2xl mt-4 p-6 shadow-xl border border-slate-100">
@@ -29,9 +29,22 @@
                 </div>
             @endif
 
-            <form action="{{ route('booking.login.submit') }}" method="POST" class="space-y-4">
+            <form action="{{ route('booking.register.submit') }}" method="POST" class="space-y-4">
                 @csrf
 
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap (untuk registrasi pertama)</label>
+                    <input
+                        name="nama"
+                        type="text"
+                        value="{{ old('nama') }}"
+                        placeholder="Contoh: Budi Santoso"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                    @error('nama')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor WhatsApp</label>
@@ -55,13 +68,13 @@
                     type="submit"
                     class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 active:bg-blue-800 transition"
                 >
-                    Login
+                    Kirim OTP
                 </button>
 
                 <div class="mt-4 text-center">
                     <p class="text-sm text-slate-600">
-                        Belum punya akun? 
-                        <a href="{{ route('booking.register') }}" class="font-bold text-blue-600 hover:underline">Daftar sekarang</a>
+                        Sudah punya akun? 
+                        <a href="{{ route('booking.login') }}" class="font-bold text-blue-600 hover:underline">Login disini</a>
                     </p>
                 </div>
             </form>
