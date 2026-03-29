@@ -128,8 +128,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::redirect('/operator', '/staff-operator-loket');
 
-
-
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
