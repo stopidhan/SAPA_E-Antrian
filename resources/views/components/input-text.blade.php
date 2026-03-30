@@ -3,6 +3,7 @@
     'label' => '',
     'placeholder' => '',
     'value' => '',
+    'type' => 'text', // ADD THIS
     'required' => false,
     'readonly' => false,
     'class' => '',
@@ -19,7 +20,7 @@
             @endif
         </label>
     @endif
-    <input type="text" name="{{ $name }}" @change="hasChanges = true" value="{{ $value }}"
+    <input type="{{ $type }}" name="{{ $name }}" @change="hasChanges = true" value="{{ $value }}"
         placeholder="{{ $placeholder }}"
         class="{{ $inputClass }} @if ($readonly) cursor-not-allowed pointer-events-none @endif"
         @if ($required) required @endif @if ($readonly) readonly @endif>

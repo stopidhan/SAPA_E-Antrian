@@ -96,9 +96,7 @@ Route::get('/staff-operator-loket', function () {
 
 
 // ==========================================
-Route::get('/superadmin', function () {
-    return view('Pages.AdminInstansi.superAdmin');
-})->name('superadmin.dashboard');
+
 
 Route::get('/report', function () {
     return view('Pages.AdminInstansi.report');
@@ -116,7 +114,9 @@ Route::get('/content', function () {
     return view('Pages.StaffKonten.staffContent');
 })->name('content.dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+    Route::get('/superadmin', function () {return view('Pages.AdminInstansi.superAdmin'); })->name('superadmin.dashboard');
+
     Route::resource('services', ServiceController::class);
     Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
     Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])->name('services.toggle');

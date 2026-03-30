@@ -15,7 +15,6 @@ class Queue extends Model
         'service_counter_id',
         'customer_id',
         'service_id',
-        'service_id',
         'queue_number',
         'queue_date',
         'taken_time',
@@ -31,11 +30,6 @@ class Queue extends Model
     public function instance()
     {
         return $this->belongsTo(Instance::class);
-    }
-
-    public function service()
-    {
-        return $this->belongsTo(Service::class);
     }
 
     public function service()

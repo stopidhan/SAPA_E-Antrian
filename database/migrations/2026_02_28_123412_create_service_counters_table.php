@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->string('counter_number');
 
