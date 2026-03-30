@@ -82,9 +82,13 @@ Route::get('/monitor', function () {
 // ==========================================
 // Operator — Dashboard Operator Loket
 // ==========================================
-Route::get('/staff-operator-loket', function () {
-    return view('Pages.StaffOperatorLoket.Index');
-})->name('operator.dashboard');
+
+Route::middleware(['role:operator'])->group(function () {
+    Route::get('/staff-operator-loket', function () {
+        return view('Pages.StaffOperatorLoket.Index');
+    })->name('operator.dashboard');
+    Route::redirect('/operator', '/staff-operator-loket');
+});
 
 
 // ==========================================
