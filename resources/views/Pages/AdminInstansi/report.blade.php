@@ -6,7 +6,6 @@
 
     $withSidebar = true;
 
-    // {{-- Dummy data pengganti variabel dari controller --}}
     $totalQueue = 128;
     $completedQueue = 105;
     $completionRate = 82;
@@ -48,90 +47,6 @@
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>',
         ],
     ];
-
-    $services = [
-        (object) ['id' => 1, 'name' => 'Pelayanan Umum'],
-        (object) ['id' => 2, 'name' => 'Administrasi KTP'],
-        (object) ['id' => 3, 'name' => 'Akta Kelahiran'],
-    ];
-
-    $operators = [
-        (object) ['name' => 'Budi Santoso'],
-        (object) ['name' => 'Siti Rahayu'],
-        (object) ['name' => 'Ahmad Fauzi'],
-    ];
-
-    $serviceOptions = [['value' => 'all', 'label' => 'Semua Layanan']];
-    foreach ($services as $service) {
-        $serviceOptions[] = ['value' => $service->id, 'label' => $service->name];
-    }
-
-    $operatorOptions = [['value' => 'all', 'label' => 'Semua Operator']];
-    foreach ($operators as $op) {
-        $operatorOptions[] = ['value' => $op->name, 'label' => $op->name];
-    }
-
-    $queueData = collect([
-        (object) [
-            'queue_number' => 'A-001',
-            'service_name' => 'Pelayanan Umum',
-            'registration_type' => 'online',
-            'registered_at' => '2026-03-09 08:05:00',
-            'completed_at' => '2026-03-09 08:12:00',
-            'service_time' => 7,
-            'operator_name' => 'Budi Santoso',
-            'status' => 'completed',
-        ],
-        (object) [
-            'queue_number' => 'A-002',
-            'service_name' => 'Administrasi KTP',
-            'registration_type' => 'onsite',
-            'registered_at' => '2026-03-09 08:10:00',
-            'completed_at' => '2026-03-09 08:20:00',
-            'service_time' => 10,
-            'operator_name' => 'Siti Rahayu',
-            'status' => 'completed',
-        ],
-        (object) [
-            'queue_number' => 'A-003',
-            'service_name' => 'Akta Kelahiran',
-            'registration_type' => 'online',
-            'registered_at' => '2026-03-09 08:15:00',
-            'completed_at' => null,
-            'service_time' => null,
-            'operator_name' => 'Ahmad Fauzi',
-            'status' => 'serving',
-        ],
-        (object) [
-            'queue_number' => 'A-004',
-            'service_name' => 'Pelayanan Umum',
-            'registration_type' => 'onsite',
-            'registered_at' => '2026-03-09 08:20:00',
-            'completed_at' => null,
-            'service_time' => null,
-            'operator_name' => '-',
-            'status' => 'waiting',
-        ],
-    ]);
-
-    $serviceChartData = [
-        ['name' => 'Pelayanan Umum', 'total' => 52, 'completed' => 45],
-        ['name' => 'Administrasi KTP', 'total' => 38, 'completed' => 31],
-        ['name' => 'Akta Kelahiran', 'total' => 24, 'completed' => 18],
-        ['name' => 'Surat Domisili', 'total' => 14, 'completed' => 11],
-    ];
-
-    $hourlyChartData = [
-        ['hour' => '08:00', 'count' => 12],
-        ['hour' => '09:00', 'count' => 24],
-        ['hour' => '10:00', 'count' => 30],
-        ['hour' => '11:00', 'count' => 18],
-        ['hour' => '12:00', 'count' => 8],
-        ['hour' => '13:00', 'count' => 15],
-        ['hour' => '14:00', 'count' => 21],
-    ];
-
-    $registrationTypeData = [['name' => 'Online', 'value' => 74], ['name' => 'Onsite', 'value' => 54]];
 
     $today = date('Y-m-d');
 @endphp
@@ -230,7 +145,7 @@
                                 <x-label-status type="registration_type" :value="$item->registration_type" />
                             </td>
                             <td class="px-4 py-3 text-gray-500">
-                                {{ $item->registered_at ? \Carbon\Carbon::parse($item->registered_at)->format('H:i') : '-' }}
+                                {{ $item->start_at ? \Carbon\Carbon::parse($item->start_at)->format('H:i') : '-' }}
                             </td>
                             <td class="px-4 py-3 text-gray-500">
                                 {{ $item->completed_at ? \Carbon\Carbon::parse($item->completed_at)->format('H:i') : '-' }}
@@ -260,115 +175,5 @@
         function reportsPage() {
             return {};
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const serviceData = @json($serviceChartData);
-            const hourlyData = @json($hourlyChartData);
-            const regData = @json($registrationTypeData);
-
-            // Bar chart – per service
-            const barCtx = document.getElementById('chart-per-service');
-            if (barCtx) {
-                new Chart(barCtx.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: serviceData.map(d => d.name),
-                        datasets: [{
-                                label: 'Total',
-                                data: serviceData.map(d => d.total),
-                                backgroundColor: '#3B82F6',
-                                borderRadius: 4,
-                            },
-                            {
-                                label: 'Selesai',
-                                data: serviceData.map(d => d.completed),
-                                backgroundColor: '#10B981',
-                                borderRadius: 4,
-                            },
-                        ],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            y: {
-                                beginAtZero: true
-                            },
-                        },
-                    },
-                });
-            }
-
-            // Line chart – per hour
-            const lineCtx = document.getElementById('chart-per-hour');
-            if (lineCtx) {
-                new Chart(lineCtx.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: hourlyData.map(d => d.hour),
-                        datasets: [{
-                            label: 'Jumlah Antrean',
-                            data: hourlyData.map(d => d.count),
-                            borderColor: '#8B5CF6',
-                            backgroundColor: 'rgba(139,92,246,0.1)',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 4,
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            }
-                        },
-                    },
-                });
-            }
-
-            // Pie chart – reg type
-            const pieCtx = document.getElementById('chart-reg-type');
-            if (pieCtx) {
-                new Chart(pieCtx.getContext('2d'), {
-                    type: 'pie',
-                    data: {
-                        labels: regData.map(d => d.name),
-                        datasets: [{
-                            data: regData.map(d => d.value),
-                            backgroundColor: ['#0088FE', '#00C49F', '#FFBB28'],
-                            borderWidth: 2,
-                            borderColor: '#fff',
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: ctx => ` ${ctx.label}: ${ctx.parsed}`,
-                                },
-                            },
-                        },
-                    },
-                });
-            }
-        });
     </script>
 @endpush

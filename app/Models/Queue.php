@@ -15,7 +15,6 @@ class Queue extends Model
         'service_counter_id',
         'customer_id',
         'service_id',
-        'service_id',
         'queue_number',
         'queue_date',
         'taken_time',

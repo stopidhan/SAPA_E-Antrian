@@ -10,7 +10,8 @@
     <div class="bg-gray-50" x-data="instansiPage()" x-init="init()">
 
         <main class="container mx-auto px-4 py-8">
-            <form id="instansi-form" @submit.prevent="saveAll" @input="hasChanges = true">
+            <form id="instansi-form" @submit.prevent="saveAll" @input="markChanged">
+                <input type="hidden" name="_method" value="PATCH">
 
                 <div class="space-y-6">
 
@@ -52,15 +53,19 @@
                                                 const reader = new FileReader();
                                                 reader.onload = (e) => { preview = e.target.result; };
                                                 reader.readAsDataURL($el.files[0]);
-                                                hasChanges = true;
+                                                $dispatch('input');
                                             }
                                         ">
 
-                                    <x-button type="button" variant="dotted" size="sm" class="px-6"
-                                        icon='<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>'
+                                    <button type="button"
+                                        class="border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-blue-600 bg-transparent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 py-1.5 px-3 text-xs"
                                         @click="document.getElementById('logo-input').click()">
-                                        Upload Logo
-                                    </x-button>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        <span>Upload Logo</span>
+                                    </button>
                                     <p class="text-xs text-center text-gray-400 leading-tight">
                                         PNG/JPG/WEBP<br>Maks 2MB · 400×400px
                                     </p>
@@ -74,49 +79,49 @@
 
                                     {{-- Nama & Kode Instansi --}}
                                     <div class="grid grid-cols-4 sm:grid-cols-4 gap-4">
-
-                                        <div class="col-span-4 sm:col-span-3 space-y-1.5">
+                                        <div class="col-span-4 sm:col-span-3">
                                             <x-input-text name="instance_name" label="Nama Instansi"
-                                                placeholder="Nama lengkap instansi" :value="$instance->instance_name ?? ''"
-                                                @change="hasChanges = true" required="true" />
+                                                placeholder="Nama lengkap instansi"
+                                                value="{{ $instance->instance_name ?? '' }}" required="true" />
                                         </div>
 
-                                        <div class="col-span-4 sm:col-span-1 space-y-1.5">
+                                        <div class="col-span-4 sm:col-span-1">
                                             <x-input-text name="instance_code" label="Kode Instansi"
-                                                placeholder="Kode instansi" :value="$instance->instance_code ?? ''" readonly="true" />
+                                                placeholder="Kode instansi" value="{{ $instance->instance_code ?? '' }}"
+                                                readonly="true" />
                                         </div>
                                     </div>
 
                                     {{-- Telepon & Email --}}
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {{-- Telepon --}}
                                         <x-input-text name="phone" label="Telepon" placeholder="(022) 1234567"
-                                            :value="$instance->phone ?? ''" @change="hasChanges = true" />
+                                            value="{{ $instance->phone ?? '' }}" />
 
-                                        {{-- Email --}}
                                         <x-input-text name="email" label="Email" placeholder="info@instansi.go.id"
-                                            :value="$instance->email ?? ''" @change="hasChanges = true" />
+                                            value="{{ $instance->email ?? '' }}" type="email" />
                                     </div>
 
                                     {{-- Website --}}
                                     <x-input-text name="website" label="Website" placeholder="https://instansi.go.id"
-                                        :value="$instance->website ?? ''" @change="hasChanges = true" />
+                                        value="{{ $instance->website ?? '' }}" type="url" />
 
                                     <hr class="border-gray-100">
 
                                     {{-- Alamat Lengkap --}}
                                     <x-input-textarea name="address" label="Alamat Lengkap"
-                                        placeholder="Jalan, nomor, RT/RW" rows="3" :value="$instance->address ?? ''"
-                                        @change="hasChanges = true" />
+                                        placeholder="Jalan, nomor, RT/RW" value="{{ $instance->address ?? '' }}"
+                                        rows="3" />
 
                                     <div class="flex justify-end gap-3">
-                                        <x-button type="reset" variant="white" @click="resetForm">
+                                        <button type="reset" @click="resetForm"
+                                            class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 py-2 px-4 text-sm">
                                             Reset
-                                        </x-button>
-                                        <x-button type="submit" variant="primary"
-                                            x-bind:disabled="!hasChanges || isLoading">
-                                            Simpan Perubahan
-                                        </x-button>
+                                        </button>
+                                        <button type="submit" :disabled="!hasChanges || isLoading"
+                                            class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span x-show="!isLoading">Simpan Perubahan</span>
+                                            <span x-show="isLoading">Menyimpan...</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -146,28 +151,63 @@
                     });
                 },
 
+                markChanged() {
+                    this.hasChanges = true;
+                },
+
                 async saveAll() {
+                    if (!this.hasChanges) {
+                        alert('Tidak ada perubahan untuk disimpan.');
+                        return;
+                    }
+
                     this.isLoading = true;
                     const formElement = document.getElementById('instansi-form');
                     const formData = new FormData(formElement);
 
+                    console.log('Form data entries:');
+                    for (const [key, value] of formData.entries()) {
+                        console.log(`${key}:`, value);
+                    }
+
                     try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                        if (!csrfToken) {
+                            throw new Error('CSRF token tidak ditemukan. Silakan refresh halaman dan coba lagi.');
+                        }
+
                         const response = await fetch('{{ route('profile.instance.update') }}', {
-                            method: 'PATCH',
+                            method: 'POST',
                             headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
                             },
                             body: formData,
                         });
 
-                        const data = await response.json();
+                        let data;
+                        const contentType = response.headers.get('content-type');
+
+                        if (!response.ok) {
+                            if (contentType?.includes('application/json')) {
+                                data = await response.json();
+                            } else {
+                                const html = await response.text();
+                                console.error('Server response (HTML):', html);
+                                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                            }
+                        } else {
+                            data = await response.json();
+                        }
 
                         if (data.success) {
                             alert(data.message);
                             this.hasChanges = false;
+                            setTimeout(() => location.reload(), 500);
                         } else {
                             if (data.errors) {
-                                let errorMsg = data.message + '\n\n';
+                                let errorMsg = (data.message || 'Validasi gagal') + '\n\n';
                                 for (const [field, messages] of Object.entries(data.errors)) {
                                     errorMsg += `${field}: ${messages.join(', ')}\n`;
                                 }
@@ -178,6 +218,7 @@
                             }
                         }
                     } catch (error) {
+                        console.error('Error details:', error);
                         alert('Terjadi kesalahan: ' + error.message);
                     } finally {
                         this.isLoading = false;

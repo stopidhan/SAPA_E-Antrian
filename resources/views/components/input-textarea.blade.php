@@ -15,6 +15,9 @@
     @if ($label)
         <label class="block text-sm font-medium text-gray-700">
             {{ $label }}
+            @if ($required)
+                <span class="text-red-500">*</span>
+            @endif
         </label>
     @endif
     <textarea name="{{ $name }}" @change="hasChanges = true" rows="{{ $rows }}"

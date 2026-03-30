@@ -5,20 +5,6 @@
 @php
     $withSidebar = true;
 
-    $roleLabels = [
-        'admin_instansi' => 'Admin Instansi',
-        'kepala_layanan' => 'Kepala Layanan',
-        'staff_operator' => 'Staff Operator',
-        'staff_konten' => 'Staff Konten',
-    ];
-
-    $roleColors = [
-        'admin_instansi' => 'bg-red-500',
-        'kepala_layanan' => 'bg-green-500',
-        'staff_operator' => 'bg-blue-500',
-        'staff_konten' => 'bg-purple-500',
-    ];
-
     $statCards = [
         [
             'label' => 'Total User',
@@ -150,6 +136,7 @@
                         </tr>
                     @endforelse
                 </x-table>
+
             </div>
         </div>
 
