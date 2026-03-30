@@ -81,74 +81,77 @@ Route::get('/monitor', function () {
 // ==========================================
 // Operator — Dashboard Operator Loket
 // ==========================================
-Route::get('/staff-operator-loket', function () {
-    return view('Pages.StaffOperatorLoket.Index');
-})->name('operator.dashboard');
 
-Route::redirect('/operator', '/staff-operator-loket');
+Route::middleware(['role:operator'])->group(function () {
+    Route::get('/staff-operator-loket', function () {
+        return view('Pages.StaffOperatorLoket.Index');
+    })->name('operator.dashboard');
+    Route::redirect('/operator', '/staff-operator-loket');
+});
 
 
 // ==========================================
-Route::get('/superadmin', function () {
-    return view('Pages.AdminInstansi.superAdmin');
-})->name('superadmin.dashboard');
 
-Route::get('/profile-instance', function () {
-    return view('Pages.AdminInstansi.profileInstance');
-})->name('profile.instance');
+Route::middleware(['role:admin'])->group(function () {
+    Route::get('/superadmin', function () {
+        return view('Pages.AdminInstansi.superAdmin');
+    })->name('superadmin.dashboard');
 
-Route::get('/report', function () {
-    return view('Pages.AdminInstansi.report');
-})->name('superadmin.report');
+    Route::get('/profile-instance', function () {
+        return view('Pages.AdminInstansi.profileInstance');
+    })->name('profile.instance');
 
-Route::get('/management-user', function () {
-    return view('Pages.AdminInstansi.managementUser');
-})->name('management.user');
+    Route::get('/report', function () {
+        return view('Pages.AdminInstansi.report');
+    })->name('superadmin.report');
 
-Route::get('/activity-log', function () {
-    return view('Pages.AdminInstansi.activityLog');
-})->name('activity.log');
+    Route::get('/management-user', function () {
+        return view('Pages.AdminInstansi.managementUser');
+    })->name('management.user');
 
-// Alias root untuk Admin Instansi
-Route::get('/admin-instansi', function () {
-    return view('Pages.AdminInstansi.superAdmin');
-})->name('admininstansi.dashboard');
+    Route::get('/activity-log', function () {
+        return view('Pages.AdminInstansi.activityLog');
+    })->name('activity.log');
 
-// Alias kapital untuk Admin Instansi
-Route::get('/AdminInstansi', function () {
-    return view('Pages.AdminInstansi.superAdmin');
-})->name('admininstansi.dashboard.capital');
+    // Alias root untuk Admin Instansi
+    Route::get('/admin-instansi', function () {
+        return view('Pages.AdminInstansi.superAdmin');
+    })->name('admininstansi.dashboard');
 
-Route::get('/supervisor', function () {
-    return view('Pages.KepalaLayanan.superVisor');
-})->name('supervisor.dashboard');
+    // Alias kapital untuk Admin Instansi
+    Route::get('/AdminInstansi', function () {
+        return view('Pages.AdminInstansi.superAdmin');
+    })->name('admininstansi.dashboard.capital');
+});
 
-// Alias URL: /KepalaLayanan -> supervisor view
-Route::get('/KepalaLayanan', function () {
-    return view('Pages.KepalaLayanan.superVisor');
-})->name('kepalalayanan.dashboard');
 
-// Kepala Layanan - halaman lain
-Route::get('/analytics', function () {
-    return view('Pages.KepalaLayanan.analytics');
-})->name('kepalalayanan.analytics');
+Route::middleware(['role:kepalalayanan'])->group(function () {
+    Route::get('/supervisor', function () {
+        return view('Pages.KepalaLayanan.superVisor');
+    })->name('supervisor.dashboard');
+    Route::get('/KepalaLayanan', function () {
+        return view('Pages.KepalaLayanan.superVisor');
+    })->name('kepalalayanan.dashboard');
+    Route::get('/analytics', function () {
+        return view('Pages.KepalaLayanan.analytics');
+    })->name('kepalalayanan.analytics');
+    Route::get('/history', function () {
+        return view('Pages.KepalaLayanan.history');
+    })->name('kepalalayanan.history');
+    Route::get('/live-tracking', function () {
+        return view('Pages.KepalaLayanan.liveTracking');
+    })->name('kepalalayanan.livetracking');
+});
 
-Route::get('/history', function () {
-    return view('Pages.KepalaLayanan.history');
-})->name('kepalalayanan.history');
 
-Route::get('/live-tracking', function () {
-    return view('Pages.KepalaLayanan.liveTracking');
-})->name('kepalalayanan.livetracking');
-
-Route::get('/content', function () {
-    return view('Pages.StaffKonten.staffContent');
-})->name('content.dashboard');
-
-// Alias kapital untuk Staff Konten
-Route::get('/StaffKonten', function () {
-    return view('Pages.StaffKonten.staffContent');
-})->name('staffkonten.dashboard.capital');
+Route::middleware(['role:staffkonten'])->group(function () {
+    Route::get('/content', function () {
+        return view('Pages.StaffKonten.staffContent');
+    })->name('content.dashboard');
+    Route::get('/StaffKonten', function () {
+        return view('Pages.StaffKonten.staffContent');
+    })->name('staffkonten.dashboard.capital');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('services', ServiceController::class);
