@@ -16,6 +16,22 @@ class ReportController extends Controller
         $auth = Auth::user();
         $instance = $auth->instance;
 
+        // Get all queues (unfiltered for statistics)
+        $allQueues = Queue::where('instance_id', $instance->id)->get();
+
+        // Calculate statistics
+        $totalQueue = $allQueues->count();
+        $completedQueue = $allQueues->where('queue_status', 'completed')->count();
+        $completionRate = $totalQueue > 0 ? round(($completedQueue / $totalQueue) * 100) : 0;
+        $avgServiceTime = $allQueues->avg('service_duration') ?? 0;
+        $waitingQueue = $allQueues->where('queue_status', 'waiting')->count();
+        $servingQueue = $allQueues->where('queue_status', 'serving')->count();
+
+        // Calculate growth percentage (comparison with yesterday)
+        $yesterday = $allQueues->where('queue_date', now()->subDay()->format('Y-m-d'))->count();
+        $growth = $yesterday > 0 ? round((($totalQueue - $yesterday) / $yesterday) * 100) : 0;
+
+        // Get paginated queues for table display
         $queues = Queue::where('instance_id', $instance->id)
             ->with(['service', 'counter.user', 'customer'])
             ->orderBy('created_at', 'desc')
@@ -52,6 +68,13 @@ class ReportController extends Controller
             'queueData' => $queues,
             'serviceOptions' => $serviceOptions,
             'operatorOptions' => $operatorOptions,
+            'totalQueue' => $totalQueue,
+            'completedQueue' => $completedQueue,
+            'completionRate' => $completionRate,
+            'avgServiceTime' => $avgServiceTime,
+            'waitingQueue' => $waitingQueue,
+            'servingQueue' => $servingQueue,
+            'growth' => $growth,
         ]);
     }
 }
