@@ -90,7 +90,6 @@ Route::middleware(['role:operator'])->group(function () {
     Route::redirect('/operator', '/staff-operator-loket');
 });
 
-
 // ==========================================
 
 
@@ -110,8 +109,10 @@ Route::get('/content', function () {
     return view('Pages.StaffKonten.staffContent');
 })->name('content.dashboard');
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/superadmin', function () {return view('Pages.AdminInstansi.superAdmin'); })->name('superadmin.dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/superadmin', function () {
+        return view('Pages.AdminInstansi.superAdmin');
+    })->name('superadmin.dashboard');
 
     Route::resource('services', ServiceController::class);
     Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
@@ -134,11 +135,11 @@ Route::middleware(['auth'])->group(function () {
 
 // --- TESTES ---
 
-Route::redirect('/operator', '/staff-operator-loket');
-
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -146,4 +147,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
