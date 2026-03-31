@@ -92,7 +92,6 @@ Route::middleware(['role:operator'])->group(function () {
 
 // ==========================================
 
-
 Route::get('/report', function () {
     return view('Pages.AdminInstansi.report');
 })->name('superadmin.report');
