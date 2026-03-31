@@ -230,12 +230,6 @@
                                 <p class="text-sm text-gray-400">dari <span x-text="services.length"></span> layanan</p>
                             </div>
                             <hr class="border-gray-100">
-                            <div>
-                                <p class="text-sm text-gray-500">Kategori Layanan</p>
-                                <p class="text-3xl font-bold text-blue-600" x-text="activeServicesCount"></p>
-                                <p class="text-sm text-gray-400">dari <span x-text="services.length"></span> layanan</p>
-                            </div>
-                            <hr class="border-gray-100">
 
                             {{-- <div>
                                 <p class="text-sm text-gray-500">Pengulangan Panggilan</p>

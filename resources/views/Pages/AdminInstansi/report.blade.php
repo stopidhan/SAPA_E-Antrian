@@ -3,22 +3,15 @@
 @section('title', 'Laporan & Statistik - SAPA')
 
 @php
-
     $withSidebar = true;
-
-    $totalQueue = 128;
-    $completedQueue = 105;
-    $completionRate = 82;
-    $avgServiceTime = 7.4;
-    $waitingQueue = 15;
-    $servingQueue = 8;
+    $today = date('Y-m-d');
 
     $statCards = [
         [
             'label' => 'Total Antrean',
             'value' => $totalQueue,
             'color' => 'text-gray-800',
-            'sub' => '+12% dari kemarin',
+            'sub' => ($growth >= 0 ? '+' : '') . $growth . '% dari kemarin',
             'icon' =>
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>',
         ],
@@ -47,8 +40,6 @@
                 '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>',
         ],
     ];
-
-    $today = date('Y-m-d');
 @endphp
 
 @section('content')
@@ -66,12 +57,10 @@
                 </div>
 
                 <form method="GET" action="#" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <form method="GET" action="#" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <x-input-date name="start_date" label="Tanggal Mulai" value="{{ $today }}" />
-                        <x-input-date name="end_date" label="Tanggal Akhir" value="{{ $today }}" />
-                        <x-input-dropdown name="service_id" label="Layanan" :options="$serviceOptions" value="all" />
-                        <x-input-dropdown name="operator" label="Operator" :options="$operatorOptions" value="all" />
-                    </form>
+                    <x-input-date name="start_date" label="Tanggal Mulai" value="{{ date('Y-m-d') }}" />
+                    <x-input-date name="end_date" label="Tanggal Akhir" value="{{ date('Y-m-d') }}" />
+                    <x-input-dropdown name="service_id" label="Layanan" :options="$serviceOptions" value="all" />
+                    <x-input-dropdown name="operator" label="Operator" :options="$operatorOptions" value="all" />
                 </form>
             </div>
 
