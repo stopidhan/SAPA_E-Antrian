@@ -48,9 +48,8 @@
     {{-- ====== CARD UTAMA (Menimpa header) ====== --}}
     <div class="flex-1 px-4 sm:px-5 -mt-12 pb-28 relative z-10 space-y-4">
         <div class="bg-white rounded-2xl shadow-xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
-
             {{-- Badge Tersimpan --}}
-            <div class="flex items-center justify-center gap-2 {{ $isExpired ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100' }} border-b py-2">
+            <div id="badge-capture" class="flex items-center justify-center gap-2 {{ $isExpired ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100' }} border-b py-2">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p class="text-[11px] font-semibold {{ $isExpired ? 'text-red-700' : 'text-emerald-700' }}">
                     {{ $isExpired ? 'Tiket Hangus (Tidak Bisa Digunakan)' : 'Tiket Tersimpan di Perangkat Anda' }}
@@ -58,7 +57,7 @@
             </div>
 
             {{-- Countdown Timer --}}
-            <div class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}', {{ $isExpired ? 'true' : 'false' }}, {{ $queueId ? (int) $queueId : 'null' }}, '{{ route('booking.tiket.expire') }}')" x-init="startTimer()">
+            <div id="timer-capture" class="px-5 pt-4 pb-0" x-data="countdown('{{ $batasWaktu }}', {{ $isExpired ? 'true' : 'false' }}, {{ $queueId ? (int) $queueId : 'null' }}, '{{ route('booking.tiket.expire') }}')" x-init="startTimer()">
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     <div class="flex items-center justify-center gap-2 mb-1.5">
                         <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -85,84 +84,56 @@
                 </div>
             </div>
 
-            {{-- QR Section --}}
-            <div class="px-6 pt-6 pb-4 text-center">
-                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-widest mb-3">QR Code Anda</p>
+            {{-- Capture Area Starts Here --}}
+            <div id="ticket-capture" class="bg-white pb-6">
+                {{-- QR Section --}}
+                <div class="px-6 pt-6 pb-4 text-center">
+                    <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-widest mb-3">QR Code Anda</p>
 
-                {{-- QR Placeholder --}}
-                <div class="w-40 h-40 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto border-2 border-dashed border-gray-200 relative overflow-hidden">
-                    <div class="text-center">
-                        <svg class="w-14 h-14 text-gray-300 mx-auto mb-1.5" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/>
-                        </svg>
-                        <p class="text-[10px] text-gray-400 font-medium">QR Code</p>
+                    {{-- QR Code Asli --}}
+                    <div class="w-60 h-60 bg-white rounded-[2rem] flex items-center justify-center mx-auto border-8 border-gray-50 shadow-inner relative overflow-hidden p-4">
+                        {!! QrCode::size(220)->generate($kodeBooking) !!}
+                        @if($isExpired)
+                            <div class="absolute inset-0 bg-red-700/75 backdrop-blur-[1px] flex items-center justify-center px-2">
+                                <p class="text-white text-xs font-bold text-center">TIKET HANGUS</p>
+                            </div>
+                        @endif
                     </div>
-                    @if($isExpired)
-                        <div class="absolute inset-0 bg-red-700/75 backdrop-blur-[1px] flex items-center justify-center px-2">
-                            <p class="text-white text-xs font-bold text-center">TIKET HANGUS</p>
-                        </div>
-                    @endif
                 </div>
-            </div>
 
-            {{-- Blok Nomor Antrean (Biru Solid) --}}
-            <div class="bg-blue-600 mx-4 rounded-xl py-4 px-5 text-center mb-4">
-                <p class="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Nomor Antrean Anda</p>
-                <p class="text-white text-4xl font-black tracking-tight mt-1">{{ $nomorAntrean }}</p>
-            </div>
+                {{-- Blok Nomor Antrean --}}
+                <div class="bg-blue-600 mx-4 rounded-xl py-4 px-5 text-center mb-4">
+                    <p class="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Nomor Antrean Anda</p>
+                    <p class="text-white text-4xl font-black tracking-tight mt-1">{{ $nomorAntrean }}</p>
+                </div>
 
-            {{-- Kode Booking --}}
-            <div class="text-center pb-4">
-                <p class="text-[10px] text-gray-400">Kode Booking:</p>
-                <p class="text-sm font-bold text-gray-900 tracking-wide">{{ $kodeBooking }}</p>
-            </div>
-
-            {{-- Garis Sobekan --}}
-            <div class="relative">
-                <div class="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-gray-50 rounded-r-full"></div>
-                <div class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 bg-gray-50 rounded-l-full"></div>
-                <div class="border-t-2 border-dashed border-gray-200 mx-6"></div>
-            </div>
-
-            {{-- Detail Booking --}}
-            <div class="px-6 pt-4 pb-6">
-                <p class="text-xs font-bold text-gray-900 mb-3">Detail Booking</p>
-                <div class="space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
-                            Layanan
-                        </span>
-                        <span class="text-xs font-bold text-gray-900">{{ $layanan }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
-                            Nama
-                        </span>
-                        <span class="text-xs font-bold text-gray-900">{{ $nama }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
-                            WhatsApp
-                        </span>
-                        <span class="text-xs font-bold text-gray-900">{{ $whatsapp }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-400 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                            Tanggal
-                        </span>
-                        <span class="text-xs font-bold text-gray-900">{{ now()->format('d M Y') }}</span>
+                {{-- Detail Booking --}}
+                <div class="px-6 pt-4">
+                    <p class="text-xs font-bold text-gray-900 mb-3">Detail Booking</p>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400">Layanan</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $layanan }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400">Nama</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $nama }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400">WhatsApp</span>
+                            <span class="text-xs font-bold text-gray-900">{{ $whatsapp }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-400">Tanggal</span>
+                            <span class="text-xs font-bold text-gray-900">{{ now()->format('d M Y') }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- ====== CARD PETUNJUK CHECK-IN KIOSK ====== --}}
-        <div class="bg-blue-50 rounded-2xl border border-blue-100 p-4">
+        <div id="instruction-capture" class="bg-blue-50 rounded-2xl border border-blue-100 p-4">
             <div class="flex items-center gap-2 mb-3">
                 <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
@@ -189,21 +160,58 @@
     {{-- ====== TOMBOL AKSI (STICKY BOTTOM) ====== --}}
     <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-4 sm:px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         {{-- Unduh QR Full Width --}}
-        <button class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 text-xs font-bold rounded-xl transition {{ $isExpired ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-300 text-blue-600 hover:bg-blue-50 active:bg-blue-100' }}" {{ $isExpired ? 'disabled' : '' }}>
+        <button id="btn-download" onclick="downloadFullTicket('{{ $kodeBooking }}')"
+                class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 text-xs font-bold rounded-xl transition {{ $isExpired ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-300 text-blue-600 hover:bg-blue-50 active:bg-blue-100' }}" {{ $isExpired ? 'disabled' : '' }}>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-            {{ $isExpired ? 'Tiket Hangus' : 'Unduh Gambar QR Code' }}
+            {{ $isExpired ? 'Tiket Hangus' : 'Unduh Gambar Tiket' }}
         </button>
         {{-- Dashboard --}}
         <a href="{{ route('booking.dashboard') }}"
            class="w-full flex items-center justify-center gap-1.5 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504-1.125 1.125-1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
             Dashboard
         </a>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script>
+    function downloadFullTicket(kode) {
+        const btn = document.getElementById('btn-download');
+        const originalHtml = btn.innerHTML;
+        
+        // State Loading
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...';
+
+        const captureArea = document.getElementById('ticket-capture');
+        
+        // Gunakan html2canvas
+        html2canvas(captureArea, {
+            scale: 2, // Kualitas HD
+            useCORS: true,
+            backgroundColor: '#ffffff' // Kartu Putih Bersih
+        }).then(canvas => {
+            // Trigger Download
+            const link = document.createElement('a');
+            link.download = `Tiket-SAPA-${kode}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            // Kembalikan tombol
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }).catch(err => {
+            console.error('Download failed:', err);
+            alert('Gagal mengunduh gambar. Silakan coba lagi atau screenshot layar Anda.');
+            
+            // Kembalikan tombol
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+
     function countdown(deadline, alreadyExpired = false, queueId = null, expireUrl = '') {
         return {
             hours: '00', minutes: '00', seconds: '00', expired: false, interval: null, expireRequested: false,

@@ -16,9 +16,132 @@ class BookingOnlineController extends Controller
 
     public function halamanDashboard()
     {
-        $layanans = Service::all();
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
 
-        return view('Pages.Remoteuser.Dashboard', compact('layanans'));
+        // Nama user untuk sapaan
+        $namaUser = $authCustomer ? ($authCustomer->name ?? $authCustomer->nama) : 'Pengguna';
+
+        // Ambil layanan sesuai instance_id customer
+        $layanans = Service::query()
+            ->where('instance_id', $authCustomer->instance_id ?? 1)
+            ->where('is_active', true)
+            ->with('queues')
+            ->get();
+
+        // Mapping Warna Otomatis
+        $colorMap = [
+            'A' => [
+                'warna' => 'blue',
+                'bg' => 'bg-blue-600',
+                'bgLight' => 'bg-blue-50',
+                'border' => 'border-blue-200',
+                'text' => 'text-blue-600',
+                'ring' => 'ring-blue-100',
+                'btnBg' => 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800',
+                'shadow' => 'shadow-blue-100',
+            ],
+            'B' => [
+                'warna' => 'emerald',
+                'bg' => 'bg-emerald-600',
+                'bgLight' => 'bg-emerald-50',
+                'border' => 'border-emerald-200',
+                'text' => 'text-emerald-600',
+                'ring' => 'ring-emerald-100',
+                'btnBg' => 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800',
+                'shadow' => 'shadow-emerald-100',
+            ],
+            'C' => [
+                'warna' => 'amber',
+                'bg' => 'bg-amber-500',
+                'bgLight' => 'bg-amber-50',
+                'border' => 'border-amber-200',
+                'text' => 'text-amber-600',
+                'ring' => 'ring-amber-100',
+                'btnBg' => 'bg-amber-500 hover:bg-amber-600 active:bg-amber-700',
+                'shadow' => 'shadow-amber-100',
+            ]
+        ];
+
+        $defaultColor = [
+            'warna' => 'gray',
+            'bg' => 'bg-gray-600',
+            'bgLight' => 'bg-gray-50',
+            'border' => 'border-gray-200',
+            'text' => 'text-gray-600',
+            'ring' => 'ring-gray-100',
+            'btnBg' => 'bg-gray-600 hover:bg-gray-700 active:bg-gray-800',
+            'shadow' => 'shadow-gray-100',
+        ];
+
+        // Hitung Total Kuota & Terisi
+        $totalKuota = 0;
+        $totalTerisi = 0;
+        $today = now()->toDateString();
+        
+        foreach($layanans as $svc) {
+            $totalKuota += 50; 
+            $totalTerisi += $svc->queues->where('queue_date', $today)->count();
+        }
+        $sisaKuota = max(0, $totalKuota - $totalTerisi);
+
+        // Cek apakah ada antrean aktif hari ini (yang belum di-scan)
+        $activeQueue = Queue::query()
+            ->where('customer_id', $authCustomer->id ?? 0)
+            ->where('queue_date', $today)
+            ->whereIn('queue_status', ['waiting', 'called', 'serving'])
+            ->whereNull('check_in_time') // <--- Sembunyikan jika sudah di-scan
+            ->with('service')
+            ->first();
+
+        $hasActiveQueue = (bool) $activeQueue;
+        $nomorAntrean = $activeQueue ? $activeQueue->queue_number : '-';
+        $kodeBooking = $activeQueue ? 'BKG-' . str_pad((string) $activeQueue->id, 8, '0', STR_PAD_LEFT) : '-';
+
+        return view('Pages.Remoteuser.Dashboard', compact(
+            'layanans',
+            'namaUser',
+            'hasActiveQueue',
+            'nomorAntrean',
+            'kodeBooking',
+            'activeQueue',
+            'colorMap',
+            'defaultColor',
+            'totalKuota',
+            'totalTerisi',
+            'sisaKuota'
+        ));
+    }
+    
+    public function halamanKonfirmasi(Request $request)
+    {
+        /** @var Customer|null $authCustomer */
+        $authCustomer = Auth::guard('customer')->user();
+
+        if (!$authCustomer) {
+            return redirect()->route('booking.register');
+        }
+
+        $slug = $request->query('layanan');
+        
+        // Cari layanan berdasarkan slug
+        $service = Service::query()
+            ->where('is_active', true)
+            ->where('instance_id', $authCustomer->instance_id ?? 1)
+            ->get()
+            ->first(function ($item) use ($slug) {
+                return Str::slug($item->service_name) === $slug;
+            });
+
+        if (!$service) {
+            return redirect()->route('booking.dashboard')->withErrors(['limit_booking' => 'Layanan tidak ditemukan.']);
+        }
+
+        return view('Pages.Remoteuser.Konfirmasi', [
+            'service' => $service,
+            'customer' => $authCustomer,
+            'slug' => $slug
+        ]);
     }
 
     public function prosesAmbilAntrean(Request $request)
@@ -237,6 +360,8 @@ class BookingOnlineController extends Controller
             ->with(['service', 'customer'])
             ->where('queue_source', 'online')
             ->where('customer_id', $authCustomer->id)
+            ->whereIn('queue_status', ['waiting', 'called', 'serving'])
+            ->whereNull('check_in_time') // <--- Sembunyikan jika sudah di-scan
             ->orderByDesc('created_at')
             ->limit(20)
             ->get()

@@ -54,40 +54,37 @@
             <h2 class="text-xl font-bold text-gray-900">Scan QR Code Anda</h2>
         </div>
 
-        {{-- Area Kamera --}}
+        {{-- Area Kamera (REAL) --}}
         <div class="px-8 pb-4">
-            <div class="relative w-full aspect-square bg-gray-900 rounded-2xl overflow-hidden shadow-inner">
+            <div class="relative w-full aspect-square bg-gray-900 rounded-2xl overflow-hidden shadow-inner border-4 border-gray-100">
+                
+                {{-- Container untuk Library Scanner --}}
+                <div id="reader" class="w-full h-full object-cover"></div>
 
-                {{-- Simulasi Feed Kamera (Gelap) --}}
-                <div class="absolute inset-0 bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800"></div>
+                {{-- Overlay Scanning --}}
+                <div id="scan-overlay" class="absolute inset-0 pointer-events-none z-10">
+                    {{-- Corner Brackets --}}
+                    <div class="absolute inset-0 p-6">
+                        <div class="absolute top-6 left-6 w-12 h-12 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
+                        <div class="absolute top-6 right-6 w-12 h-12 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
+                        <div class="absolute bottom-6 left-6 w-12 h-12 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
+                        <div class="absolute bottom-6 right-6 w-12 h-12 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
+                    </div>
 
-                {{-- Corner Brackets --}}
-                <div class="absolute inset-0 p-6">
-                    {{-- Top-Left --}}
-                    <div class="absolute top-6 left-6 w-12 h-12 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
-                    {{-- Top-Right --}}
-                    <div class="absolute top-6 right-6 w-12 h-12 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
-                    {{-- Bottom-Left --}}
-                    <div class="absolute bottom-6 left-6 w-12 h-12 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
-                    {{-- Bottom-Right --}}
-                    <div class="absolute bottom-6 right-6 w-12 h-12 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
+                    {{-- Garis Scanning --}}
+                    <div class="scan-line absolute left-6 right-6 h-0.5">
+                        <div class="w-full h-full bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
+                    </div>
                 </div>
 
-                {{-- Garis Scanning (Hijau + Glow) --}}
-                <div class="scan-line absolute left-6 right-6 h-0.5 z-10">
-                    <div class="w-full h-full bg-emerald-400 rounded-full"></div>
-                    <div class="w-full h-3 bg-emerald-400/20 rounded-full -mt-1.5 blur-sm"></div>
-                    <div class="w-full h-6 bg-emerald-400/10 rounded-full -mt-3 blur-md"></div>
-                </div>
-
-                {{-- Center Icon --}}
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="text-center">
-                        <svg class="w-16 h-16 text-white/20 mx-auto mb-2" fill="none" stroke="currentColor" stroke-width="0.8" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/>
-                        </svg>
-                        <p class="text-white/30 text-xs font-medium">Menunggu QR Code...</p>
+                {{-- Status Overlay (Success/Error) --}}
+                <div id="status-overlay" class="absolute inset-0 z-20 hidden flex items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300">
+                    <div class="text-center p-6">
+                        <div id="status-icon" class="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <!-- Icon will be injected here -->
+                        </div>
+                        <h3 id="status-title" class="text-2xl font-black mb-2"></h3>
+                        <p id="status-message" class="text-gray-500 font-medium"></p>
                     </div>
                 </div>
             </div>
@@ -95,9 +92,9 @@
 
         {{-- Instruksi --}}
         <div class="px-8 pb-6 text-center">
-            <div class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3">
+            <div id="instruction-box" class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3 transition-colors">
                 <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                <p class="text-sm text-blue-700 leading-relaxed text-left">Arahkan <strong>QR Code</strong> yang Anda dapatkan di HP ke arah kamera</p>
+                <p id="instruction-text" class="text-sm text-blue-700 leading-relaxed text-left">Arahkan <strong>QR Code</strong> di HP Anda ke arah kamera untuk Check-in otomatis.</p>
             </div>
         </div>
 
@@ -117,6 +114,101 @@
     </div>
 
 </div>
+
+{{-- LIBRARY SCANNER --}}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    let html5QrCode;
+    let isProcessing = false;
+
+    function onScanSuccess(decodedText, decodedResult) {
+        if (isProcessing) return;
+        
+        isProcessing = true;
+        showStatus('loading', 'Memverivikasi...', decodedText);
+
+        // Kirim hasil scan ke Backend via AJAX (Jalur Relatif agar tidak 404)
+        fetch("/on-site-user/verify-scan", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ qr_data: decodedText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showStatus('success', 'Berhasil!', `${data.queue_number} - ${data.service_name}`);
+                playAudio('success');
+            } else {
+                showStatus('error', 'Gagal', data.message);
+                playAudio('error');
+            }
+            
+            // Tunggu 3 detik sebelum siap scan lagi
+            setTimeout(() => {
+                hideStatus();
+                isProcessing = false;
+            }, 3000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showStatus('error', 'Sistem Error', 'Gagal terhubung ke server.');
+            setTimeout(() => {
+                hideStatus();
+                isProcessing = false;
+            }, 3000);
+        });
+    }
+
+    function showStatus(type, title, message) {
+        const overlay = document.getElementById('status-overlay');
+        const iconContainer = document.getElementById('status-icon');
+        const titleEl = document.getElementById('status-title');
+        const msgEl = document.getElementById('status-message');
+        
+        overlay.classList.remove('hidden');
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+
+        if (type === 'loading') {
+            iconContainer.innerHTML = '<div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>';
+            titleEl.className = "text-2xl font-black mb-2 text-blue-600";
+        } else if (type === 'success') {
+            iconContainer.innerHTML = '<div class="bg-emerald-100 p-4 rounded-full"><svg class="w-16 h-16 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>';
+            titleEl.className = "text-2xl font-black mb-2 text-emerald-600";
+        } else {
+            iconContainer.innerHTML = '<div class="bg-red-100 p-4 rounded-full"><svg class="w-16 h-16 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg></div>';
+            titleEl.className = "text-2xl font-black mb-2 text-red-600";
+        }
+    }
+
+    function hideStatus() {
+        document.getElementById('status-overlay').classList.add('hidden');
+    }
+
+    function playAudio(type) {
+        const audio = new Audio(type === 'success' 
+            ? 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3' 
+            : 'https://assets.mixkit.co/active_storage/sfx/1437/1437-preview.mp3');
+        audio.play().catch(e => console.log('Audio autoplay blocked by browser.'));
+    }
+
+    // Inisialisasi Scanner saat halaman siap
+    window.addEventListener('DOMContentLoaded', () => {
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
+            .catch(err => {
+                console.error("Gagal menyalakan kamera:", err);
+                document.getElementById('instruction-text').innerHTML = "<span class='text-red-600 font-bold'>Gagal membuka kamera. Harap izinkan akses kamera di browser Anda.</span>";
+                document.getElementById('instruction-box').classList.replace('bg-blue-50', 'bg-red-50');
+            });
+    });
+</script>
 
 </body>
 </html>

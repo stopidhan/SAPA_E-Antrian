@@ -19,50 +19,48 @@
 <body class="bg-gray-200 antialiased">
 
 @php
-    // Ambil parameter layanan dari URL (?layanan=pelayanan-ktp)
-    $slug = request('layanan', 'pelayanan-kk');
-
-    $layananData = [
-        'pelayanan-ktp' => (object)[
-            'nama'     => 'Pelayanan KTP',
-            'estimasi' => '± 15 menit',
-            'kode'     => 'A',
+    $prefix = strtoupper($service->queue_prefix ?? 'Q');
+    
+    $colorMap = [
+        'A' => [
             'headerBg' => 'bg-blue-600',
             'headerTextSub' => 'text-blue-200',
-            'headerTextMuted' => 'text-blue-100',
+            'text' => 'text-blue-600',
+            'bgLight' => 'bg-blue-50',
+            'border' => 'border-blue-100',
         ],
-        'pelayanan-kk' => (object)[
-            'nama'     => 'Pelayanan KK',
-            'estimasi' => '± 20 menit',
-            'kode'     => 'B',
+        'B' => [
             'headerBg' => 'bg-emerald-600',
             'headerTextSub' => 'text-emerald-200',
-            'headerTextMuted' => 'text-emerald-100',
+            'text' => 'text-emerald-600',
+            'bgLight' => 'bg-emerald-50',
+            'border' => 'border-emerald-100',
         ],
-        'pelayanan-akta' => (object)[
-            'nama'     => 'Pelayanan Akta',
-            'estimasi' => '± 30 menit',
-            'kode'     => 'C',
+        'C' => [
             'headerBg' => 'bg-amber-500',
             'headerTextSub' => 'text-amber-200',
-            'headerTextMuted' => 'text-amber-100',
-        ],
+            'text' => 'text-amber-600',
+            'bgLight' => 'bg-amber-50',
+            'border' => 'border-amber-100',
+        ]
     ];
 
-    $current   = $layananData[$slug] ?? $layananData['pelayanan-kk'];
-    $layanan   = $current->nama;
-    $estimasi  = $current->estimasi;
-    $nama      = session('nama', 'Khairuddin Al Fadhilah');
-    $whatsapp  = session('whatsapp', '081234567890');
+    $c = $colorMap[$prefix] ?? [
+        'headerBg' => 'bg-gray-600',
+        'headerTextSub' => 'text-gray-200',
+        'text' => 'text-gray-600',
+        'bgLight' => 'bg-gray-50',
+        'border' => 'border-gray-100',
+    ];
 @endphp
 
 <div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col">
 
     {{-- ====== HEADER (Warna Sesuai Layanan) ====== --}}
     <div class="px-5 pt-5">
-        <div class="{{ $current->headerBg }} rounded-2xl px-5 pt-4 pb-4 shadow-md">
-            <p class="{{ $current->headerTextSub }} text-[10px] font-semibold uppercase tracking-widest">Layanan dipilih:</p>
-            <h1 class="text-white text-xl font-extrabold mt-0.5">{{ $layanan }}</h1>
+        <div class="{{ $c['headerBg'] }} rounded-2xl px-5 pt-4 pb-4 shadow-md">
+            <p class="{{ $c['headerTextSub'] }} text-[10px] font-semibold uppercase tracking-widest">Layanan dipilih:</p>
+            <h1 class="text-white text-xl font-extrabold mt-0.5">{{ $service->service_name }}</h1>
         </div>
     </div>
 
@@ -89,17 +87,16 @@
         @endif
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            {{-- Card Detail Layanan --}}
-            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-                <p class="text-[10px] font-semibold text-blue-500 uppercase tracking-widest mb-2">Detail Layanan</p>
+            <div class="{{ $c['bgLight'] }} border {{ $c['border'] }} rounded-2xl p-4">
+                <p class="text-[10px] font-semibold {{ $c['text'] }} uppercase tracking-widest mb-2">Detail Layanan</p>
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Layanan</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $layanan }}</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $service->service_name }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Estimasi Waktu</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $estimasi }}</span>
+                        <span class="text-xs font-bold text-gray-900">± 15 menit</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Tanggal</span>
@@ -108,17 +105,16 @@
                 </div>
             </div>
 
-            {{-- Card Data Pendaftar --}}
             <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
                 <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-widest mb-2">Data Pendaftar</p>
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Nama</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $nama }}</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $customer->name ?? $customer->nama }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">WhatsApp</span>
-                        <span class="text-xs font-bold text-gray-900">{{ $whatsapp }}</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $customer->phone ?? $customer->no_hp }}</span>
                     </div>
                 </div>
             </div>
