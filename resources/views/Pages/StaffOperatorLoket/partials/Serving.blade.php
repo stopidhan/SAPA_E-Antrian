@@ -56,20 +56,19 @@
             {{-- Dropdown Kategori Layanan --}}
             <div>
                 <label class="block text-sm font-bold text-gray-900 mb-1.5">Kategori Layanan <span class="text-red-500">*</span></label>
-                <select class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none appearance-none cursor-pointer">
+                <select x-model="serviceCategory" class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none appearance-none cursor-pointer">
                     <option value="" disabled selected>Pilih kategori layanan</option>
-                    <option>Pembuatan KTP Baru</option>
-                    <option>Perpanjangan KTP</option>
-                    <option>Pergantian KTP</option>
-                    <option>Cetak Ulang KTP</option>
-                    <option>Lainnya</option>
+                    @foreach($services as $svc)
+                        <option value="{{ $svc->service_name }}">{{ $svc->service_name }}</option>
+                    @endforeach
+                    <option value="Lainnya">Lainnya</option>
                 </select>
             </div>
 
             {{-- Textarea Catatan / Deskripsi --}}
             <div>
                 <label class="block text-sm font-bold text-gray-900 mb-1.5">Deskripsi / Catatan Layanan</label>
-                <textarea rows="3"
+                <textarea x-model="serviceDescription" rows="3"
                           placeholder="Catatan tambahan, keluhan..."
                           class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none resize-none placeholder:text-gray-300"></textarea>
             </div>

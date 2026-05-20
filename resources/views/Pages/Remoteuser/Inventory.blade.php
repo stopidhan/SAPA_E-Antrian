@@ -80,9 +80,9 @@
                             <span class="text-[10px] font-semibold text-amber-700" x-show="!expired">Sisa waktu datang</span>
                             <span class="text-[10px] font-bold text-red-600" x-show="expired" x-cloak>Tiket hangus!</span>
                         <div class="w-1.5 h-1.5 rounded-full {{ $ticket->isExpired ? 'bg-red-500' : 'bg-emerald-500 animate-pulse' }}"></div>
-                        <p class="text-[10px] font-bold {{ $ticket->warnaTeks }}">{{ $ticket->statusLabel }}</p>
+                        <p class="text-[10px] font-bold {{ $ticket->warnaText }}">{{ $ticket->status }}</p>
                     </div>
-                    <p class="text-[10px] font-medium text-gray-400 capitalize">{{ $ticket->type }}</p>
+                    <p class="text-[10px] font-medium text-gray-400 capitalize">{{ $ticket->status }}</p>
                 </div>
 
                 {{-- Capture Area Starts Here --}}
@@ -125,12 +125,24 @@
                 {{-- Action Buttons (EXCLUDED) --}}
                 <div class="px-3.5 pb-3.5 pt-0 no-capture">
                     <div class="flex flex-col sm:flex-row items-center gap-2 mt-3">
-                        <a href="{{ route('booking.tiket', ['queue_id' => $ticket->queueId]) }}"
-                           class="flex-1 flex items-center justify-center gap-1.5 py-2 text-white text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'bg-gray-300 pointer-events-none cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700' }}">
-                            {{ $ticket->isExpired ? 'Tiket Hangus' : 'Buka QR' }}
-                        </a>
+                        @if(!$ticket->isExpired)
+                            <form action="{{ route('booking.tiket.set') }}" method="POST" class="flex-1 w-full">
+                                @csrf
+                                <input type="hidden" name="queue_id" value="{{ $ticket->queueId }}">
+                                <button type="submit"
+                                        class="w-full flex items-center justify-center py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
+                                    Buka QR
+                                </button>
+                            </form>
+                        @else
+                            <button type="button" disabled
+                                    class="flex-1 w-full flex items-center justify-center py-2 bg-gray-300 text-white text-[11px] font-bold rounded-lg pointer-events-none cursor-not-allowed">
+                                Tiket Hangus
+                            </button>
+                        @endif
+
                         <button onclick="downloadTicketCard('{{ $ticket->kode }}')"
-                                class="flex-1 flex items-center justify-center gap-1.5 py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
+                                class="flex-1 flex items-center justify-center py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
                             Unduh QR
                         </button>
                     </div>

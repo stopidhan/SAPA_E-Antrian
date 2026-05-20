@@ -224,7 +224,30 @@ class BookingOnlineController extends Controller
             'booking_last_service_name' => $service->service_name,
         ]);
 
-        return redirect()->route('booking.tiket', ['queue_id' => $queue->id]);
+        return redirect()->route('booking.tiket');
+    }
+
+    public function setHalamanTiket(Request $request)
+    {
+        $queueId = $request->input('queue_id');
+        
+        if ($queueId) {
+            session(['booking_last_queue_id' => $queueId]);
+        }
+
+        return redirect()->route('booking.tiket');
+    }
+
+    public function halamanRiwayat()
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $riwayatAntrean = Queue::with('service')
+            ->where('customer_id', $customer->id)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return view('Pages.Remoteuser.Riwayat', compact('riwayatAntrean'));
     }
 
     public function halamanTiket(Request $request)

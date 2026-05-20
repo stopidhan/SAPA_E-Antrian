@@ -44,49 +44,38 @@
             <h2 class="text-xl font-bold text-gray-900">Pilih Jenis Layanan yang Anda Butuhkan</h2>
         </div>
 
-        {{-- Grid Layanan (2x2) --}}
+        {{-- Grid Layanan --}}
         <div class="px-8 pb-8">
             <div class="grid grid-cols-2 gap-4">
+                @php
+                    $colorMap = [
+                        'A' => ['bg' => 'bg-blue-600', 'hover' => 'hover:border-blue-400', 'shadow' => 'shadow-blue-200', 'hoverShadow' => 'group-hover:shadow-blue-300'],
+                        'B' => ['bg' => 'bg-emerald-600', 'hover' => 'hover:border-emerald-400', 'shadow' => 'shadow-emerald-200', 'hoverShadow' => 'group-hover:shadow-emerald-300'],
+                        'C' => ['bg' => 'bg-amber-500', 'hover' => 'hover:border-amber-400', 'shadow' => 'shadow-amber-200', 'hoverShadow' => 'group-hover:shadow-amber-300'],
+                        'D' => ['bg' => 'bg-purple-600', 'hover' => 'hover:border-purple-400', 'shadow' => 'shadow-purple-200', 'hoverShadow' => 'group-hover:shadow-purple-300'],
+                    ];
+                    $defaultColor = ['bg' => 'bg-slate-600', 'hover' => 'hover:border-slate-400', 'shadow' => 'shadow-slate-200', 'hoverShadow' => 'group-hover:shadow-slate-300'];
+                @endphp
 
-                {{-- Layanan A: Pelayanan KTP --}}
-                <a href="{{ route('kiosk.input', ['layanan' => 'pelayanan-ktp']) }}"
-                   class="group border-2 border-gray-100 hover:border-blue-400 rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg hover:shadow-blue-100 hover:scale-[1.02] active:scale-[0.98]">
-                    <div class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-200 group-hover:shadow-lg group-hover:shadow-blue-300 transition">
-                        <span class="text-white text-xl font-black">A</span>
+                @forelse($services as $service)
+                    @php
+                        $prefix = strtoupper($service->queue_prefix);
+                        $color = $colorMap[$prefix] ?? $defaultColor;
+                        $slug = Str::slug($service->service_name);
+                    @endphp
+                    <a href="{{ route('kiosk.input', ['layanan' => $slug]) }}"
+                       class="group border-2 border-gray-100 {{ $color['hover'] }} rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg {{ str_replace('shadow-', 'hover:shadow-', $color['shadow']) }} hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="w-14 h-14 {{ $color['bg'] }} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md {{ $color['shadow'] }} {{ $color['hoverShadow'] }} transition">
+                            <span class="text-white text-xl font-black">{{ $prefix }}</span>
+                        </div>
+                        <p class="text-base font-bold text-gray-900 mb-1">{{ $service->service_name }}</p>
+                        <p class="text-sm text-gray-400">{{ $service->description ?? 'Ambil Antrean' }}</p>
+                    </a>
+                @empty
+                    <div class="col-span-2 text-center py-8">
+                        <p class="text-gray-500 font-medium">Belum ada layanan yang aktif untuk instansi ini.</p>
                     </div>
-                    <p class="text-base font-bold text-gray-900 mb-1">Pelayanan KTP</p>
-                    <p class="text-sm text-gray-400">Estimasi: ~15 menit</p>
-                </a>
-
-                {{-- Layanan B: Pelayanan KK --}}
-                <a href="{{ route('kiosk.input', ['layanan' => 'pelayanan-kk']) }}"
-                   class="group border-2 border-gray-100 hover:border-emerald-400 rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg hover:shadow-emerald-100 hover:scale-[1.02] active:scale-[0.98]">
-                    <div class="w-14 h-14 bg-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-emerald-200 group-hover:shadow-lg group-hover:shadow-emerald-300 transition">
-                        <span class="text-white text-xl font-black">B</span>
-                    </div>
-                    <p class="text-base font-bold text-gray-900 mb-1">Pelayanan KK</p>
-                    <p class="text-sm text-gray-400">Estimasi: ~20 menit</p>
-                </a>
-
-                {{-- Layanan C: Pelayanan Akta --}}
-                <a href="{{ route('kiosk.input', ['layanan' => 'pelayanan-akta']) }}"
-                   class="group border-2 border-gray-100 hover:border-amber-400 rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg hover:shadow-amber-100 hover:scale-[1.02] active:scale-[0.98]">
-                    <div class="w-14 h-14 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-amber-200 group-hover:shadow-lg group-hover:shadow-amber-300 transition">
-                        <span class="text-white text-xl font-black">C</span>
-                    </div>
-                    <p class="text-base font-bold text-gray-900 mb-1">Pelayanan Akta</p>
-                    <p class="text-sm text-gray-400">Estimasi: ~25 menit</p>
-                </a>
-
-                {{-- Layanan D: Informasi Umum --}}
-                <a href="{{ route('kiosk.input', ['layanan' => 'informasi-umum']) }}"
-                   class="group border-2 border-gray-100 hover:border-purple-400 rounded-xl p-6 text-center transition-all duration-200 hover:shadow-lg hover:shadow-purple-100 hover:scale-[1.02] active:scale-[0.98]">
-                    <div class="w-14 h-14 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-purple-200 group-hover:shadow-lg group-hover:shadow-purple-300 transition">
-                        <span class="text-white text-xl font-black">D</span>
-                    </div>
-                    <p class="text-base font-bold text-gray-900 mb-1">Informasi Umum</p>
-                    <p class="text-sm text-gray-400">Estimasi: ~10 menit</p>
-                </a>
+                @endforelse
 
             </div>
         </div>

@@ -65,12 +65,14 @@
                     @enderror
                 </div>
 
-                <div>
-                    <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.key') }}" data-theme="light"></div>
-                    @error('cf-turnstile-response')
-                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-                    @enderror
+                <div class="flex w-full items-center justify-center">
+                    <div class="origin-center transition-all max-[380px]:scale-90 max-[320px]:scale-75">
+                        <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.key') }}" data-theme="light"></div>
+                    </div>
                 </div>
+                @error('cf-turnstile-response')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
 
                 <button
                     type="submit"

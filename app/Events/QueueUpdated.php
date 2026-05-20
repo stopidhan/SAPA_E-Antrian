@@ -9,20 +9,19 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Queue;
 
-class QueueCheckedIn implements ShouldBroadcastNow
+class QueueUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $queue;
+    public $message;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Queue $queue)
+    public function __construct($message = 'Update')
     {
-        $this->queue = $queue;
+        $this->message = $message;
     }
 
     /**

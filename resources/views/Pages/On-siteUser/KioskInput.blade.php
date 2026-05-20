@@ -19,16 +19,19 @@
 <body class="antialiased">
 
 @php
-    $slug = request('layanan', 'pelayanan-ktp');
-
-    $layananData = [
-        'pelayanan-ktp'  => (object)['kode' => 'A', 'nama' => 'Pelayanan KTP',  'warnaBg' => 'bg-blue-600',    'warnaText' => 'text-blue-600',    'warnaLight' => 'bg-blue-50',    'warnaBorder' => 'border-blue-200'],
-        'pelayanan-kk'   => (object)['kode' => 'B', 'nama' => 'Pelayanan KK',   'warnaBg' => 'bg-emerald-600', 'warnaText' => 'text-emerald-600', 'warnaLight' => 'bg-emerald-50', 'warnaBorder' => 'border-emerald-200'],
-        'pelayanan-akta' => (object)['kode' => 'C', 'nama' => 'Pelayanan Akta', 'warnaBg' => 'bg-amber-500',   'warnaText' => 'text-amber-600',   'warnaLight' => 'bg-amber-50',   'warnaBorder' => 'border-amber-200'],
-        'informasi-umum' => (object)['kode' => 'D', 'nama' => 'Informasi Umum', 'warnaBg' => 'bg-purple-600',  'warnaText' => 'text-purple-600',  'warnaLight' => 'bg-purple-50',  'warnaBorder' => 'border-purple-200'],
+    $slug = request('layanan');
+    $prefix = strtoupper($service->queue_prefix ?? 'A');
+    
+    $colorMap = [
+        'A' => (object)['kode' => $prefix, 'nama' => $service->service_name ?? 'Layanan', 'warnaBg' => 'bg-blue-600',    'warnaText' => 'text-blue-600',    'warnaLight' => 'bg-blue-50',    'warnaBorder' => 'border-blue-200'],
+        'B' => (object)['kode' => $prefix, 'nama' => $service->service_name ?? 'Layanan', 'warnaBg' => 'bg-emerald-600', 'warnaText' => 'text-emerald-600', 'warnaLight' => 'bg-emerald-50', 'warnaBorder' => 'border-emerald-200'],
+        'C' => (object)['kode' => $prefix, 'nama' => $service->service_name ?? 'Layanan', 'warnaBg' => 'bg-amber-500',   'warnaText' => 'text-amber-600',   'warnaLight' => 'bg-amber-50',   'warnaBorder' => 'border-amber-200'],
+        'D' => (object)['kode' => $prefix, 'nama' => $service->service_name ?? 'Layanan', 'warnaBg' => 'bg-purple-600',  'warnaText' => 'text-purple-600',  'warnaLight' => 'bg-purple-50',  'warnaBorder' => 'border-purple-200'],
     ];
 
-    $current = $layananData[$slug] ?? $layananData['pelayanan-ktp'];
+    $defaultColor = (object)['kode' => $prefix, 'nama' => $service->service_name ?? 'Layanan', 'warnaBg' => 'bg-slate-600', 'warnaText' => 'text-slate-600', 'warnaLight' => 'bg-slate-50', 'warnaBorder' => 'border-slate-200'];
+
+    $current = $colorMap[$prefix] ?? $defaultColor;
 @endphp
 
 <div class="w-full min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center font-sans select-none relative pb-10">
@@ -74,29 +77,40 @@
             </div>
 
             {{-- Form Input --}}
-            <div class="mb-8">
-                <label for="nama" class="block text-sm font-bold text-gray-900 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
-                <input type="text" id="nama" placeholder="Masukkan nama lengkap Anda"
-                       class="w-full px-5 py-4 text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all outline-none placeholder:text-gray-300">
-                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                    Nama akan ditampilkan pada struk antrean
-                </p>
-            </div>
+            <form action="{{ route('kiosk.input.simpan') }}" method="POST">
+                @csrf
+                <input type="hidden" name="layanan" value="{{ $slug }}">
+                
+                <div class="mb-8">
+                    <label for="nama" class="block text-sm font-bold text-gray-900 mb-2">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama" name="nama" required placeholder="Masukkan nama lengkap Anda"
+                           class="w-full px-5 py-4 text-base bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all outline-none placeholder:text-gray-300">
+                    <p class="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                        Nama akan ditampilkan pada struk antrean
+                    </p>
+                    @error('nama')
+                        <p class="text-xs text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+                    @error('layanan')
+                        <p class="text-xs text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+                </div>
 
-            {{-- Aksi --}}
-            <div class="flex items-center gap-4">
-                <a href="{{ route('kiosk.home') }}"
-                   class="flex-1 flex items-center justify-center gap-2 py-4 border-2 border-gray-200 text-gray-600 text-base font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-                    Ganti Layanan
-                </a>
-                <a href="{{ route('kiosk.cetak', ['layanan' => $slug]) }}"
-                   class="flex-1 flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-base font-bold rounded-xl shadow-lg shadow-blue-200 transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m0 0a48.103 48.103 0 0110.5 0m-10.5 0V5.625c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v2.009"/></svg>
-                    Cetak Nomor Antrean
-                </a>
-            </div>
+                {{-- Aksi --}}
+                <div class="flex items-center gap-4">
+                    <a href="{{ route('kiosk.home') }}"
+                       class="flex-1 flex items-center justify-center gap-2 py-4 border-2 border-gray-200 text-gray-600 text-base font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+                        Ganti Layanan
+                    </a>
+                    <button type="submit"
+                       class="flex-1 flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-base font-bold rounded-xl shadow-lg shadow-blue-200 transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m0 0a48.103 48.103 0 0110.5 0m-10.5 0V5.625c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v2.009"/></svg>
+                        Cetak Nomor Antrean
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

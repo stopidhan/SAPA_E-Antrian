@@ -36,20 +36,6 @@
 </head>
 <body class="antialiased">
 
-@php
-    $slug = request('layanan', 'pelayanan-ktp');
-
-    $layananData = [
-        'pelayanan-ktp'  => (object)['kode' => 'A', 'nama' => 'Pelayanan KTP',  'nomor' => 'A012', 'warnaBg' => 'bg-blue-600',    'warnaText' => 'text-blue-600'],
-        'pelayanan-kk'   => (object)['kode' => 'B', 'nama' => 'Pelayanan KK',   'nomor' => 'B007', 'warnaBg' => 'bg-emerald-600', 'warnaText' => 'text-emerald-600'],
-        'pelayanan-akta' => (object)['kode' => 'C', 'nama' => 'Pelayanan Akta', 'nomor' => 'C024', 'warnaBg' => 'bg-amber-500',   'warnaText' => 'text-amber-600'],
-        'informasi-umum' => (object)['kode' => 'D', 'nama' => 'Informasi Umum', 'nomor' => 'D003', 'warnaBg' => 'bg-purple-600',  'warnaText' => 'text-purple-600'],
-    ];
-
-    $current = $layananData[$slug] ?? $layananData['pelayanan-ktp'];
-    $nama = request('nama', 'Budi Santoso');
-@endphp
-
 <div class="w-full min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center font-sans select-none relative pb-10">
 
     {{-- ====== DEKORASI LATAR ====== --}}
@@ -81,13 +67,13 @@
 
         {{-- Nomor Antrean Raksasa --}}
         <div class="text-center pb-4">
-            <p class="{{ $current->warnaText }} text-7xl font-black tracking-tight leading-none">{{ $current->nomor }}</p>
+            <p class="text-blue-600 text-7xl font-black tracking-tight leading-none">{{ $nomor }}</p>
         </div>
 
         {{-- Detail Data --}}
         <div class="text-center pb-6 space-y-1">
             <p class="text-base text-gray-900 font-bold">{{ $nama }}</p>
-            <p class="text-sm text-gray-400">{{ $current->nama }}</p>
+            <p class="text-sm text-gray-400">{{ $layanan }}</p>
         </div>
 
         {{-- Garis Pemisah --}}
@@ -117,11 +103,12 @@
         </div>
 
         {{-- Tombol Selesai --}}
-        <div class="px-8 pb-8">
+        <div class="px-8 pb-8 flex flex-col items-center">
             <a href="{{ route('kiosk.home') }}"
-               class="w-full flex items-center justify-center gap-2 py-4 border-2 border-gray-200 text-gray-600 text-base font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition">
+               class="w-full flex items-center justify-center gap-2 py-4 border-2 border-gray-200 text-gray-600 text-base font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition shadow-sm mb-3">
                 Selesai
             </a>
+            <p class="text-xs text-gray-400">Otomatis kembali ke awal dalam <span id="countdown">5</span> detik</p>
         </div>
     </div>
 
@@ -131,6 +118,22 @@
     </div>
 
 </div>
+
+<script>
+    // Redirect otomatis setelah 5 detik
+    let timeLeft = 5;
+    const countdownEl = document.getElementById('countdown');
+    
+    const timer = setInterval(() => {
+        timeLeft--;
+        countdownEl.innerText = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            window.location.href = "{{ route('kiosk.home') }}";
+        }
+    }, 1000);
+</script>
 
 </body>
 </html>

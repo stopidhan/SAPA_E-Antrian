@@ -142,16 +142,21 @@
             if (data.success) {
                 showStatus('success', 'Berhasil!', `${data.queue_number} - ${data.service_name}`);
                 playAudio('success');
+                
+                // Tunggu 3 detik, lalu alihkan kembali ke Halaman Utama Kiosk
+                setTimeout(() => {
+                    window.location.href = "{{ route('kiosk.home') }}";
+                }, 3000);
             } else {
                 showStatus('error', 'Gagal', data.message);
                 playAudio('error');
+                
+                // Tunggu 3 detik sebelum siap scan lagi
+                setTimeout(() => {
+                    hideStatus();
+                    isProcessing = false;
+                }, 3000);
             }
-            
-            // Tunggu 3 detik sebelum siap scan lagi
-            setTimeout(() => {
-                hideStatus();
-                isProcessing = false;
-            }, 3000);
         })
         .catch(error => {
             console.error('Error:', error);

@@ -33,11 +33,10 @@ Route::middleware('auth:customer')->group(function () {
     Route::get('/remoteuser/konfirmasi', [BookingOnlineController::class, 'halamanKonfirmasi'])->name('booking.konfirmasi');
 
     Route::get('/remoteuser/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
+    Route::post('/remoteuser/tiket/set', [BookingOnlineController::class, 'setHalamanTiket'])->name('booking.tiket.set');
     Route::post('/remoteuser/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
 
-    Route::get('/remoteuser/riwayat', function () {
-        return view('Pages.Remoteuser.Riwayat');
-    })->name('booking.riwayat');
+    Route::get('/remoteuser/riwayat', [BookingOnlineController::class, 'halamanRiwayat'])->name('booking.riwayat');
 
     Route::get('/remoteuser/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
     Route::post('/remoteuser/logout', [CustomerAuthController::class, 'logout'])->name('booking.logout');
@@ -59,6 +58,7 @@ use App\Http\Controllers\KioskController;
 
 Route::get('/on-site-user', [KioskController::class, 'halamanHome'])->name('kiosk.home');
 Route::get('/on-site-user/input', [KioskController::class, 'halamanInput'])->name('kiosk.input');
+Route::post('/on-site-user/input/simpan', [KioskController::class, 'simpanAntreanOffline'])->name('kiosk.input.simpan');
 Route::get('/on-site-user/cetak', [KioskController::class, 'halamanCetak'])->name('kiosk.cetak');
 Route::get('/on-site-user/scan', [KioskController::class, 'halamanScan'])->name('kiosk.scan');
 
@@ -75,18 +75,22 @@ Route::prefix('kiosk')->group(function () {
 // ==========================================
 // Monitor — TV Ruang Tunggu (Public Display)
 // ==========================================
-Route::get('/monitor', function () {
-    return view('Pages.MonitorPublic.monitor');
-})->name('monitor.display');
+use App\Http\Controllers\MonitorController;
+
+Route::get('/monitor', [MonitorController::class, 'index'])->name('monitor.display');
+Route::get('/monitor/api', [MonitorController::class, 'getMonitorApi'])->name('monitor.api');
 
 // ==========================================
 // Operator — Dashboard Operator Loket
 // ==========================================
 
-Route::middleware(['role:operator'])->group(function () {
-    Route::get('/staff-operator-loket', function () {
-        return view('Pages.StaffOperatorLoket.Index');
-    })->name('operator.dashboard');
+Route::middleware(['auth', 'role:staff_operator'])->group(function () {
+    Route::get('/staff-operator-loket', [\App\Http\Controllers\OperatorController::class, 'index'])->name('operator.dashboard');
+    Route::post('/staff-operator-loket/panggil/{id}', [\App\Http\Controllers\OperatorController::class, 'panggilAntrean'])->name('operator.panggil');
+    Route::post('/staff-operator-loket/layani/{id}', [\App\Http\Controllers\OperatorController::class, 'layaniAntrean'])->name('operator.layani');
+    Route::post('/staff-operator-loket/lewati/{id}', [\App\Http\Controllers\OperatorController::class, 'lewatiAntrean'])->name('operator.lewati');
+    Route::post('/staff-operator-loket/selesai/{id}', [\App\Http\Controllers\OperatorController::class, 'selesaiAntrean'])->name('operator.selesai');
+    Route::get('/staff-operator-loket/api/queues', [\App\Http\Controllers\OperatorController::class, 'getQueuesApi'])->name('operator.api.queues');
     Route::redirect('/operator', '/staff-operator-loket');
 });
 
