@@ -15,13 +15,17 @@ class QueueUpdated implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $message;
+    public $queue;
+    public $instance_id;
 
     /**
      * Create a new event instance.
      */
-    public function __construct($message = 'Update')
+    public function __construct($message = 'Update', $queue = null, $instance_id = null)
     {
         $this->message = $message;
+        $this->queue = $queue;
+        $this->instance_id = $instance_id;
     }
 
     /**
@@ -31,8 +35,15 @@ class QueueUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
-            new Channel('queues'),
+        $channels = [
+            new Channel('queues'), // Backward kompatibel jika rekan Monitor masih pakai channel global
         ];
+
+        // Broadcast to a specific instance channel if provided
+        if ($this->instance_id) {
+            $channels[] = new Channel('queues.' . $this->instance_id);
+        }
+
+        return $channels;
     }
 }

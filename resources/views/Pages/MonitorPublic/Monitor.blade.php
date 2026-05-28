@@ -201,7 +201,7 @@
     });
 
     // Listen untuk Event Check-in
-    window.Echo.channel('queues')
+    window.Echo.channel('queues.{{ $instance->id }}')
         .listen('QueueCheckedIn', (e) => {
             console.log('Check-in event received:', e.queue);
             
@@ -215,15 +215,14 @@
             audio.play().catch(e => console.log('Audio autoplay blocked by browser.'));
         })
         .listen('QueueUpdated', (e) => {
-            console.log('QueueUpdated event received:', e.message);
-            // Trigger fetch data instead of waiting for interval
-            // Call via alpine component instance
-            const alpineData = document.querySelector('[x-data="monitorRealtime()"]');
-            if (alpineData && alpineData.__x) {
-                alpineData.__x.$data.fetchData();
-            } else {
-                // Fallback if alpine data isn't directly accessible this way - actually alpine 3 does not export __x. 
-                window.dispatchEvent(new CustomEvent('fetch-monitor-data'));
+            console.log('QueueUpdated event received:', e.message, e.queue);
+            
+            // Trigger fetch data to update the small counter cards
+            window.dispatchEvent(new CustomEvent('fetch-monitor-data'));
+
+            if (e.message === 'called' && e.queue) {
+                // If it is a new call, push it to our audio queue system
+                window.dispatchEvent(new CustomEvent('add-call-queue', { detail: e.queue }));
             }
         });
     
@@ -290,7 +289,9 @@
             currentCall: null,
             counters: [],
             stats: { active: '-', total: '-' },
-            latestCalledId: null,
+            
+            audioQueue: [],
+            isPlaying: false,
 
             initMonitor() {
                 this.fetchData();
@@ -299,23 +300,51 @@
                 window.addEventListener('fetch-monitor-data', () => {
                     this.fetchData();
                 });
+
+                window.addEventListener('add-call-queue', (e) => {
+                    this.audioQueue.push(e.detail);
+                    this.processAudioQueue();
+                });
+            },
+
+            processAudioQueue() {
+                if (this.isPlaying || this.audioQueue.length === 0) return;
+                
+                this.isPlaying = true;
+                const callInfo = this.audioQueue.shift();
+                
+                // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
+                this.currentCall = callInfo;
+                
+                // Mainkan bunyi panggilan
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+                audio.play().then(() => {
+                    // Beri waktu 4 detik menampilkan nomor ini sebelum memproses nomor loket berikutnya
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        this.processAudioQueue();
+                    }, 4000); 
+                }).catch(e => {
+                    console.log('Audio error:', e);
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        this.processAudioQueue();
+                    }, 2000); 
+                });
             },
 
             fetchData() {
-                fetch('/monitor/api')
+                const instanceCode = '{{ $instance->instance_code }}';
+                fetch(`/${instanceCode}/monitor/api`)
                     .then(response => response.json())
                     .then(data => {
-                        this.currentCall = data.current_call;
+                        // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
+                        if (!this.isPlaying && this.audioQueue.length === 0) {
+                            this.currentCall = data.current_call;
+                        }
+
                         this.counters = data.counters;
                         this.stats = data.counters_stats;
-                        
-                        // Mainkan suara jika ada panggilan baru
-                        if (data.latest_called_id && data.latest_called_id !== this.latestCalledId) {
-                            // pastikan overlay audio sudah diklik pengguna sebelumnya (unlockAudio)
-                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
-                            audio.play().catch(e => console.log('Audio error:', e));
-                            this.latestCalledId = data.latest_called_id;
-                        }
                     })
                     .catch(error => console.error('Error fetching monitor data:', error));
             }

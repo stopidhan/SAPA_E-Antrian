@@ -32,8 +32,15 @@ class QueueCheckedIn implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
-            new Channel('queues'),
+        $channels = [
+            new Channel('queues'), // global channel for backward compatibility
         ];
+
+        // Specific instance channel
+        if ($this->queue->instance_id) {
+            $channels[] = new Channel('queues.' . $this->queue->instance_id);
+        }
+
+        return $channels;
     }
 }

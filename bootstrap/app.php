@@ -17,8 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
-            if ($request->is('remoteuser') || $request->is('remoteuser/*') || $request->is('booking/*')) {
-                return route('booking.login');
+            if ($request->is('*/remoteuser') || $request->is('*/remoteuser/*') || $request->is('booking/*')) {
+                // Gunakan default route jika parameter URL tidak tersedia (misal saat error session)
+                $instance = $request->route('instance_code') ?? 'demo';
+                return route('booking.login', ['instance_code' => $instance]);
             }
 
             return route('login');
@@ -26,13 +28,18 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
             // Jika pengunjung yang sedang dicek ternyata sudah ter-autentikasi sebagai customer
-            if (\Illuminate\Support\Facades\Auth::guard('customer')->check() && ($request->is('remoteuser') || $request->is('remoteuser/*') || $request->is('booking/*'))) {
-                return route('booking.dashboard');
+            if (\Illuminate\Support\Facades\Auth::guard('customer')->check() && ($request->is('*/remoteuser') || $request->is('*/remoteuser/*') || $request->is('booking/*'))) {
+                $instance = $request->route('instance_code') ?? 'demo';
+                return route('booking.dashboard', ['instance_code' => $instance]);
             }
 
             return route('dashboard');
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            return redirect()->back()->withInput($request->except('_token'))->withErrors([
+                'booking_register' => 'Halaman terlalu lama didiamkan sehingga sesi berakhir (Kedaluwarsa). Silakan coba lagi.'
+            ]);
+        });
     })->create();

@@ -89,6 +89,9 @@
             serviceDescription: '',
 
             queue: @json($queuesData),
+            history: @json($historyData),
+            instanceCode: '{{ auth()->user()->instance->instance_code ?? '' }}',
+
               init() {
                   // Memulai polling otomatis setiap 5 detik
                   setInterval(() => {
@@ -97,12 +100,11 @@
               },
 
               fetchQueues() {
-                  fetch('/staff-operator-loket/api/queues')
+                  fetch(`/${this.instanceCode}/staff-operator-loket/api/queues`)
                       .then(res => res.json())
                       .then(data => {
-                          // Karena bisa terjadi perubahan manual di queue (saat dipanggil),
-                          // kita pastikan antrean yang sedang aktif/dipanggil tidak tertarik ulang jika masih "waiting"
-                          this.queue = data;
+                          this.queue = data.waiting;
+                          this.history = data.history;
                       })
                       .catch(err => console.error("Gagal refresh antrean", err));
               },
@@ -123,7 +125,7 @@
                 this.currentQueue = this.queue.shift();
 
                 // Request ke server untuk mengubah status di database menjadi 'called'
-                fetch(`/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -133,19 +135,26 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    if (!data.success) {
+                        // Jika bentrok (race condition) dengan operator lain
+                        this.showNotif(data.message, 'skip');
+                        this.currentQueue = null;
+                        this.state = 'standby';
+                        this.fetchQueues(); // Segarkan antrean seketika
+                        return;
+                    }
                     console.log(data.message);
+                    this.state = 'calling';
+                    this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
                 })
                 .catch(error => console.error('Error:', error));
-
-                this.state = 'calling';
-                this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
             },
 
             panggilUlang() {
                 if (!this.currentQueue) return;
 
                 // Request kembali ke server untuk memperbarui waktu panggil (called_time)
-                fetch(`/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -162,7 +171,7 @@
                 const skipped = this.currentQueue;
                 
                 // POST API ke db (dilewati -> skipped)
-                fetch(`/staff-operator-loket/lewati/${skipped.id}`, {
+                fetch(`/${this.instanceCode}/staff-operator-loket/lewati/${skipped.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -177,13 +186,25 @@
                     this.currentQueue = this.queue.shift();
                     
                     // Otomatis panggil antrean berikutnya
-                    fetch(`/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                    fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
                         body: JSON.stringify({ counter_id: this.counterId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            this.showNotif(data.message, 'skip');
+                            this.currentQueue = null;
+                            this.state = 'standby';
+                            this.fetchQueues();
+                            return;
+                        }
+                        this.state = 'calling';
+                        this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
                     });
                     
                 } else {
@@ -192,10 +213,36 @@
                 }
             },
 
+            batalkanAntrean() {
+                if (!this.currentQueue) return;
+                const cancelled = this.currentQueue;
+                
+                fetch(`/${this.instanceCode}/staff-operator-loket/batal/${cancelled.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ counter_id: this.counterId })
+                });
+
+                this.showNotif('Nomor ' + cancelled.nomor + ' dibatalkan', 'skip'); 
+
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                this.timerSeconds = 0;
+                this.timerDisplay = '00:00';
+                this.currentQueue = null;
+                this.state = 'standby';
+                this.fetchQueues();
+            },
+
             startServing() {
                 if (!this.currentQueue) return;
 
-                fetch(`/staff-operator-loket/layani/${this.currentQueue.id}`, {
+                fetch(`/${this.instanceCode}/staff-operator-loket/layani/${this.currentQueue.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -217,7 +264,7 @@
             stopServing() {
                 if (!this.currentQueue) return;
 
-                fetch(`/staff-operator-loket/selesai/${this.currentQueue.id}`, {
+                fetch(`/${this.instanceCode}/staff-operator-loket/selesai/${this.currentQueue.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

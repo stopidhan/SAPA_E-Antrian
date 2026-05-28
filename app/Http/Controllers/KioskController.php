@@ -15,36 +15,40 @@ class KioskController extends Controller
     /**
      * Menampilkan halaman utama Kiosk.
      */
-    public function halamanHome()
+    public function halamanHome($instance_code)
     {
-        $services = Service::where('instance_id', 1)->where('is_active', true)->get();
-        return view('Pages.On-siteUser.KioskHome', compact('services'));
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $services = Service::where('instance_id', $instance->id)->where('is_active', true)->get();
+        return view('Pages.On-siteUser.KioskHome', compact('services', 'instance'));
     }
 
     /**
      * Menampilkan halaman input data (Offline).
      */
-    public function halamanInput(Request $request)
+    public function halamanInput(Request $request, $instance_code)
     {
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
         $slug = $request->query('layanan');
         
-        $service = Service::where('instance_id', 1)->where('is_active', true)->get()
+        $service = Service::where('instance_id', $instance->id)->where('is_active', true)->get()
             ->first(function ($item) use ($slug) {
                 return Str::slug($item->service_name) === $slug;
             });
 
         if (!$service) {
-            return redirect()->route('kiosk.home')->withErrors(['layanan' => 'Layanan tidak ditemukan']);
+            return redirect()->route('kiosk.home', ['instance_code' => $instance_code])->withErrors(['layanan' => 'Layanan tidak ditemukan']);
         }
 
-        return view('Pages.On-siteUser.KioskInput', compact('slug', 'service'));
+        return view('Pages.On-siteUser.KioskInput', compact('slug', 'service', 'instance'));
     }
 
     /**
      * Menyimpan data antrean baru dari Kiosk.
      */
-    public function simpanAntreanOffline(Request $request)
+    public function simpanAntreanOffline(Request $request, $instance_code)
     {
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+
         $validated = $request->validate([
             'layanan' => 'required|string',
             'nama' => 'required|string|max:255',
@@ -52,9 +56,9 @@ class KioskController extends Controller
 
         $slug = $validated['layanan'];
 
-        // Cari ID layanan dari database berdasarkan Slug (Asumsi Kiosk Instansi ID = 1)
+        // Cari ID layanan dari database berdasarkan Slug
         $service = Service::where('is_active', true)
-            ->where('instance_id', 1)
+            ->where('instance_id', $instance->id)
             ->get()
             ->first(function ($item) use ($slug) {
                 return Str::slug($item->service_name) === $slug;
@@ -72,8 +76,12 @@ class KioskController extends Controller
             'is_verified' => true,
         ]);
 
-        // Generate Nomor Antrean 
+        // Generate Nomor Antrean (Dengan Locking Level Service untuk mencegah duplikasi/race condition)
         $today = now()->toDateString();
+        
+        // Kunci baris Service agar proses generate nomor urut menjadi antrean linear (satu per satu)
+        $lockedService = \App\Models\Service::where('id', $service->id)->lockForUpdate()->first();
+
         $lastQueue = Queue::query()
             ->where('service_id', $service->id)
             ->whereDate('queue_date', $today)
@@ -81,8 +89,16 @@ class KioskController extends Controller
             ->latest('id')
             ->first();
 
-        $urutan = $lastQueue ? ((int) substr($lastQueue->queue_number, 2)) + 1 : 1;
-        $queueNumber = strtoupper($service->queue_prefix) . '-' . str_pad($urutan, 3, '0', STR_PAD_LEFT);
+        if ($lastQueue) {
+            $parts = explode('-', $lastQueue->queue_number);
+            $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
+            $nextSequence = $urutan + 1;
+        } else {
+            $nextSequence = 1;
+        }
+
+        $queuePrefix = strtoupper($service->queue_prefix ?: substr($service->service_name, 0, 1));
+        $queueNumber = $queuePrefix . '-' . str_pad($nextSequence, 3, '0', STR_PAD_LEFT);
 
         // Langsung simpan ke Queue (sebagai checked_in)
         $queue = Queue::create([
@@ -109,23 +125,29 @@ class KioskController extends Controller
         // Set session
         session(['kiosk_last_queue_id' => $queue->id]);
 
-        return redirect()->route('kiosk.cetak');
+        return redirect()->route('kiosk.cetak', ['instance_code' => $instance_code]);
     }
 
     /**
      * Menampilkan halaman cetak struk.
      */
-    public function halamanCetak()
+    public function halamanCetak($instance_code)
     {
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
         $queueId = session('kiosk_last_queue_id');
         
         if (!$queueId) {
-            return redirect()->route('kiosk.home'); // Jika dicoba akses sembarangan
+            return redirect()->route('kiosk.home', ['instance_code' => $instance_code]); // Jika dicoba akses sembarangan
         }
 
-        $queue = Queue::with(['service', 'customer'])->find($queueId);
+        $queue = Queue::where('instance_id', $instance->id)->with(['service', 'customer'])->find($queueId);
+        
+        if (!$queue) {
+            return redirect()->route('kiosk.home', ['instance_code' => $instance_code]);
+        }
 
         return view('Pages.On-siteUser.KioskCetak', [
+            'instance' => $instance,
             'queue' => $queue,
             'layanan' => $queue->service->service_name ?? '-',
             'kode' => $queue->service->queue_prefix ?? '-',
@@ -138,16 +160,18 @@ class KioskController extends Controller
     /**
      * Menampilkan halaman Scanner QR Code.
      */
-    public function halamanScan()
+    public function halamanScan($instance_code)
     {
-        return view('Pages.On-siteUser.KioskScan');
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        return view('Pages.On-siteUser.KioskScan', compact('instance'));
     }
 
     /**
      * Memverifikasi data QR Code yang di-scan.
      */
-    public function verifyScan(Request $request): JsonResponse
+    public function verifyScan(Request $request, $instance_code): JsonResponse
     {
+        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
         $validated = $request->validate([
             'qr_data' => ['required', 'string'],
         ]);
