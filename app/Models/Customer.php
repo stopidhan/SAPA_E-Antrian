@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Traits\BelongsToInstance;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Customer extends Authenticatable
 {
-    use HasFactory, BelongsToInstance;
+    use HasFactory;
 
     protected $fillable = [
         'instance_id',

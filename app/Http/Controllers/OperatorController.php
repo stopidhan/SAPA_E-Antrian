@@ -68,7 +68,35 @@ class OperatorController extends Controller
                 ];
             });
 
-        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services'));
+        // Cek apakah ada antrean yang sedang dipanggil atau dilayani agar tidak hilang saat refresh/reload
+        $activeQueue = null;
+        $timerSeconds = 0;
+        
+        if ($idLoket) {
+            $activeQueueRaw = Queue::with('service')
+                ->where('instance_id', auth()->user()->instance_id)
+                ->whereDate('queue_date', today())
+                ->whereIn('queue_status', ['called', 'serving'])
+                ->where('service_counter_id', $idLoket)
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($activeQueueRaw) {
+                $activeQueue = [
+                    'id'      => $activeQueueRaw->id,
+                    'nomor'   => $activeQueueRaw->queue_number,
+                    'layanan' => $activeQueueRaw->service ? $activeQueueRaw->service->service_name : 'Lainnya',
+                    'tipe'    => $activeQueueRaw->queue_source ?? 'onsite',
+                    'status'  => $activeQueueRaw->queue_status
+                ];
+
+                if ($activeQueueRaw->queue_status === 'serving' && $activeQueueRaw->service_start_time) {
+                    $timerSeconds = \Carbon\Carbon::parse($activeQueueRaw->service_start_time)->diffInSeconds(now());
+                }
+            }
+        }
+
+        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds'));
     }
 
     public function getQueuesApi(Request $request, $instance_code)
@@ -241,6 +269,29 @@ class OperatorController extends Controller
             'service_description' => $deskripsiFinal
         ]);
 
+        if ($request->has('photo') && !empty($request->input('photo'))) {
+            $photoData = $request->input('photo');
+            if (preg_match('/^data:image\/(\w+);base64,/', $photoData, $type)) {
+                $data = substr($photoData, strpos($photoData, ',') + 1);
+                $data = base64_decode($data);
+                $extension = strtolower($type[1]);
+                $fileName = 'queue_photos/' . $queue->id . '_' . time() . '.' . $extension;
+                
+                // Menyimpan ke public/uploads/queue_photos agar gampang diakses tanpa symlink storage
+                $destinationPath = public_path('uploads/queue_photos');
+                if (!file_exists($destinationPath)) {
+                    mkdir($destinationPath, 0755, true);
+                }
+                
+                file_put_contents(public_path('uploads/' . $fileName), $data);
+
+                // Simpan ke database
+                \App\Models\QueuePhoto::create([
+                    'queue_id' => $queue->id,
+                    'photo_path' => 'uploads/' . $fileName
+                ]);
+            }
+        }
         event(new \App\Events\QueueUpdated('completed', null, auth()->user()->instance_id));
 
         return response()->json(['success' => true, 'message' => 'Status: Selesai']);

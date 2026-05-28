@@ -95,6 +95,10 @@
                         <span class="text-xs font-bold text-gray-900">{{ $service->service_name }}</span>
                     </div>
                     <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Estimasi Nomor Antrean</span>
+                        <span class="text-xs font-bold {{ $c['text'] }}">{{ $estimatedQueueNumber }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Estimasi Waktu</span>
                         <span class="text-xs font-bold text-gray-900">± 15 menit</span>
                     </div>

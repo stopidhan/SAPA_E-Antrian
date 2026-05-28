@@ -188,9 +188,10 @@ class KioskController extends Controller
 
         $queueId = (int) $matches[1];
 
-        // Cari antrean yang sesuai
+        // Cari antrean yang sesuai dan pastikan berasal dari instansi ini
         $queue = Queue::query()
             ->with(['service', 'customer'])
+            ->where('instance_id', $instance->id)
             ->where('id', $queueId)
             ->whereDate('queue_date', now()->toDateString())
             ->first();

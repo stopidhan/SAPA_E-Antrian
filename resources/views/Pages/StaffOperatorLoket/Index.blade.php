@@ -76,23 +76,36 @@
 <script>
     function operatorDashboard() {
         return {
-            state: 'standby',
             loket: '{{ $namaLoket }}',
             counterId: '{{ $idLoket }}',
             timerDisplay: '00:00',
-            timerSeconds: 0,
+            timerSeconds: {{ $timerSeconds ?? 0 }},
             timerInterval: null,
-            currentQueue: null,
+            currentQueue: @json($activeQueue ?? null),
+            state: '{{ $activeQueue ? ($activeQueue['status'] === 'serving' ? 'serving' : 'calling') : 'standby' }}',
             notifications: [],
             notifCounter: 0,
             serviceCategory: '',
             serviceDescription: '',
+
+            // Camera states
+            isCameraOpen: false,
+            videoStream: null,
+            photoBase64: null,
 
             queue: @json($queuesData),
             history: @json($historyData),
             instanceCode: '{{ auth()->user()->instance->instance_code ?? '' }}',
 
               init() {
+                  // Jika halaman direfresh dan sedang melayani, lanjutkan timer
+                  if (this.state === 'serving') {
+                      this.startTimer();
+                  } else if (this.timerSeconds > 0) {
+                      // Jika masih ada sisa timer tapi tidak serving, reset
+                      this.timerSeconds = 0;
+                  }
+
                   // Memulai polling otomatis setiap 5 detik
                   setInterval(() => {
                       this.fetchQueues();
@@ -239,6 +252,25 @@
                 this.fetchQueues();
             },
 
+            startTimer() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                
+                // Pastikan timerSeconds adalah integer bulat
+                this.timerSeconds = Math.floor(this.timerSeconds);
+                
+                // Update display immediately before interval ticks
+                const m = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+                const s = String(this.timerSeconds % 60).padStart(2, '0');  
+                this.timerDisplay = m + ':' + s;
+
+                this.timerInterval = setInterval(() => {
+                    this.timerSeconds++;
+                    const min = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+                    const sec = String(this.timerSeconds % 60).padStart(2, '0');  
+                    this.timerDisplay = min + ':' + sec;
+                }, 1000);
+            },
+
             startServing() {
                 if (!this.currentQueue) return;
 
@@ -251,14 +283,9 @@
                     body: JSON.stringify({ counter_id: this.counterId })
                 });
 
+                this.state = 'serving';
                 this.timerSeconds = 0;
-                this.timerDisplay = '00:00';
-                this.timerInterval = setInterval(() => {
-                    this.timerSeconds++;
-                    const m = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
-                    const s = String(this.timerSeconds % 60).padStart(2, '0');  
-                    this.timerDisplay = m + ':' + s;
-                }, 1000);
+                this.startTimer();
             },
 
             stopServing() {
@@ -270,7 +297,11 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     },
-                    body: JSON.stringify({ category: this.serviceCategory, description: this.serviceDescription })
+                    body: JSON.stringify({ 
+                        category: this.serviceCategory, 
+                        description: this.serviceDescription,
+                        photo: this.photoBase64 
+                    })
                 });
 
                 if (this.timerInterval) {
@@ -282,7 +313,56 @@
                 this.currentQueue = null;
                 this.serviceCategory = '';
                 this.serviceDescription = '';
+                
+                this.stopCameraStream();
+                this.isCameraOpen = false;
+                this.photoBase64 = null;
+                
                 this.state = 'standby'; // Auto reset UI ke mode menunggu/Standby
+            },
+
+            startCamera() {
+                this.isCameraOpen = true;
+                this.photoBase64 = null;
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        this.videoStream = stream;
+                        // wait for alpine to show video element
+                        setTimeout(() => {
+                            if (this.$refs.videoElement) {
+                                this.$refs.videoElement.srcObject = stream;
+                                this.$refs.videoElement.play();
+                            }
+                        }, 100);
+                    })
+                    .catch(err => {
+                        console.error("Camera access denied:", err);
+                        this.showNotif('Gagal mengakses kamera.', 'skip');
+                        this.isCameraOpen = false;
+                    });
+            },
+
+            takePhoto() {
+                const canvas = this.$refs.canvasElement;
+                const video = this.$refs.videoElement;
+                if (!video) return;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                this.photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                this.stopCameraStream();
+            },
+
+            retakePhoto() {
+                this.startCamera();
+            },
+
+            stopCameraStream() {
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(track => track.stop());
+                    this.videoStream = null;
+                }
             }
         }
     }

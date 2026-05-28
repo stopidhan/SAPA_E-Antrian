@@ -137,10 +137,31 @@ class BookingOnlineController extends Controller
             return redirect()->route('booking.dashboard')->withErrors(['limit_booking' => 'Layanan tidak ditemukan.']);
         }
 
+        $today = now()->toDateString();
+        $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
+        
+        $lastQueue = \App\Models\Queue::query()
+            ->where('instance_id', $service->instance_id)
+            ->where('service_id', $service->id)
+            ->whereDate('queue_date', $today)
+            ->latest('id')
+            ->first();
+
+        if ($lastQueue) {
+            $parts = explode('-', $lastQueue->queue_number);
+            $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
+            $todayQueueSequence = $urutan + 1;
+        } else {
+            $todayQueueSequence = 1;
+        }
+
+        $estimatedQueueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
+
         return view('Pages.Remoteuser.Konfirmasi', [
             'service' => $service,
             'customer' => $authCustomer,
-            'slug' => $slug
+            'slug' => $slug,
+            'estimatedQueueNumber' => $estimatedQueueNumber
         ]);
     }
 

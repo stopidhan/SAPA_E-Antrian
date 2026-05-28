@@ -49,8 +49,8 @@
                 <span class="text-blue-600 text-lg font-black tracking-tight">SAPA</span>
             </div>
             <div>
-                <h1 class="text-white text-2xl font-bold leading-tight">Sistem Antrean Publik</h1>
-                <p class="text-white/60 text-sm font-medium">Ruang Tunggu Utama</p>
+                <h1 class="text-white text-2xl font-bold leading-tight">{{ $instance->instance_name }}</h1>
+                <p class="text-white/60 text-sm font-medium">Sistem Antrean Publik</p>
             </div>
         </div>
 

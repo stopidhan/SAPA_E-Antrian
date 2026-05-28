@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class QueuePhoto extends Model
 {
+    use HasFactory;
+
+    protected $table = 'queue_photos';
+
     protected $fillable = [
         'queue_id',
         'photo_path'
@@ -13,6 +18,6 @@ class QueuePhoto extends Model
 
     public function queue()
     {
-        return $this->belongsTo(Queue::class);
+        return $this->belongsTo(Queue::class, 'queue_id');
     }
 }

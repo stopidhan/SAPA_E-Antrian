@@ -47,11 +47,41 @@
                 <span class="text-2xl font-black text-emerald-600 tabular-nums" x-text="timerDisplay">00:00</span>
             </div>
 
-            {{-- Tombol Ambil Foto --}}
-            <button class="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition">
-                <span class="text-base">📷</span>
-                Ambil Foto
-            </button>
+            {{-- Area Kamera --}}
+            <div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden p-3 text-center">
+                
+                {{-- Mode Standby: Tombol Ambil Foto --}}
+                <div x-show="!isCameraOpen && !photoBase64">
+                    <button @click="startCamera()" class="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-white active:bg-gray-100 transition">
+                        <span class="text-base">📷</span>
+                        Ambil Foto Bukti Pelayanan
+                    </button>
+                </div>
+
+                {{-- Mode Kamera Aktif --}}
+                <div x-show="isCameraOpen && !photoBase64" class="relative">
+                    <video x-ref="videoElement" class="w-full aspect-video object-cover rounded-lg bg-black" playsinline></video>
+                    <div class="mt-3 flex gap-2">
+                        <button @click="stopCameraStream(); isCameraOpen = false" class="flex-1 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 text-sm">
+                            Batal
+                        </button>
+                        <button @click="takePhoto()" class="flex-1 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 text-sm flex items-center justify-center gap-1">
+                            <span>📸</span> Jepret
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Mode Pratinjau Foto Hasil --}}
+                <div x-show="photoBase64" class="relative">
+                    <img :src="photoBase64" class="w-full aspect-video object-cover rounded-lg border border-gray-300">
+                    <button @click="retakePhoto()" class="mt-3 w-full py-2 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 text-sm flex items-center justify-center gap-1">
+                        <span>🔄</span> Foto Ulang
+                    </button>
+                </div>
+
+                {{-- Hidden Canvas for Capture --}}
+                <canvas x-ref="canvasElement" style="display: none;"></canvas>
+            </div>
 
             {{-- Dropdown Kategori Layanan --}}
             <div>

@@ -56,7 +56,7 @@
 
         {{-- Area Kamera (REAL) --}}
         <div class="px-8 pb-4">
-            <div class="relative w-full aspect-square bg-gray-900 rounded-2xl overflow-hidden shadow-inner border-4 border-gray-100">
+            <div class="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-inner border-4 border-gray-100">
                 
                 {{-- Container untuk Library Scanner --}}
                 <div id="reader" class="w-full h-full object-cover"></div>
@@ -129,7 +129,7 @@
         showStatus('loading', 'Memverivikasi...', decodedText);
 
         // Kirim hasil scan ke Backend via AJAX (Jalur Relatif agar tidak 404)
-        fetch("/on-site-user/verify-scan", {
+        fetch("{{ route('kiosk.verify-scan', ['instance_code' => $instance->instance_code]) }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -148,7 +148,7 @@
                     window.location.href = "{{ route('kiosk.home') }}";
                 }, 3000);
             } else {
-                showStatus('error', 'Gagal', data.message);
+                showStatus('error', 'Gagal', data.message + ' (Data: ' + decodedText + ')');
                 playAudio('error');
                 
                 // Tunggu 3 detik sebelum siap scan lagi
@@ -204,7 +204,11 @@
     // Inisialisasi Scanner saat halaman siap
     window.addEventListener('DOMContentLoaded', () => {
         html5QrCode = new Html5Qrcode("reader");
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        const config = { 
+            fps: 10, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 16/9
+        };
 
         html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
             .catch(err => {
