@@ -253,6 +253,11 @@ class OperatorController extends Controller
         $startTime = $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time) : now();
         $endTime = now();
 
+        $request->validate([
+            'category' => 'required|string|min:1',
+            'description' => 'required|string|min:1',
+        ]);
+
         $kategoriLayanan = $request->input('category');
         $catatan = $request->input('description');
         

@@ -291,6 +291,16 @@
             stopServing() {
                 if (!this.currentQueue) return;
 
+                if (!this.serviceCategory || this.serviceCategory.trim() === '') {
+                    this.showNotif('Peringatan: Kategori Layanan wajib dipilih!', 'skip');
+                    return;
+                }
+                
+                if (!this.serviceDescription || this.serviceDescription.trim() === '') {
+                    this.showNotif('Peringatan: Deskripsi / Catatan Layanan wajib diisi!', 'skip');
+                    return;
+                }
+
                 fetch(`/${this.instanceCode}/staff-operator-loket/selesai/${this.currentQueue.id}`, {
                     method: 'POST',
                     headers: {

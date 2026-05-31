@@ -46,16 +46,6 @@ class CustomerAuthController extends Controller
         $plainOtpCode = (string) random_int(100000, 999999);
 
         try {
-            $customer = $this->findCustomerByPhone($phone);
-
-            $rateLimitKey = 'send_otp_' . $phone;
-            if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
-                $waitSeconds = RateLimiter::availableIn($rateLimitKey);
-                throw ValidationException::withMessages([
-                    'whatsapp' => 'OTP baru bisa dikirim ulang dalam ' . $waitSeconds . ' detik.',
-                ]);
-            }
-
             $instanceCode = $request->route('instance_code');
             $instance = Instance::where('instance_code', $instanceCode)->first();
 
@@ -65,19 +55,14 @@ class CustomerAuthController extends Controller
                 ]);
             }
 
-            if ($customer && $customer->instance_id !== $instance->id) {
-                throw ValidationException::withMessages([
-                    'whatsapp' => 'Nomor WhatsApp Anda sudah terdaftar di cabang/instansi lain.',
-                ]);
-            }
+            $customer = $this->findCustomerByPhone($phone, $instance->id);
 
-            if (!$customer) {
-                $instanceId = $instance->id;
-                if (!$instanceId) {
-                    throw ValidationException::withMessages([
-                        'whatsapp' => 'Data instansi belum tersedia. Hubungi admin terlebih dahulu.',
-                    ]);
-                }
+            $rateLimitKey = 'send_otp_' . $phone;
+            if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
+                $waitSeconds = RateLimiter::availableIn($rateLimitKey);
+                throw ValidationException::withMessages([
+                    'whatsapp' => 'OTP baru bisa dikirim ulang dalam ' . $waitSeconds . ' detik.',
+                ]);
             }
 
             $this->otpNotificationService->send($phone, $plainOtpCode);
@@ -157,9 +142,6 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-        $customer = $this->findCustomerByPhone($pendingPhone);
-
-        if (!$customer) {
             $instanceCode = $request->route('instance_code');
             $instance = Instance::where('instance_code', $instanceCode)->first();
             $instanceId = $instance ? $instance->id : null;
@@ -169,6 +151,10 @@ class CustomerAuthController extends Controller
                     'otp_code' => 'Instansi tidak ditemukan.',
                 ]);
             }
+
+        $customer = $this->findCustomerByPhone($pendingPhone, $instanceId);
+
+        if (!$customer) {
             
             $customer = Customer::query()->create([
                 'instance_id' => $instanceId,
@@ -182,9 +168,6 @@ class CustomerAuthController extends Controller
             $customer->update([
                 'whatsapp_verified_at' => now(),
                 'last_login_at' => now(),
-                'otp_code_hash' => null,
-                'otp_expires_at' => null,
-                'otp_attempts' => 0,
             ]);
         }
 
@@ -217,8 +200,6 @@ class CustomerAuthController extends Controller
 
         $phone = $this->normalizePhoneDigits((string) $validated['whatsapp']);
 
-        $customer = $this->findCustomerByPhone($phone);
-        
         $instanceCode = $request->route('instance_code');
         $instance = Instance::where('instance_code', $instanceCode)->first();
 
@@ -228,15 +209,11 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-        if ($customer && $customer->instance_id !== $instance->id) {
-            throw ValidationException::withMessages([
-                'whatsapp' => 'Nomor WhatsApp Anda terdaftar di instansi lain, bukan di instansi ini.',
-            ]);
-        }
+        $customer = $this->findCustomerByPhone($phone, $instance->id);
 
         if (!$customer || !$customer->whatsapp_verified_at) {
             throw ValidationException::withMessages([
-                'whatsapp' => 'Nomor WhatsApp belum terdaftar atau belum terverifikasi. Silakan daftar terlebih dahulu.',
+                'whatsapp' => 'Nomor WhatsApp belum terdaftar di instansi ini. Silakan daftar terlebih dahulu.',
             ]);
         }
 
@@ -337,7 +314,7 @@ class CustomerAuthController extends Controller
         return $message;
     }
 
-    private function findCustomerByPhone(string $phoneDigits): ?Customer
+    private function findCustomerByPhone(string $phoneDigits, ?int $instanceId = null): ?Customer
     {
         $variants = $this->phoneVariants($phoneDigits);
 
@@ -345,11 +322,11 @@ class CustomerAuthController extends Controller
             return null;
         }
 
-        $customer = Customer::query()->whereIn('phone', $variants)->first();
-        if ($customer) {
-            return $customer;
+        $query = Customer::query()->whereIn('phone', $variants);
+        if ($instanceId !== null) {
+            $query->where('instance_id', $instanceId);
         }
 
-        return null;
+        return $query->first();
     }
 }

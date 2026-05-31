@@ -97,7 +97,7 @@
 
             {{-- Textarea Catatan / Deskripsi --}}
             <div>
-                <label class="block text-sm font-bold text-gray-900 mb-1.5">Deskripsi / Catatan Layanan</label>
+                <label class="block text-sm font-bold text-gray-900 mb-1.5">Deskripsi / Catatan Layanan <span class="text-red-500">*</span></label>
                 <textarea x-model="serviceDescription" rows="3"
                           placeholder="Catatan tambahan, keluhan..."
                           class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none resize-none placeholder:text-gray-300"></textarea>

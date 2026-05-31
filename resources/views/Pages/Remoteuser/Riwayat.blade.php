@@ -171,15 +171,20 @@
                         </div>
 
                         {{-- Status Summary --}}
-                        @if($item->status === 'Selesai')
+                        @if($item->queue_status === 'completed')
                         <div class="mt-2.5 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="text-[10px] text-emerald-700 leading-relaxed">Pelayanan selesai dan berhasil diproses oleh <strong>{{ $item->petugas }}</strong> di <strong>{{ $item->loket }}</strong>.</p>
+                            <p class="text-[10px] text-emerald-700 leading-relaxed">Pelayanan telah selesai dilayani oleh <strong>{{ $item->serviceCounter && $item->serviceCounter->user ? $item->serviceCounter->user->name : '-' }}</strong> di <strong>{{ $item->serviceCounter ? $item->serviceCounter->counter_number : '-' }}</strong>.<br>Catatan: <strong>{{ $item->service_description ?? 'Tidak ada catatan' }}</strong></p>
                         </div>
-                        @else
+                        @elseif($item->queue_status === 'skipped')
+                        <div class="mt-2.5 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                            <p class="text-[10px] text-amber-600 leading-relaxed">Antrean dilewati oleh operator loket karena tidak ada respon panggilan.</p>
+                        </div>
+                        @elseif($item->queue_status === 'cancelled')
                         <div class="mt-2.5 bg-red-50 border border-red-100 rounded-lg px-2.5 py-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                            <p class="text-[10px] text-red-600 leading-relaxed">Antrean tidak diproses. Alasan: <strong>{{ $item->alasanBatal }}</strong></p>
+                            <p class="text-[10px] text-red-600 leading-relaxed">Antrean dibatalkan. Alasan: <strong>{{ $item->service_description ?? 'Dibatalkan oleh operator/sistem' }}</strong></p>
                         </div>
                         @endif
                     </div>

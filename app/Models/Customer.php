@@ -14,23 +14,15 @@ class Customer extends Authenticatable
         'name',
         'phone',
         'whatsapp_verified_at',
-        'otp_code_hash',
-        'otp_expires_at',
-        'otp_attempts',
-        'otp_last_sent_at',
         'last_login_at',
     ];
 
-    protected $hidden = [
-        'otp_code_hash',
-    ];
+    protected $hidden = [];
 
     protected function casts(): array
     {
         return [
             'whatsapp_verified_at' => 'datetime',
-            'otp_expires_at' => 'datetime',
-            'otp_last_sent_at' => 'datetime',
             'last_login_at' => 'datetime',
         ];
     }

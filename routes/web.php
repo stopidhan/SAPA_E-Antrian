@@ -30,7 +30,7 @@ Route::prefix('{instance_code}/remoteuser')->group(function () {
         Route::post('/verifikasi-otp', [CustomerAuthController::class, 'verifyOtp'])->name('booking.otp.verify');
     });
 
-    Route::middleware('auth:customer')->group(function () {
+    Route::middleware(['auth:customer', 'customer.instance'])->group(function () {
         Route::get('/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
         Route::post('/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
