@@ -1,4 +1,13 @@
-@props(['type' => 'button', 'variant' => 'primary', 'size' => 'md', 'icon' => null])
+@props([
+    'type' => 'button',
+    'variant' => 'primary',
+    'size' => 'md',
+    'icon' => null,
+    'disabled' => false,
+    'xBind' => [],
+    'xShow' => null,
+    'xClick' => null,
+])
 
 @php
     $baseClasses = 'font-semibold rounded-lg transition-colors flex items-center justify-center gap-2';
@@ -25,10 +34,27 @@
         default => 'bg-blue-600 hover:bg-blue-700 text-white',
     };
 
-    $finalClasses = $baseClasses . ' ' . $sizeClasses . ' ' . $variantClasses . ' ' . ($attributes['class'] ?? '');
+    $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed' : '';
+
+    $finalClasses =
+        $baseClasses .
+        ' ' .
+        $sizeClasses .
+        ' ' .
+        $variantClasses .
+        ' ' .
+        $disabledClasses .
+        ' ' .
+        ($attributes['class'] ?? '');
 @endphp
 
-<button type="{{ $type }}" {{ $attributes->merge(['class' => $finalClasses]) }}>
+<button type="{{ $type }}" {{ $attributes->merge(['class' => $finalClasses]) }}
+    @if ($disabled) disabled @endif
+    @if ($xBind) @foreach ($xBind as $directive => $expression)
+            x-bind:{{ $directive }}="{{ $expression }}"
+        @endforeach @endif
+    @if ($xShow) x-show="{{ $xShow }}" @endif
+    @if ($xClick) @click="{{ $xClick }}" @endif>
     @if ($icon)
         <span>{!! $icon !!}</span>
     @endif

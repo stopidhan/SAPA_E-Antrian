@@ -84,7 +84,7 @@
                 {{-- Table --}}
                 <x-table :columns="['No', 'Nama', 'Email', 'Role', 'Status', 'Dibuat', 'Aksi']" :rows="$users" emptyMessage="Tidak ada data user">
                     @forelse ($users as $index => $user)
-                        <tr class="hover:bg-gray-50 transition-colors" data-name="{{ strtolower($user->name) }}"
+                        <tr class="user-row hover:bg-gray-50 transition-colors" data-name="{{ strtolower($user->name) }}"
                             data-email="{{ strtolower($user->email) }}" data-role="{{ $user->role }}"
                             data-user='@json($user)'>
 
@@ -125,7 +125,7 @@
                             {{-- Aksi --}}
                             <td class="px-4 py-3 text-center">
                                 <x-action-buttons :edit="true" editAction="openEditModal" :toggle="true"
-                                    toggleAction="openToggleModal" :delete="true" deleteAction="openDeleteModal" />
+                                    toggleAction="openToggleModal" />
                             </td>
                         </tr>
                     @empty
@@ -140,6 +140,11 @@
             </div>
         </div>
 
+
+        <!-- Include the three modals -->
+        @include('components.Modals.modal_user-form')
+        @include('components.Modals.modal-confirmation')
+
     </div>
 @endsection
 
@@ -149,23 +154,60 @@
             return {
                 search: '',
                 filterRole: 'all',
-                modals: {
-                    add: false,
-                    edit: false,
-                    toggle: false,
-                    delete: false
-                },
                 selectedUser: null,
+                isToggling: false,
                 editForm: {
                     id: null,
                     name: '',
                     email: '',
-                    role: 'staff_operator'
+                    role: ''
+                },
+
+                isSubmitting: false,
+                isDeleting: false,
+                isEditMode: false,
+                formMethod: 'POST',
+                form: {
+                    id: null,
+                    name: '',
+                    email: '',
+                    password: '',
+                    password_confirmation: '',
+                    role: '',
+                    is_active: true,
                 },
 
                 init() {
-                    this.$watch('search', () => this.applyFilter());
-                    this.$watch('filterRole', () => this.applyFilter());
+                    // Setup search input listener
+                    const searchInput = document.querySelector('input[name="search"]');
+                    if (searchInput) {
+                        searchInput.addEventListener('input', (e) => {
+                            this.search = e.target.value;
+                            this.applyFilter();
+                        });
+                    }
+
+                    // Setup role filter listener
+                    const roleInput = document.querySelector('input[name="filterRole"]');
+                    if (roleInput) {
+                        const observer = new MutationObserver(() => {
+                            this.filterRole = roleInput.value;
+                            this.applyFilter();
+                        });
+                        observer.observe(roleInput, {
+                            attributes: true
+                        });
+                        this.filterRole = roleInput.value;
+                    }
+
+                    // Watch editForm to detect edit mode activation
+                    this.$watch('editForm', (value) => {
+                        if (value && value.id) {
+                            this.setEditMode(value);
+                        }
+                    }, {
+                        deep: true
+                    });
                 },
 
                 applyFilter() {
@@ -186,7 +228,8 @@
                 },
 
                 openAddModal() {
-                    this.modals.add = true;
+                    this.setAddMode();
+                    this.$dispatch('open-modal', 'user-form');
                 },
 
                 openEditModal(event) {
@@ -199,22 +242,194 @@
                         email: user.email,
                         role: user.role
                     };
-                    this.modals.edit = true;
+                    this.$dispatch('open-modal', 'user-form');
                 },
 
                 openToggleModal(event) {
                     const row = event.currentTarget.closest('.user-row');
                     const user = JSON.parse(row.dataset.user);
                     this.selectedUser = user;
-                    this.modals.toggle = true;
+                    this.$dispatch('open-modal', 'toggle-user');
                 },
 
-                openDeleteModal(event) {
-                    const row = event.currentTarget.closest('.user-row');
-                    const user = JSON.parse(row.dataset.user);
-                    this.selectedUser = user;
-                    this.modals.delete = true;
-                }
+                closeToggleModal() {
+                    this.$dispatch('close-modal', 'toggle-user');
+                    this.selectedUser = null;
+                },
+
+                async submitToggle() {
+                    if (!this.selectedUser || this.isToggling) {
+                        return;
+                    }
+
+                    this.isToggling = true;
+
+                    try {
+                        const url = `{{ url('/users') }}/${this.selectedUser.id}/toggle`;
+                        const response = await fetch(url, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content'),
+                                'Accept': 'application/json',
+                            },
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            window.location.reload();
+                            return;
+                        }
+
+                        alert('Error: ' + (data.message || 'Gagal mengubah status user'));
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.isToggling = false;
+                    }
+                },
+
+                setEditMode(userData) {
+                    this.isEditMode = true;
+                    this.formMethod = 'PATCH';
+                    this.form = {
+                        id: userData.id,
+                        name: userData.name,
+                        email: userData.email,
+                        password: '',
+                        password_confirmation: '',
+                        role: userData.role,
+                        is_active: userData.is_active || true,
+                    };
+
+                    this.$nextTick(() => {
+                        const roleInput = document.querySelector('input[name="role"]');
+                        if (roleInput) {
+                            roleInput.value = userData.role;
+                            roleInput.dispatchEvent(new Event('input', {
+                                bubbles: true
+                            }));
+                        }
+                    });
+                },
+
+                setAddMode() {
+                    this.isEditMode = false;
+                    this.formMethod = 'POST';
+                    this.form = {
+                        id: null,
+                        name: '',
+                        email: '',
+                        password: '',
+                        password_confirmation: '',
+                        role: '',
+                        is_active: true,
+                    };
+                },
+
+                closeModal() {
+                    this.$dispatch('close-modal', 'user-form');
+                    this.resetForm();
+                },
+
+                resetForm() {
+                    this.setAddMode();
+                },
+
+                async submitForm() {
+                    const roleInput = document.querySelector('input[name="role"]');
+                    if (roleInput && roleInput.value) {
+                        this.form.role = roleInput.value;
+                    }
+
+                    if (!this.validateForm()) {
+                        return;
+                    }
+
+                    this.isSubmitting = true;
+
+                    try {
+                        const url = this.isEditMode ?
+                            `{{ url('/users') }}/${this.form.id}` :
+                            '{{ route('users.store') }}';
+
+                        const payload = {
+                            name: this.form.name,
+                            email: this.form.email,
+                            role: this.form.role,
+                            is_active: this.form.is_active,
+                        };
+
+                        if (this.form.password) {
+                            payload.password = this.form.password;
+                            payload.password_confirmation = this.form.password_confirmation;
+                        }
+
+                        const response = await fetch(url, {
+                            method: this.isEditMode ? 'PATCH' : 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content'),
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify(payload),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + (data.message || 'Gagal menyimpan user'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan: ' + error.message);
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+
+                validateForm() {
+                    if (!this.form.name.trim()) {
+                        alert('Nama tidak boleh kosong');
+                        return false;
+                    }
+                    if (!this.form.email.trim()) {
+                        alert('Email tidak boleh kosong');
+                        return false;
+                    }
+
+                    if (this.isEditMode) {
+                        if (this.form.password && this.form.password.length < 8) {
+                            alert('Password minimal 8 karakter');
+                            return false;
+                        }
+                        if (this.form.password && this.form.password !== this.form.password_confirmation) {
+                            alert('Password tidak cocok');
+                            return false;
+                        }
+                    } else {
+                        if (!this.form.password) {
+                            alert('Password tidak boleh kosong');
+                            return false;
+                        }
+                        if (this.form.password.length < 8) {
+                            alert('Password minimal 8 karakter');
+                            return false;
+                        }
+                        if (this.form.password !== this.form.password_confirmation) {
+                            alert('Password tidak cocok');
+                            return false;
+                        }
+                    }
+
+                    return true;
+                },
             };
         }
     </script>

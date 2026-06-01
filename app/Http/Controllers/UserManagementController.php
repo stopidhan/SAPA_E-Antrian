@@ -18,7 +18,8 @@ class UserManagementController extends Controller
         $users = User::where('instance_id', $instanceId)
             ->where('role', '!=', 'super_admin')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $stats = [
             'total' => User::where('instance_id', $instanceId)->count(),
@@ -39,9 +40,6 @@ class UserManagementController extends Controller
         return view('Pages.AdminInstansi.managementUser', compact('users', 'stats'));
     }
 
-    /**
-     * Store a newly created user
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -91,8 +89,16 @@ class UserManagementController extends Controller
                 'is_active' => true,
             ]);
 
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'User berhasil ditambahkan.']);
+            }
+
             return back()->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal menambahkan user: ' . $e->getMessage()], 400);
+            }
+
             return back()
                 ->withInput()
                 ->with('error', 'Gagal menambahkan user: ' . $e->getMessage());
@@ -157,8 +163,16 @@ class UserManagementController extends Controller
 
             $user->update($updateData);
 
+            if ($request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'User berhasil diperbarui.']);
+            }
+
             return back()->with('success', 'User berhasil diperbarui.');
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal memperbarui user: ' . $e->getMessage()], 400);
+            }
+
             return back()
                 ->withInput()
                 ->with('error', 'Gagal memperbarui user: ' . $e->getMessage());
@@ -176,14 +190,39 @@ class UserManagementController extends Controller
 
         try {
             if ($user->role === 'super_admin') {
-                return back()->with('error', 'Tidak dapat menonaktifkan Super Admin.');
+                $message = 'Tidak dapat menonaktifkan Super Admin.';
+
+                if (request()->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 403);
+                }
+
+                return back()->with('error', $message);
             }
 
             $user->update(['is_active' => !$user->is_active]);
 
             $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "User berhasil {$status}.",
+                    'data' => [
+                        'id' => $user->id,
+                        'is_active' => $user->is_active,
+                    ],
+                ]);
+            }
+
             return back()->with('success', "User berhasil {$status}.");
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengubah status user: ' . $e->getMessage(),
+                ], 400);
+            }
+
             return back()->with('error', 'Gagal mengubah status user: ' . $e->getMessage());
         }
     }
@@ -199,19 +238,34 @@ class UserManagementController extends Controller
 
         try {
             if ($user->role === 'super_admin') {
-                return back()->with('error', 'Tidak dapat menghapus Super Admin.');
+                $message = 'Tidak dapat menghapus Super Admin.';
+                if (request()->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 403);
+                }
+                return back()->with('error', $message);
             }
 
             if ($user->id === auth()->id()) {
-                return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+                $message = 'Anda tidak dapat menghapus akun sendiri.';
+                if (request()->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 403);
+                }
+                return back()->with('error', $message);
             }
 
             $user->delete();
 
+            if (request()->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'User berhasil dihapus.']);
+            }
+
             return back()->with('success', 'User berhasil dihapus.');
         } catch (\Exception $e) {
-            return back()
-                ->with('error', 'Gagal menghapus user: ' . $e->getMessage());
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal menghapus user: ' . $e->getMessage()], 400);
+            }
+
+            return back()->with('error', 'Gagal menghapus user: ' . $e->getMessage());
         }
     }
 
