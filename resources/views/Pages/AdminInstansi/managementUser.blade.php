@@ -76,7 +76,8 @@
                                 ['value' => 'kepala_layanan', 'label' => 'Kepala Layanan'],
                                 ['value' => 'staff_operator', 'label' => 'Staff Operator'],
                                 ['value' => 'staff_konten', 'label' => 'Staff Konten'],
-                            ]" value="all" class="w-full" />
+                            ]" value="{{ request('filterRole', 'all') }}"
+                                class="w-full" />
                         </div>
                     </div>
                 </div>
@@ -152,8 +153,8 @@
     <script>
         function userManagement() {
             return {
-                search: '',
-                filterRole: 'all',
+                search: @js(request('search', '')),
+                filterRole: @js(request('filterRole', 'all')),
                 selectedUser: null,
                 isToggling: false,
                 editForm: {
@@ -178,29 +179,29 @@
                 },
 
                 init() {
-                    // Setup search input listener
                     const searchInput = document.querySelector('input[name="search"]');
                     if (searchInput) {
-                        searchInput.addEventListener('input', (e) => {
-                            this.search = e.target.value;
-                            this.applyFilter();
+                        searchInput.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                this.applyFilter();
+                            }
                         });
                     }
 
-                    // Setup role filter listener
                     const roleInput = document.querySelector('input[name="filterRole"]');
                     if (roleInput) {
                         const observer = new MutationObserver(() => {
-                            this.filterRole = roleInput.value;
-                            this.applyFilter();
+                            if (this.filterRole !== roleInput.value) {
+                                this.filterRole = roleInput.value;
+                                this.applyFilter();
+                            }
                         });
                         observer.observe(roleInput, {
                             attributes: true
                         });
-                        this.filterRole = roleInput.value;
                     }
 
-                    // Watch editForm to detect edit mode activation
                     this.$watch('editForm', (value) => {
                         if (value && value.id) {
                             this.setEditMode(value);
@@ -211,20 +212,23 @@
                 },
 
                 applyFilter() {
-                    const rows = document.querySelectorAll('.user-row');
-                    rows.forEach(row => {
-                        const name = row.dataset.name ?? '';
-                        const email = row.dataset.email ?? '';
-                        const role = row.dataset.role ?? '';
+                    let url = new URL(window.location.href);
 
-                        const matchSearch = !this.search ||
-                            name.includes(this.search.toLowerCase()) ||
-                            email.includes(this.search.toLowerCase());
+                    if (this.search) {
+                        url.searchParams.set('search', this.search);
+                    } else {
+                        url.searchParams.delete('search');
+                    }
 
-                        const matchRole = this.filterRole === 'all' || role === this.filterRole;
+                    if (this.filterRole && this.filterRole !== 'all') {
+                        url.searchParams.set('filterRole', this.filterRole);
+                    } else {
+                        url.searchParams.delete('filterRole');
+                    }
 
-                        row.style.display = (matchSearch && matchRole) ? '' : 'none';
-                    });
+                    url.searchParams.delete('page'); // Reset to page 1
+
+                    window.location.href = url.toString();
                 },
 
                 openAddModal() {

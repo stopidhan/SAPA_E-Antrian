@@ -34,7 +34,7 @@
 
     $navbarTitle = $title ?? 'Dashboard';
     $navbarSubtitle = $subtitle ?? null;
-    $navbarUserName = $userName ?? 'Admin';
+    $navbarUserName = Auth::user()->name ?? 'Admin';
 @endphp
 
 @if (isset($withSidebar) && $withSidebar)
@@ -85,24 +85,6 @@
                     </li>
                 @endforeach
             </ul>
-
-            {{-- Logout di bawah --}}
-            {{-- <div class="mt-4 pt-4 border-t border-gray-100">
-                <a href="javascript:void(0)" title="Logout"
-                    class="text-slate-700 hover:text-red-600 hover:bg-red-50 font-medium text-sm flex items-center rounded-lg py-2.5 transition-all"
-                    :class="sidebarOpen ? 'px-3 gap-3' : 'justify-center px-0'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5"
-                        class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
-                    <span class="whitespace-nowrap" x-show="sidebarOpen" x-cloak
-                        x-transition:enter="transition-opacity duration-200 delay-150"
-                        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                        x-transition:leave="transition-opacity duration-100" x-transition:leave-start="opacity-100"
-                        x-transition:leave-end="opacity-0">Logout</span>
-                </a>
-            </div> --}}
         </div>
     </aside>
 
@@ -143,13 +125,16 @@
                     </div>
                     <span class="text-sm font-semibold text-gray-700 hidden sm:block">{{ $navbarUserName }}</span>
                 </div>
-                <x-button variant="outline-danger" size="md"
-                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>'>
-                    Logout
-                </x-button>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <x-button type="submit" variant="outline-danger" size="md"
+                        icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                        </svg>'>
+                        Logout
+                    </x-button>
+                </form>
             </div>
         </div>
     </nav>
@@ -180,13 +165,16 @@
                     </div>
                     <span class="text-sm font-semibold text-gray-700">{{ $navbarUserName }}</span>
                 </div>
-                <x-button variant="outline-danger" size="md"
-                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>'>
-                    Logout
-                </x-button>
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <x-button type="submit" variant="outline-danger" size="md"
+                        icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                        </svg>'>
+                        Logout
+                    </x-button>
+                </form>
             </div>
         </div>
     </nav>

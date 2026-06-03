@@ -15,9 +15,22 @@ class UserManagementController extends Controller
     {
         $instanceId = auth()->user()->instance_id;
 
-        $users = User::where('instance_id', $instanceId)
-            ->where('role', '!=', 'super_admin')
-            ->orderBy('created_at', 'desc')
+        $query = User::where('instance_id', $instanceId)
+            ->where('role', '!=', 'super_admin');
+
+        if (request()->filled('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if (request()->filled('filterRole') && request('filterRole') !== 'all') {
+            $query->where('role', request('filterRole'));
+        }
+
+        $users = $query->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
 

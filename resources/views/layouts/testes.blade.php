@@ -96,7 +96,8 @@
     @endif
 
     {{-- Toast Notification Container --}}
-    <div id="toast-container" class="fixed top-5 right-5 z-[9999] space-y-2 pointer-events-none" style="min-width:280px">
+    <div id="toast-container" class="fixed top-16 right-12 z-[9999] space-y-2 pointer-events-none"
+        style="min-width:280px">
     </div>
 
     {{-- Global Toast JS --}}
@@ -115,28 +116,74 @@
                 warning: '⚠',
                 info: 'ℹ',
             };
+
+            // Build toast using DOM nodes for better control
             const toast = document.createElement('div');
             toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg text-white shadow-lg pointer-events-auto
-                           transition-all duration-300 ${colors[type] ?? colors.success}`;
-            toast.innerHTML = `<span class="text-lg font-bold">${icons[type] ?? icons.success}</span>
-                           <span class="text-sm font-medium">${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
+                               transition-all duration-300 ${colors[type] ?? colors.success}`;
+
+            // Initial hidden state for appear animation
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px)';
+
+            // Content
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'text-lg font-bold';
+            iconSpan.textContent = icons[type] ?? '✓';
+
+            const messageSpan = document.createElement('span');
+            messageSpan.className = 'text-sm font-medium';
+            messageSpan.textContent = message;
+
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.setAttribute('aria-label', 'Close');
+            closeBtn.className = 'ml-auto text-white';
+            closeBtn.textContent = '✕';
+            // Manual close handler
+            closeBtn.addEventListener('click', () => {
+                // animate out and remove
                 toast.style.opacity = '0';
-                toast.style.transform = 'translateX(40px)';
-                setTimeout(() => toast.remove(), 300);
+                toast.style.transform = 'translateY(-12px)';
+                setTimeout(() => toast.remove(), 250);
+                clearTimeout(autoHide);
+            });
+
+            toast.appendChild(iconSpan);
+            toast.appendChild(messageSpan);
+            toast.appendChild(closeBtn);
+
+            container.appendChild(toast);
+
+            // Trigger appear animation
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+
+            // Auto dismiss after 3 seconds
+            const autoHide = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-12px)';
+                setTimeout(() => toast.remove(), 250);
             }, 3000);
+
+            // If manually closed, cancel auto dismiss
+            closeBtn.addEventListener('click', () => clearTimeout(autoHide));
         }
 
         // Flash messages from Laravel session
         @if (session('success'))
-            document.addEventListener('DOMContentLoaded', () => showToast('{{ session('success') }}', 'success'));
+            document.addEventListener('DOMContentLoaded', () => showToast('{{ addslashes(session('success')) }}',
+                'success'));
         @endif
         @if (session('error'))
-            document.addEventListener('DOMContentLoaded', () => showToast('{{ session('error') }}', 'error'));
+            document.addEventListener('DOMContentLoaded', () => showToast('{{ addslashes(session('error')) }}', 'error'));
         @endif
         @if (session('warning'))
-            document.addEventListener('DOMContentLoaded', () => showToast('{{ session('warning') }}', 'warning'));
+            document.addEventListener('DOMContentLoaded', () => showToast('{{ addslashes(session('warning')) }}',
+                'warning'));
         @endif
     </script>
 
