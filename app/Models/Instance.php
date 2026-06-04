@@ -16,7 +16,14 @@ class Instance extends Model
         'phone',
         'email',
         'website',
-        'logo'
+        'logo',
+        'tts_enabled',
+        'max_bookings_per_day',
+    ];
+
+    protected $casts = [
+        'tts_enabled' => 'boolean',
+        'max_bookings_per_day' => 'integer',
     ];
 
     public function users()

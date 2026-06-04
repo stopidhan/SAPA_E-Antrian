@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-    <div class="bg-gray-50 flex flex-col" x-data="adminDashboard()">
+    <div class="bg-gray-50 flex flex-col" x-data="adminDashboard(@js($config), @js($services))">
 
         <main class="flex-1 overflow-auto">
             <div class="container mx-auto px-4 py-8">
@@ -15,7 +15,6 @@
 
                     {{-- LEFT COLUMN: System Config + Services --}}
                     <div class="lg:col-span-2 space-y-6">
-
                         {{-- System Configuration --}}
                         <div class="bg-white rounded-2xl border shadow-sm" id="config-section">
                             <div class="p-6 border-b">
@@ -32,7 +31,7 @@
                                 <p class="text-sm text-gray-500 mt-1">Atur pengaturan dasar sistem antrean </p>
                             </div>
 
-                            <form @submit.prevent class="p-6 space-y-6">
+                            <form @submit.prevent="saveConfig" class="p-6 space-y-6">
 
                                 {{-- TTS Toggle --}}
                                 <div class="flex items-center justify-between">
@@ -46,25 +45,18 @@
                                         </label>
                                         <p class="text-sm text-gray-500">Aktifkan suara pemanggilan otomatis</p>
                                     </div>
-                                    <x-toggle-switch name="config.ttsEnabled" checked="false" />
+                                    <x-toggle-switch name="config.ttsEnabled" />
                                 </div>
 
                                 {{-- Maksimal Booking per Hari --}}
-                                <x-input-number name="maxBookingsPerDay" label="Maksimal Booking Online per Hari"
-                                    placeholder="5" min="1" max="50"></x-input-number>
-
-                                {{-- <hr class="border-gray-100"> --}}
-
-                                {{-- Repeat Count --}}
-                                {{-- <div class="space-y-2">
-                                    <label for="repeat-count" class="block font-medium text-gray-700">
-                                        Jumlah Pengulangan Panggilan
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Maksimal Booking Online per Hari
                                     </label>
-                                    <input id="repeat-count" type="number" min="1" max="5"
-                                        x-model.number="config.callRepeatCount"
-                                        class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    <p class="text-sm text-gray-500">Berapa kali nomor akan dipanggil ulang</p>
-                                </div> --}}
+                                    <input type="number" x-model.number="config.maxBookingsPerDay" placeholder="5"
+                                        min="1" max="50"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                </div>
 
                             </form>
                         </div>
@@ -86,22 +78,23 @@
                             <div class="p-6 space-y-4">
 
                                 {{-- Empty state --}}
-                                <template x-if="services.length === 0">
-                                    <div class="text-center py-10 text-gray-500">
-                                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                        </svg>
-                                        <p class="mb-4">Belum ada layanan yang ditambahkan</p>
-                                        <button @click="openServiceDialog()"
-                                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 4v16m8-8H4" />
+                                <template x-if="!isLoadingServices && services.length === 0">
+                                    <div
+                                        class="flex flex-col items-center justify-center py-16 px-4 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                        <div class="bg-white p-4 rounded-full shadow-sm mb-4">
+                                            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                             </svg>
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-900 mb-1">Belum Ada Layanan</h3>
+                                        <p class="text-sm text-gray-500 max-w-sm mb-6">Mulai dengan menambahkan layanan baru
+                                            untuk mengelola antrean di instansi Anda.</p>
+                                        <x-button type="button" variant="primary" @click="openServiceDialog()"
+                                            icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
                                             Tambah Layanan Pertama
-                                        </button>
+                                        </x-button>
                                     </div>
                                 </template>
 
@@ -133,7 +126,7 @@
                                                 </template>
 
                                                 <div class="flex items-center gap-2 ml-4">
-                                                    <button @click="toggleService(service.id)"
+                                                    <button @click="openToggleModal(service)"
                                                         class="p-2 text-gray-400 hover:text-blue-600 transition-colors"
                                                         title="Toggle status">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -153,7 +146,7 @@
                                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                         </svg>
                                                     </button>
-                                                    <button @click="deleteService(service.id)"
+                                                    <button @click="openDeleteModal(service)"
                                                         class="p-2 text-gray-400 hover:text-red-600 transition-colors"
                                                         title="Delete">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -214,14 +207,14 @@
                             <div>
                                 <p class="text-sm text-gray-500">TTS Otomatis</p>
                                 <p class="text-lg font-semibold"
-                                    :class="config.ttsEnabled ? 'text-green-600' : 'text-gray-400'"
-                                    x-text="config.ttsEnabled ? 'Aktif' : 'Non-aktif'">
+                                    :class="savedConfig.ttsEnabled ? 'text-green-600' : 'text-gray-400'"
+                                    x-text="savedConfig.ttsEnabled ? 'Aktif' : 'Non-aktif'">
                                 </p>
                             </div>
                             <hr class="border-gray-100">
                             <div>
                                 <p class="text-sm text-gray-500">Maksimal Booking Online per Hari</p>
-                                <p class="text-3xl font-bold text-blue-600" x-text="activeServicesCount"></p>
+                                <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxBookingsPerDay"></p>
                             </div>
                             <hr class="border-gray-100">
                             <div>
@@ -231,39 +224,115 @@
                             </div>
                             <hr class="border-gray-100">
 
-                            {{-- <div>
-                                <p class="text-sm text-gray-500">Pengulangan Panggilan</p>
-                                <p class="text-lg font-semibold"><span x-text="config.callRepeatCount"></span>x</p>
-                            </div> --}}
-
-                            <x-button type="submit" size="lg" class="w-full">
+                            <x-button type="button" size="lg" class="w-full" @click="saveConfig()">
                                 Simpan Konfigurasi
                             </x-button>
                         </div>
 
                     </div>
                 </div>
-            </div>
         </main>
+
+        {{-- Service Form Modal --}}
+        @include('components.Modals.modal_service-form')
+
+        {{-- Confirmation Modals --}}
+        @include('components.Modals.modal-confirmation', ['variant' => 'toggle-service', 'name' => 'toggle-service-modal'])
+        @include('components.Modals.modal-confirmation', ['variant' => 'service', 'name' => 'delete-service-modal'])
 
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        function adminDashboard() {
+        function adminDashboard(initialConfig, initialServices) {
             return {
-                services: [],
+                services: initialServices,
+                isLoadingServices: false,
                 editingService: null,
+                selectedService: null,
+                isToggling: false,
                 serviceForm: {},
                 countersList: [],
                 showServiceDialog: false,
 
-                init() {
-                    this.fetchServices();
+                config: {
+                    ttsEnabled: initialConfig.tts_enabled,
+                    maxBookingsPerDay: initialConfig.max_bookings_per_day,
                 },
 
+                savedConfig: {
+                    ttsEnabled: initialConfig.tts_enabled,
+                    maxBookingsPerDay: initialConfig.max_bookings_per_day,
+                },
+
+                get activeServicesCount() {
+                    return this.services.filter(s => s.is_active).length;
+                },
+
+                init() {
+                    // Data is pre-loaded via Blade
+                },
+
+                // ============================
+                // Configuration
+                // ============================
+
+                async fetchConfig() {
+                    try {
+                        const response = await fetch('/instance-config', {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.config.ttsEnabled = result.data.tts_enabled;
+                            this.config.maxBookingsPerDay = result.data.max_bookings_per_day;
+
+                            this.savedConfig.ttsEnabled = result.data.tts_enabled;
+                            this.savedConfig.maxBookingsPerDay = result.data.max_bookings_per_day;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching config:', error);
+                    }
+                },
+
+                async saveConfig() {
+                    try {
+                        const response = await fetch('/instance-config', {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                            },
+                            body: JSON.stringify({
+                                tts_enabled: this.config.ttsEnabled,
+                                max_bookings_per_day: this.config.maxBookingsPerDay,
+                            }),
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            this.savedConfig.ttsEnabled = this.config.ttsEnabled;
+                            this.savedConfig.maxBookingsPerDay = this.config.maxBookingsPerDay;
+                            showToast(result.message, 'success');
+                        } else {
+                            showToast(result.message || 'Gagal menyimpan konfigurasi', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error saving config:', error);
+                        showToast('Terjadi kesalahan saat menyimpan konfigurasi', 'error');
+                    }
+                },
+
+                // ============================
+                // Services
+                // ============================
+
                 async fetchServices() {
+                    this.isLoadingServices = true;
                     try {
                         const response = await fetch('/services', {
                             headers: {
@@ -277,6 +346,8 @@
                         }
                     } catch (error) {
                         console.error('Error fetching services:', error);
+                    } finally {
+                        this.isLoadingServices = false;
                     }
                 },
 
@@ -300,7 +371,11 @@
                         };
                         this.countersList = [];
                     }
-                    this.showServiceDialog = true;
+                    this.$dispatch('open-modal', 'service-form');
+                },
+
+                closeModal() {
+                    this.$dispatch('close-modal', 'service-form');
                 },
 
                 addCounter() {
@@ -338,38 +413,36 @@
                         const result = await response.json();
                         if (result.success) {
                             this.fetchServices();
-                            this.showServiceDialog = false;
+                            this.closeModal();
+                            showToast(result.message, 'success');
+                        } else if (result.errors) {
+                            // Validation errors
+                            const messages = Object.values(result.errors).flat().join('\n');
+                            showToast(messages, 'error');
                         } else {
-                            alert(result.message || 'Terjadi kesalahan');
+                            showToast(result.message || 'Terjadi kesalahan', 'error');
                         }
                     } catch (error) {
                         console.error('Error saving service:', error);
+                        showToast('Terjadi kesalahan saat menyimpan layanan', 'error');
                     }
                 },
 
-                async deleteService(id) {
-                    if (!confirm('Hapus layanan dan semua counter-nya?')) return;
-
-                    try {
-                        const response = await fetch(`/services/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                            },
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            this.fetchServices();
-                        }
-                    } catch (error) {
-                        console.error('Error deleting service:', error);
-                    }
+                openToggleModal(service) {
+                    this.selectedService = service;
+                    this.$dispatch('open-modal', 'toggle-service-modal');
                 },
 
-                async toggleService(id) {
+                closeToggleModal() {
+                    this.$dispatch('close-modal', 'toggle-service-modal');
+                    this.selectedService = null;
+                },
+
+                async submitToggle() {
+                    if (!this.selectedService || this.isToggling) return;
+                    this.isToggling = true;
                     try {
-                        const response = await fetch(`/services/${id}/toggle`, {
+                        const response = await fetch(`/services/${this.selectedService.id}/toggle`, {
                             method: 'PATCH',
                             headers: {
                                 'Accept': 'application/json',
@@ -379,10 +452,30 @@
                         const result = await response.json();
                         if (result.success) {
                             this.fetchServices();
+                            this.closeToggleModal();
+                            showToast(result.message, 'success');
+                        } else {
+                            showToast(result.message || 'Gagal mengubah status', 'error');
                         }
                     } catch (error) {
                         console.error('Error toggling service:', error);
+                        showToast('Terjadi kesalahan saat mengubah status', 'error');
+                    } finally {
+                        this.isToggling = false;
                     }
+                },
+
+                openDeleteModal(service) {
+                    this.selectedService = service;
+                    const form = document.getElementById('deleteForm');
+                    if (form) {
+                        form.action = `/services/${service.id}`;
+                    }
+                    const nameEl = document.getElementById('delete-item-name');
+                    if (nameEl) {
+                        nameEl.innerText = service.service_name;
+                    }
+                    this.$dispatch('open-modal', 'delete-service-modal');
                 },
 
                 editService(service) {

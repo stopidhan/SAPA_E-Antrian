@@ -7,13 +7,76 @@ use App\Models\ServiceCounter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 
-class ServiceController extends Controller
+class AdminInstanceController extends Controller
 {
     /**
-     * Display a listing of services for JSON API (dengan counters).
+     * Display the Admin Instance dashboard.
      */
-    public function index(): JsonResponse
+    public function index()
+    {
+        $instance = auth()->user()->instance;
+        
+        $config = [
+            'tts_enabled' => (bool) $instance->tts_enabled,
+            'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+        ];
+        
+        $services = $instance->services()->with('counters')->latest()->get();
+        
+        return view('Pages.AdminInstansi.adminInstance', compact('config', 'services'));
+    }
+
+    // ==========================================
+    // Config Methods
+    // ==========================================
+
+    public function getConfig(): JsonResponse
+    {
+        $instance = auth()->user()->instance;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tts_enabled' => (bool) $instance->tts_enabled,
+                'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+            ],
+        ]);
+    }
+
+    public function updateConfig(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tts_enabled' => ['required', 'boolean'],
+            'max_bookings_per_day' => ['required', 'integer', 'min:1', 'max:200'],
+        ]);
+
+        try {
+            $instance = auth()->user()->instance;
+            $instance->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Konfigurasi berhasil disimpan',
+                'data' => [
+                    'tts_enabled' => (bool) $instance->tts_enabled,
+                    'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan konfigurasi: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // ==========================================
+    // Service Methods
+    // ==========================================
+
+    public function getServices(): JsonResponse
     {
         $services = auth()->user()->instance
             ->services()
@@ -27,14 +90,18 @@ class ServiceController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created service dengan counters.
-     */
-    public function store(Request $request): JsonResponse|RedirectResponse
+    public function storeService(Request $request): JsonResponse|RedirectResponse
     {
+        $instanceId = auth()->user()->instance_id;
+
         $validated = $request->validate([
             'service_name' => ['required', 'string', 'max:255'],
-            'queue_prefix' => ['required', 'string', 'max:5', 'unique:services,queue_prefix'],
+            'queue_prefix' => [
+                'required',
+                'string',
+                'max:5',
+                Rule::unique('services', 'queue_prefix')->where('instance_id', $instanceId),
+            ],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
             'counters' => ['nullable', 'array'],
@@ -43,7 +110,7 @@ class ServiceController extends Controller
 
         try {
             $service = Service::create([
-                'instance_id' => auth()->user()->instance_id,
+                'instance_id' => $instanceId,
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
@@ -54,7 +121,7 @@ class ServiceController extends Controller
             if (!empty($validated['counters'])) {
                 foreach ($validated['counters'] as $counter) {
                     ServiceCounter::create([
-                        'instance_id' => auth()->user()->instance_id,
+                        'instance_id' => $instanceId,
                         'service_id' => $service->id,
                         'counter_number' => $counter['counter_number'],
                         'is_active' => true,
@@ -87,16 +154,28 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Update service dan counters.
-     */
-    public function update(Request $request, Service $service): JsonResponse|RedirectResponse
+    public function updateService(Request $request, Service $service): JsonResponse|RedirectResponse
     {
-        $this->authorize('update', $service);
+        // Instance ownership check
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            return back()->withErrors(['error' => 'Unauthorized']);
+        }
+
+        $instanceId = auth()->user()->instance_id;
 
         $validated = $request->validate([
             'service_name' => ['required', 'string', 'max:255'],
-            'queue_prefix' => ['required', 'string', 'max:5', "unique:services,queue_prefix,{$service->id}"],
+            'queue_prefix' => [
+                'required',
+                'string',
+                'max:5',
+                Rule::unique('services', 'queue_prefix')
+                    ->where('instance_id', $instanceId)
+                    ->ignore($service->id),
+            ],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
             'counters' => ['nullable', 'array'],
@@ -125,7 +204,7 @@ class ServiceController extends Controller
                     } else {
                         // Create new counter
                         $newCounter = ServiceCounter::create([
-                            'instance_id' => auth()->user()->instance_id,
+                            'instance_id' => $instanceId,
                             'service_id' => $service->id,
                             'counter_number' => $counter['counter_number'],
                             'is_active' => true,
@@ -166,12 +245,15 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Remove service dan counters.
-     */
-    public function destroy(Service $service): JsonResponse|RedirectResponse
+    public function destroyService(Service $service): JsonResponse|RedirectResponse
     {
-        $this->authorize('delete', $service);
+        // Instance ownership check
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            return back()->withErrors(['error' => 'Unauthorized']);
+        }
 
         try {
             $service->delete();
@@ -196,12 +278,12 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Toggle active status.
-     */
-    public function toggle(Service $service): JsonResponse
+    public function toggleService(Service $service): JsonResponse
     {
-        $this->authorize('update', $service);
+        // Instance ownership check
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
 
         try {
             $service->update([
@@ -221,11 +303,13 @@ class ServiceController extends Controller
         }
     }
 
-    /**
-     * Delete a specific counter.
-     */
     public function deleteCounter(ServiceCounter $counter): JsonResponse
     {
+        // Instance ownership check
+        if ($counter->instance_id !== auth()->user()->instance_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
         try {
             $counter->delete();
 

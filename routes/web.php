@@ -3,10 +3,10 @@
 use App\Http\Controllers\BookingOnlineController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProfileInstanceController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\AdminInstanceController;
 use App\Http\Controllers\MediaContentController;
 use Illuminate\Support\Facades\Route;
 
@@ -182,19 +182,24 @@ Route::middleware(["auth", "verified"])->group(function () {
 });
 
 Route::middleware(["auth", "verified"])->group(function () {
-    Route::get("/superadmin", function () {
-        return view("Pages.AdminInstansi.superAdmin");
-    })->name("superadmin.dashboard");
+    Route::get("/admininstance", [
+        AdminInstanceController::class,
+        "index",
+    ])->name("admininstance.dashboard");
 
-    Route::resource("services", ServiceController::class);
-    Route::delete("counters/{counter}", [
-        ServiceController::class,
-        "deleteCounter",
-    ])->name("counters.destroy");
-    Route::patch("services/{service}/toggle", [
-        ServiceController::class,
-        "toggle",
-    ])->name("services.toggle");
+    // Services
+    Route::get("services", [AdminInstanceController::class, "getServices"])->name("services.index");
+    Route::post("services", [AdminInstanceController::class, "storeService"])->name("services.store");
+    Route::patch("services/{service}", [AdminInstanceController::class, "updateService"])->name("services.update");
+    Route::delete("services/{service}", [AdminInstanceController::class, "destroyService"])->name("services.destroy");
+    Route::patch("services/{service}/toggle", [AdminInstanceController::class, "toggleService"])->name("services.toggle");
+    
+    // Counters
+    Route::delete("counters/{counter}", [AdminInstanceController::class, "deleteCounter"])->name("counters.destroy");
+
+    // Config
+    Route::get("instance-config", [AdminInstanceController::class, "getConfig"])->name("instance.config.show");
+    Route::patch("instance-config", [AdminInstanceController::class, "updateConfig"])->name("instance.config.update");
 
     Route::get("/management-user", [
         UserManagementController::class,
