@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Instance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\File;
 
 class ProfileInstanceController extends Controller
 {
@@ -42,12 +41,7 @@ class ProfileInstanceController extends Controller
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
             'address' => 'nullable|string|max:500',
-            'logo' => [
-                'nullable',
-                File::image()
-                    ->max(2 * 1024)
-                    ->extensions(['jpg', 'jpeg', 'png', 'webp']),
-            ],
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         // Handle logo upload

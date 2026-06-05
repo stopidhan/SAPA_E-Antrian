@@ -10,14 +10,14 @@
     <div class="bg-gray-50" x-data="instansiPage()" x-init="init()">
 
         <main class="container mx-auto px-4 py-8">
-            <form id="instansi-form" @submit.prevent="saveAll" @input="markChanged">
+            <form id="instansi-form" @submit.prevent="saveAll" @input="markChanged" enctype="multipart/form-data">
                 <input type="hidden" name="_method" value="PATCH">
 
                 <div class="space-y-6">
 
                     {{-- ── Profil Instansi ── --}}
                     <div class="bg-white rounded-2xl border shadow-sm">
-                        {{-- <div class="p-6 border-b flex items-center gap-2">
+                        <div class="p-6 border-b flex items-center gap-2">
                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -26,7 +26,7 @@
                                 <h2 class="text-lg font-bold">Profil Instansi</h2>
                                 <p class="text-sm text-gray-500">Informasi dasar tentang instansi/organisasi Anda</p>
                             </div>
-                        </div> --}}
+                        </div>
 
                         <div class="p-6">
                             <div class="flex flex-col md:flex-row gap-8">
@@ -113,10 +113,6 @@
                                         rows="3" />
 
                                     <div class="flex justify-end gap-3">
-                                        <button type="reset" @click="resetForm"
-                                            class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 py-2 px-4 text-sm">
-                                            Reset
-                                        </button>
                                         <button type="submit" :disabled="!hasChanges || isLoading"
                                             class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                             <span x-show="!isLoading">Simpan Perubahan</span>
@@ -157,7 +153,7 @@
 
                 async saveAll() {
                     if (!this.hasChanges) {
-                        alert('Tidak ada perubahan untuk disimpan.');
+                        showToast('Tidak ada perubahan untuk disimpan.', 'info');
                         return;
                     }
 
@@ -165,17 +161,9 @@
                     const formElement = document.getElementById('instansi-form');
                     const formData = new FormData(formElement);
 
-                    console.log('Form data entries:');
-                    for (const [key, value] of formData.entries()) {
-                        console.log(`${key}:`, value);
-                    }
-
                     try {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-                        if (!csrfToken) {
-                            throw new Error('CSRF token tidak ditemukan. Silakan refresh halaman dan coba lagi.');
-                        }
+                        if (!csrfToken) throw new Error('CSRF token tidak ditemukan. Silakan refresh halaman.');
 
                         const response = await fetch('{{ route('profile.instance.update') }}', {
                             method: 'POST',
@@ -186,40 +174,31 @@
                             body: formData,
                         });
 
-                        let data;
                         const contentType = response.headers.get('content-type');
+                        const isJson = contentType && contentType.includes('application/json');
+                        const data = isJson ? await response.json() : null;
 
                         if (!response.ok) {
-                            if (contentType?.includes('application/json')) {
-                                data = await response.json();
-                            } else {
-                                const html = await response.text();
-                                console.error('Server response (HTML):', html);
-                                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                            if (response.status === 422 && data && data.errors) {
+                                let errorMsg = '';
+                                for (const messages of Object.values(data.errors)) {
+                                    errorMsg += `${messages.join(', ')} `;
+                                }
+                                throw new Error(errorMsg || 'Validasi gagal.');
                             }
-                        } else {
-                            data = await response.json();
+                            throw new Error(data?.message || `Terjadi kesalahan server (${response.status})`);
                         }
 
-                        if (data.success) {
-                            alert(data.message);
+                        if (data && data.success) {
+                            showToast(data.message, 'success');
                             this.hasChanges = false;
-                            setTimeout(() => location.reload(), 500);
+                            setTimeout(() => location.reload(), 1500);
                         } else {
-                            if (data.errors) {
-                                let errorMsg = (data.message || 'Validasi gagal') + '\n\n';
-                                for (const [field, messages] of Object.entries(data.errors)) {
-                                    errorMsg += `${field}: ${messages.join(', ')}\n`;
-                                }
-                                alert(errorMsg);
-                                console.log('Validation errors:', data.errors);
-                            } else {
-                                alert(data.message || 'Gagal menyimpan perubahan.');
-                            }
+                            throw new Error(data?.message || 'Gagal menyimpan perubahan.');
                         }
                     } catch (error) {
                         console.error('Error details:', error);
-                        alert('Terjadi kesalahan: ' + error.message);
+                        showToast(error.message, 'error');
                     } finally {
                         this.isLoading = false;
                     }
