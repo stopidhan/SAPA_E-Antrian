@@ -140,7 +140,7 @@
                     'No. Antrean',
                     'Layanan',
                     'Tipe',
-                    'Waktu Daftar',
+                    'Waktu Mulai',
                     'Waktu Selesai',
                     'Durasi',
                     'Operator',

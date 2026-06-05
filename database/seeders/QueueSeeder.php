@@ -26,12 +26,21 @@ class QueueSeeder extends Seeder
             $counters = $instance->serviceCounters;
             $customers = $instance->customers;
 
-            for ($i = 0; $i < 30; $i++) {
+            for ($i = 10; $i < 30; $i++) {
                 $service = $services->random();
+                $source = $faker->randomElement($sources);
 
                 $queueDate = Carbon::parse($faker->dateTimeBetween('-7 days')->format('Y-m-d'));
                 $takenTime = (clone $queueDate)->setTime(rand(8, 15), rand(0, 59));
-                $callTime = (clone $takenTime)->addMinutes(rand(2, 10));
+
+                $checkInTime = null;
+                if ($source === 'online') {
+                    $checkInTime = (clone $takenTime)->addMinutes(rand(10, 120));
+                    $callTime = (clone $checkInTime)->addMinutes(rand(2, 10));
+                } else {
+                    $callTime = (clone $takenTime)->addMinutes(rand(2, 10));
+                }
+
                 $serviceStartTime = (clone $callTime)->addMinutes(rand(1, 5));
                 $serviceDuration = rand(5, 60);
                 $serviceEndTime = (clone $serviceStartTime)->addMinutes($serviceDuration);
@@ -44,13 +53,14 @@ class QueueSeeder extends Seeder
                     'queue_number' => $service->queue_prefix . str_pad(rand(1, 999), 4, '0', STR_PAD_LEFT),
                     'queue_date' => $queueDate->format('Y-m-d'),
                     'taken_time' => $takenTime->format('H:i:s'),
+                    'check_in_time' => $checkInTime ? $checkInTime->format('H:i:s') : null,
                     'call_time' => $callTime->format('H:i:s'),
                     'service_start_time' => $serviceStartTime->format('H:i:s'),
                     'service_end_time' => $serviceEndTime->format('H:i:s'),
                     'service_duration' => $serviceDuration,
                     'service_description' => $faker->sentence(),
                     'queue_status' => $faker->randomElement($statuses),
-                    'queue_source' => $faker->randomElement($sources)
+                    'queue_source' => $source
                 ]);
             }
         }

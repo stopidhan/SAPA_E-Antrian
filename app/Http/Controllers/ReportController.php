@@ -56,10 +56,29 @@ class ReportController extends Controller
         // Rata-rata waktu pelayanan (dari database)
         $avgServiceTime = $allQueues->avg('service_duration') ?? 0;
 
-        // Menghitung Rata-rata Waktu Tunggu (Waktu dilayani - Waktu cetak tiket)
-        $avgWaitTime = $allQueues->whereNotNull('service_start_time')->map(function ($q) {
-            return \Carbon\Carbon::parse($q->created_at)->diffInMinutes(\Carbon\Carbon::parse($q->service_start_time));
-        })->avg() ?? 0;
+        // Menghitung Rata-rata Waktu Tunggu yang Akurat
+        $avgWaitTime = $allQueues->whereNotNull('service_start_time')
+            ->filter(function ($q) {
+                // Abaikan antrean online yang anomali (tidak punya check_in_time tapi dilayani)
+                if ($q->queue_source === 'online' && empty($q->check_in_time)) {
+                    return false;
+                }
+                return true;
+            })
+            ->map(function ($q) {
+                // Tentukan waktu mulai mengantre berdasarkan sumber antrean
+                if ($q->queue_source === 'online' && !empty($q->check_in_time)) {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->check_in_time);
+                } else {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->taken_time);
+                }
+
+                $servedAt = \Carbon\Carbon::parse($q->service_start_time);
+
+                // Pastikan tidak minus (jika ada anomali data)
+                $diff = $startWaitingAt->diffInMinutes($servedAt);
+                return $diff > 0 ? $diff : 0;
+            })->avg() ?? 0;
 
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
@@ -126,7 +145,7 @@ class ReportController extends Controller
         $chartHourlyLabels = [];
         $chartHourlyData = [];
         $hourlyGrouped = $allQueues->groupBy(function ($q) {
-            return \Carbon\Carbon::parse($q->created_at)->format('H:00');
+            return \Carbon\Carbon::parse($q->taken_time)->format('H:00');
         });
         $hourlyGrouped = $hourlyGrouped->sortBy(function ($item, $key) {
             return $key;
@@ -161,15 +180,15 @@ class ReportController extends Controller
                 'queue_number' => $queue->queue_number,
                 'service_name' => $queue->service->service_name ?? '-',
                 'registration_type' => $queue->queue_source,
-                'start_at' => $queue->service_start_time,
-                'completed_at' => $queue->service_end_time,
+                'start_at' => $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time)->format('H:i') : null,
+                'completed_at' => $queue->service_end_time ? \Carbon\Carbon::parse($queue->service_end_time)->format('H:i') : null,
                 'service_time' => $queue->service_duration,
                 'operator_name' => $queue->counter?->user?->name ?? '-',
                 'status' => $queue->queue_status,
                 // Additional data for detail modal
                 'customer_name' => $queue->customer->name ?? '-',
                 'customer_phone' => $queue->customer->phone ?? '-',
-                'created_at' => $queue->created_at,
+                'taken_time' => $queue->taken_time ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->taken_time)->translatedFormat('d M Y, H:i') : null,
                 'photos' => $queue->photos->map(function ($photo) {
                     $path = $photo->photo_path;
                     return str_starts_with($path, 'http') ? $path : asset('storage/' . $path);

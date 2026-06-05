@@ -32,20 +32,20 @@
                 <td>{{ $stats['completedQueue'] ?? 0 }}</td>
             </tr>
             <tr>
+                <th>Batal / Dilewati</th>
+                <td>{{ $stats['cancelledQueue'] ?? 0 }}</td>
+            </tr>
+            <tr>
                 <th>Tingkat Penyelesaian</th>
                 <td>{{ $stats['completionRate'] ?? 0 }}%</td>
             </tr>
             <tr>
-                <th>Rata-rata Waktu Pelayanan</th>
+                <th>Rata-rata Waktu Tunggu</th>
+                <td>{{ number_format($stats['avgWaitTime'] ?? 0, 1) }} menit</td>
+            </tr>
+            <tr>
+                <th>Rata-rata Waktu Layanan</th>
                 <td>{{ number_format($stats['avgServiceTime'] ?? 0, 1) }} menit</td>
-            </tr>
-            <tr>
-                <th>Menunggu</th>
-                <td>{{ $stats['waitingQueue'] ?? 0 }}</td>
-            </tr>
-            <tr>
-                <th>Sedang Dilayani</th>
-                <td>{{ $stats['servingQueue'] ?? 0 }}</td>
             </tr>
         </table>
     </div>
@@ -73,7 +73,7 @@
                     <td>{{ $queue->queue_number }}</td>
                     <td>{{ $queue->service->service_name ?? '-' }}</td>
                     <td>{{ ucfirst($queue->queue_source) }}</td>
-                    <td>{{ \Carbon\Carbon::parse($queue->created_at)->format('d-m-Y H:i') }}</td>
+                    <td>{{ $queue->taken_time ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->taken_time)->format('d-m-Y H:i') : '-' }}</td>
                     <td>{{ $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time)->format('H:i') : '-' }}</td>
                     <td>{{ $queue->service_end_time ? \Carbon\Carbon::parse($queue->service_end_time)->format('H:i') : '-' }}</td>
                     <td>{{ $queue->service_duration ?? '-' }}</td>

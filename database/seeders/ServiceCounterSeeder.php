@@ -29,10 +29,10 @@ class ServiceCounterSeeder extends Seeder
             // Buat 3 counter per instance
             for ($i = 1; $i <= 3; $i++) {
                 $randomService = $services->random();
-                
+
                 // Ambil operator secara berurutan, bukan random.
                 // Jika loket ke-3 (karena cuma ada 2 operator), assign ke null atau user pertama lagi
-                $assignedUser = $users->get($i - 1); 
+                $assignedUser = $users->get($i - 1);
 
                 ServiceCounter::create([
                     'instance_id' => $instance->id,

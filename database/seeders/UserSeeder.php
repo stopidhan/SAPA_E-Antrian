@@ -43,7 +43,7 @@ class UserSeeder extends Seeder
                 'is_active' => true
             ]);
 
-            for ($i = 1; $i <= 2; $i++) {
+            for ($i = 1; $i <= 3; $i++) {
                 User::create([
                     'name' => 'Operator ' . $i . ' ' . $instance->instance_name,
                     'email' => 'operator' . $instance->id . '_' . $i . '@test.com',
