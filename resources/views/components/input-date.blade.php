@@ -20,6 +20,7 @@
         </label>
     @endif
     <input type="date" name="{{ $name }}" value="{{ $value }}"
+        {{ $attributes->except(['class', 'name', 'value', 'required', 'readonly']) }}
         class="{{ $inputClass }} @if ($error) border-red-500 focus:ring-red-500 focus:border-red-500 @endif @if ($readonly) cursor-not-allowed pointer-events-none @endif"
         @if ($required) required @endif @if ($readonly) readonly @endif>
 

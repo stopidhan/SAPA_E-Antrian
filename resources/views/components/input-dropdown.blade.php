@@ -97,7 +97,7 @@
                 },
 
                 updateSelectedLabel() {
-                    const option = this.options.find(o => o.value === this.selected);
+                    const option = this.options.find(o => String(o.value) === String(this.selected));
                     this.selectedLabel = option ? option.label : 'Pilih...';
                 },
 

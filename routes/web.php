@@ -234,9 +234,10 @@ Route::middleware(["auth", "verified"])->group(function () {
         "update",
     ])->name("profile.instance.update");
 
-    Route::get("/report", [ReportController::class, "index"])->name(
-        "superadmin.report",
-    );
+    // Laporan
+    Route::get("/report", [ReportController::class, "index"])->name("reports.index");
+    Route::get("/report/export/pdf", [ReportController::class, "exportPdf"])->name("reports.export.pdf");
+    Route::get("/report/export/excel", [ReportController::class, "exportExcel"])->name("reports.export.excel");
 });
 
 // --- TESTES ---
