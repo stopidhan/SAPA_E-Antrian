@@ -1,108 +1,125 @@
-@props(['show' => false])
-
-<div @keydown.escape.window="$dispatch('close-modal', 'service-detail')">
-    <x-modal name="service-detail" :show="$show" maxWidth="md">
-        <div class="p-6 space-y-4">
-            <!-- Header -->
-            <div class="border-b pb-4 flex justify-between items-start">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900">Detail Antrean</h3>
-                    <p class="text-sm text-gray-500 mt-1">Informasi lengkap data antrean</p>
-                </div>
-                <div class="bg-blue-100 text-blue-800 text-2xl font-black px-4 py-2 rounded-lg"
-                    x-text="selectedQueue?.queue_number || '-'"></div>
-            </div>
-
-            <!-- Content -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Layanan</p>
-                        <p class="font-semibold text-gray-900" x-text="selectedQueue?.service_name || '-'"></p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Tipe Registrasi</p>
-                        <p class="font-semibold text-gray-900 capitalize"
-                            x-text="selectedQueue?.registration_type || '-'"></p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Waktu Daftar</p>
-                        <p class="font-semibold text-gray-900"
-                            x-text="selectedQueue?.taken_time || '-'">
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Waktu Mulai Dilayani</p>
-                        <p class="font-semibold text-gray-900"
-                            x-text="selectedQueue?.start_at || '-'">
-                        </p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Waktu Selesai Dilayani</p>
-                        <p class="font-semibold text-gray-900"
-                            x-text="selectedQueue?.completed_at || '-'">
-                        </p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Durasi Pelayanan</p>
-                        <p class="font-semibold text-gray-900"
-                            x-text="selectedQueue?.service_time ? selectedQueue.service_time + ' menit' : '-'"></p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Operator</p>
-                        <p class="font-semibold text-gray-900" x-text="selectedQueue?.operator_name || '-'"></p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border">
-                        <p class="text-xs text-gray-500 mb-1">Status</p>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-md font-medium capitalize"
-                            :class="{
-                                'bg-green-100 text-green-800': selectedQueue?.status === 'completed',
-                                'bg-yellow-100 text-yellow-800': selectedQueue?.status === 'waiting',
-                                'bg-blue-100 text-blue-800': selectedQueue?.status === 'serving',
-                                'bg-gray-100 text-gray-800': !['completed', 'waiting', 'serving'].includes(selectedQueue
-                                    ?.status)
-                            }"
-                            x-text="selectedQueue?.status || '-'">
-                        </span>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 p-3 rounded-lg border">
-                    <p class="text-xs text-gray-500 mb-1">Data Pelanggan</p>
-                    <p class="font-semibold text-gray-900" x-text="selectedQueue?.customer_name || '-'"></p>
-                    <p class="text-sm text-gray-600" x-text="selectedQueue?.customer_phone || '-'"></p>
-                </div>
-
-                <!-- Foto Antrean -->
-                <div x-show="selectedQueue?.photos && selectedQueue.photos.length > 0"
-                    class="bg-gray-50 p-3 rounded-lg border mt-4">
-                    <p class="text-xs text-gray-500 mb-2">Foto Antrean</p>
-                    <div class="flex flex-wrap gap-3">
-                        <template x-for="(photo, index) in selectedQueue?.photos" :key="index">
-                            <a :href="photo" target="_blank"
-                                class="block border rounded-lg overflow-hidden shadow-sm hover:opacity-90 transition-opacity bg-white">
-                                <img :src="photo" alt="Foto Antrean" class="h-24 w-24 object-cover">
-                            </a>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex gap-3 justify-end pt-4 border-t">
-                <x-button type="button" variant="secondary" @click="$dispatch('close-modal', 'service-detail')">
-                    Tutup
-                </x-button>
-            </div>
+<x-modal name="queue-detail-modal" maxWidth="lg">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-gray-800">Detail Antrean</h3>
+            <button @click="$dispatch('close-modal', 'queue-detail-modal')"
+                class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
-    </x-modal>
-</div>
+
+        <template x-if="detailLoading">
+            <div class="flex items-center justify-center py-10">
+                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+            </div>
+        </template>
+
+        <template x-if="!detailLoading && detailData">
+            <div class="space-y-4">
+                {{-- Queue Number Badge --}}
+                <div class="text-center bg-blue-50 rounded-xl p-4">
+                    <div class="text-sm text-gray-500 mb-1">No. Antrean</div>
+                    <div class="text-3xl font-bold text-blue-600" x-text="detailData.queue_number"></div>
+                </div>
+
+                {{-- Info Grid --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Layanan</div>
+                        <div class="font-semibold text-sm" x-text="detailData.service_name"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Kategori</div>
+                        <div class="font-semibold text-sm" x-text="detailData.service_category || '-'"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Pelanggan</div>
+                        <div class="font-semibold text-sm" x-text="detailData.customer_name"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Telepon</div>
+                        <div class="font-semibold text-sm" x-text="detailData.customer_phone"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Sumber</div>
+                        <div class="font-semibold text-sm capitalize" x-text="detailData.queue_source"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Tanggal</div>
+                        <div class="font-semibold text-sm" x-text="detailData.queue_date"></div>
+                    </div>
+                </div>
+
+                {{-- Timeline --}}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="text-sm font-semibold text-gray-700 mb-3">Timeline</div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Diambil</span>
+                            <span class="font-mono" x-text="detailData.taken_time || '-'"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Dipanggil</span>
+                            <span class="font-mono" x-text="detailData.call_time || '-'"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Mulai Dilayani</span>
+                            <span class="font-mono" x-text="detailData.service_start_time || '-'"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Selesai</span>
+                            <span class="font-mono" x-text="detailData.service_end_time || '-'"></span>
+                        </div>
+                        <div class="flex justify-between border-t pt-2 mt-2">
+                            <span class="text-gray-500 font-semibold">Durasi</span>
+                            <span class="font-bold text-blue-600"
+                                x-text="(detailData.service_duration || 0) + ' menit'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Operator --}}
+                <div class="flex justify-between items-center bg-gray-50 rounded-xl p-4">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Operator</div>
+                        <div class="font-semibold text-sm" x-text="detailData.operator_name"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 mb-0.5">Loket</div>
+                        <div class="font-semibold text-sm" x-text="detailData.counter_name"></div>
+                    </div>
+                </div>
+
+                {{-- Description --}}
+                <template x-if="detailData.service_description">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                        <div class="text-xs text-gray-500 mb-1">Catatan Layanan</div>
+                        <div class="text-sm whitespace-pre-line" x-text="detailData.service_description"></div>
+                    </div>
+                </template>
+
+                {{-- Photos --}}
+                <template x-if="detailData.photos && detailData.photos.length > 0">
+                    <div>
+                        <div class="text-sm font-semibold text-gray-700 mb-2">Foto Dokumentasi</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <template x-for="(photo, index) in detailData.photos" :key="index">
+                                <img :src="photo" class="rounded-lg object-cover w-full h-32"
+                                    alt="Foto dokumentasi">
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</x-modal>

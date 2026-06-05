@@ -1,7 +1,7 @@
 {{-- ===== TAB: LIVE TRACKING ===== --}}
 <div x-show="activeTab === 'live'" class="space-y-6">
 
-    {{-- Operator Performance (FR-30) --}}
+    {{-- Operator Performance --}}
     <div class="bg-white rounded-2xl border shadow-sm">
         <div class="p-6 border-b">
             <div class="flex items-center gap-2">
@@ -11,32 +11,7 @@
         </div>
 
         <div class="p-6 space-y-4">
-            @php
-                $operatorPerformance = [
-                    (object) [
-                        'counter_name' => 'Loket 1',
-                        'operator_name' => 'John Doe',
-                        'avg_service_time' => 3.5,
-                        'total_served' => 50,
-                        'today_served' => 10,
-                        'fast_services' => 30,
-                        'medium_services' => 15,
-                        'slow_services' => 5,
-                    ],
-                    (object) [
-                        'counter_name' => 'Loket 2',
-                        'operator_name' => 'Jane Smith',
-                        'avg_service_time' => 4.2,
-                        'total_served' => 45,
-                        'today_served' => 8,
-                        'fast_services' => 25,
-                        'medium_services' => 15,
-                        'slow_services' => 5,
-                    ],
-                ];
-            @endphp
-
-            @foreach ($operatorPerformance as $perf)
+            @forelse ($operatorPerformance as $perf)
                 @php
                     $totalSvc = $perf->fast_services + $perf->medium_services + $perf->slow_services;
                     $fastPct = $totalSvc > 0 ? ($perf->fast_services / $totalSvc) * 100 : 0;
@@ -157,63 +132,57 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="text-center py-10 text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <p>Belum ada operator aktif</p>
+                </div>
+            @endforelse
 
             {{-- Performance Standard Legend --}}
-            <div class="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <p class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Standar Kinerja Waktu Layanan
-                </p>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-green-600 rounded-full"></div>
-                        <span class="text-xs text-gray-600"><strong>Sangat Cepat:</strong> 1-2 menit</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <span class="text-xs text-gray-600"><strong>Normal:</strong> 3-5 menit</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-red-600 rounded-full"></div>
-                        <span class="text-xs text-gray-600"><strong>Perlu Ditingkatkan:</strong> 6-10+ menit</span>
+            @if (count($operatorPerformance) > 0)
+                <div class="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Standar Kinerja Waktu Layanan
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-green-600 rounded-full"></div>
+                            <span class="text-xs text-gray-600"><strong>Sangat Cepat:</strong> 1-2 menit</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <span class="text-xs text-gray-600"><strong>Normal:</strong> 3-5 menit</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 bg-red-600 rounded-full"></div>
+                            <span class="text-xs text-gray-600"><strong>Perlu Ditingkatkan:</strong> 6-10+ menit</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
 
     {{-- Counter Status + Registration Type --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {{-- Counter Status (FR-28) --}}
+        {{-- Counter Status --}}
         <div class="bg-white rounded-2xl border shadow-sm">
             <div class="p-5 border-b">
                 <h3 class="font-bold">Status Loket Real-time</h3>
                 <p class="text-sm text-gray-500 mt-0.5">Monitoring kinerja per loket</p>
             </div>
             <div class="p-5 space-y-4">
-                @php
-                    $counters = [
-                        (object) [
-                            'name' => 'Loket 1',
-                            'operatorName' => 'John Doe',
-                            'status' => 'serving',
-                            'current_queue' => 'A001',
-                        ],
-                        (object) [
-                            'name' => 'Loket 2',
-                            'operatorName' => 'Jane Smith',
-                            'status' => 'calling',
-                            'current_queue' => null,
-                        ],
-                    ];
-                @endphp
-
-                @foreach ($counters as $counter)
+                @forelse ($counters as $counter)
                     <div class="border rounded-xl p-4">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center gap-3">
@@ -240,7 +209,11 @@
                             </div>
                         @endif
                     </div>
-                @endforeach
+                @empty
+                    <div class="text-center py-10 text-gray-400">
+                        <p>Belum ada loket aktif</p>
+                    </div>
+                @endforelse
             </div>
         </div>
 
@@ -251,27 +224,12 @@
                 <p class="text-sm text-gray-500 mt-0.5">Distribusi online vs onsite</p>
             </div>
             <div class="p-5">
-                {{-- Chart canvas: unique ID prevents duplicate-key issues --}}
-                {{-- <canvas id="chart-registration-type-{{ now()->timestamp }}" class="w-full"
-                                    style="height:280px" data-online="75" data-onsite="25"></canvas> --}}
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="text-center">
-                        <div class="flex items-center justify-center gap-2 mb-1">
-                            <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <span class="text-sm font-semibold">Online</span>
-                        </div>
-                        <div class="text-2xl font-bold">75</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="flex items-center justify-center gap-2 mb-1">
-                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                            <span class="text-sm font-semibold">Onsite</span>
-                        </div>
-                        <div class="text-2xl font-bold">25</div>
-                    </div>
+                <div style="height:380px" class="relative flex justify-center">
+                    <canvas id="chart-live-reg-type"></canvas>
                 </div>
             </div>
         </div>
 
     </div>
+
 </div>

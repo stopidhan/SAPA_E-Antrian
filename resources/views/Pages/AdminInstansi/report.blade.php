@@ -168,8 +168,16 @@
                                 <x-label-status type="status" :value="$item->status" />
                             </td>
                             <td class="px-4 py-3">
-                                <x-action-buttons :view="true" :viewAction="'openDetailModal(' . json_encode($item) . ')'" :edit="false"
-                                    :delete="false" />
+                                <button type="button" @click="viewDetail({{ $item->id }})"
+                                    class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-600 transition-colors"
+                                    title="Lihat Detail">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -178,7 +186,7 @@
 
         </div>
         {{-- Detail Modal --}}
-        @include('components.Modals.modal_queue-detail')
+        <x-modals.modal_queue-detail />
 
     </div>
 @endsection
@@ -187,7 +195,8 @@
     <script>
         function reportsPage() {
             return {
-                selectedQueue: null,
+                detailData: null,
+                detailLoading: false,
                 chartData: @json($chartData),
                 init() {
                     this.renderCharts();
@@ -290,9 +299,31 @@
                         });
                     }
                 },
-                openDetailModal(item) {
-                    this.selectedQueue = item;
-                    this.$dispatch('open-modal', 'service-detail');
+                async viewDetail(queueId) {
+                    this.detailLoading = true;
+                    this.detailData = null;
+                    this.$dispatch('open-modal', 'queue-detail-modal');
+
+                    try {
+                        const response = await fetch(`/supervisor/api/queue/${queueId}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch detail');
+                        }
+
+                        this.detailData = await response.json();
+                    } catch (err) {
+                        console.error('Detail fetch error:', err);
+                        showToast('Gagal memuat detail antrean', 'error');
+                        this.$dispatch('close-modal', 'queue-detail-modal');
+                    } finally {
+                        this.detailLoading = false;
+                    }
                 }
             };
         }

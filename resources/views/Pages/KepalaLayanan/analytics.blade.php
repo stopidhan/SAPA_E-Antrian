@@ -8,7 +8,13 @@
             <p class="text-sm text-gray-500 mt-0.5">Total antrean per jenis layanan</p>
         </div>
         <div class="p-5">
-            <canvas id="chart-service-distribution" style="height:300px"></canvas>
+            @if (count($chartData['service']) > 0)
+                <canvas id="chart-service-distribution" style="height:300px"></canvas>
+            @else
+                <div class="text-center py-10 text-gray-400">
+                    <p>Belum ada data layanan hari ini</p>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -19,7 +25,13 @@
             <p class="text-sm text-gray-500 mt-0.5">Jumlah pengunjung per jam</p>
         </div>
         <div class="p-5">
-            <canvas id="chart-hourly-trend" style="height:300px"></canvas>
+            @if (count($chartData['hourly']) > 0)
+                <canvas id="chart-hourly-trend" style="height:300px"></canvas>
+            @else
+                <div class="text-center py-10 text-gray-400">
+                    <p>Belum ada data pengunjung hari ini</p>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -32,22 +44,7 @@
             // ===== Bar Chart: Service Distribution =====
             const barCanvas = document.getElementById('chart-service-distribution');
             if (barCanvas) {
-                const serviceData = [{
-                        name: 'Pembuatan KTP',
-                        completed: 50,
-                        waiting: 10
-                    },
-                    {
-                        name: 'Pembayaran Pajak',
-                        completed: 40,
-                        waiting: 5
-                    },
-                    {
-                        name: 'Pengaduan',
-                        completed: 30,
-                        waiting: 15
-                    },
-                ];
+                const serviceData = @json($chartData['service']);
                 new Chart(barCanvas.getContext('2d'), {
                     type: 'bar',
                     data: {
@@ -94,27 +91,7 @@
             // ===== Line Chart: Hourly Trend =====
             const lineCanvas = document.getElementById('chart-hourly-trend');
             if (lineCanvas) {
-                const hourlyData = [{
-                        hour: '08:00',
-                        count: 10
-                    },
-                    {
-                        hour: '09:00',
-                        count: 20
-                    },
-                    {
-                        hour: '10:00',
-                        count: 30
-                    },
-                    {
-                        hour: '11:00',
-                        count: 25
-                    },
-                    {
-                        hour: '12:00',
-                        count: 15
-                    },
-                ];
+                const hourlyData = @json($chartData['hourly']);
                 new Chart(lineCanvas.getContext('2d'), {
                     type: 'line',
                     data: {

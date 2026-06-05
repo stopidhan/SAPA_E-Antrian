@@ -124,9 +124,15 @@ Route::get("/activity-log", function () {
     return view("Pages.AdminInstansi.activityLog");
 })->name("activity.log");
 
-Route::get("/supervisor", function () {
-    return view("Pages.KepalaLayanan.superVisor");
-})->name("supervisor.dashboard");
+Route::middleware(['auth', "verified"])->prefix('supervisor')->group(function () {
+    Route::get('/', [\App\Http\Controllers\SuperVisorController::class, 'index'])->name('supervisor.dashboard');
+    Route::get('/api/live', [\App\Http\Controllers\SuperVisorController::class, 'liveApi'])->name('supervisor.api.live');
+    Route::get('/api/queue/{queue}', [\App\Http\Controllers\SuperVisorController::class, 'queueDetail'])->name('supervisor.api.queue-detail');
+    Route::get('/export/live/pdf', [\App\Http\Controllers\SuperVisorController::class, 'exportLivePdf'])->name('supervisor.export.live.pdf');
+    Route::get('/export/live/excel', [\App\Http\Controllers\SuperVisorController::class, 'exportLiveExcel'])->name('supervisor.export.live.excel');
+    Route::get('/export/history/pdf', [\App\Http\Controllers\SuperVisorController::class, 'exportHistoryPdf'])->name('supervisor.export.history.pdf');
+    Route::get('/export/history/excel', [\App\Http\Controllers\SuperVisorController::class, 'exportHistoryExcel'])->name('supervisor.export.history.excel');
+});
 
 // ==========================================
 // Media Content Management (Staff Konten)

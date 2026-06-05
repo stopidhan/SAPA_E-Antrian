@@ -32,7 +32,11 @@
         ],
     ];
 
-    $navbarTitle = $title ?? 'Dashboard';
+    $activeItem = collect($navMenuItems)->first(function ($item) {
+        return request()->is($item['url']) || request()->is($item['url'] . '/*');
+    });
+
+    $navbarTitle = $title ?? ($activeItem['label'] ?? 'Dashboard');
     $navbarSubtitle = $subtitle ?? null;
     $navbarUserName = Auth::user()->name ?? 'Admin';
 @endphp

@@ -77,7 +77,7 @@
     @stack('head-scripts')
 </head>
 
-<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: window.innerWidth >= 1024, mounted: false }" x-init="$nextTick(() => mounted = true)">
+<body class="bg-gray-50 text-gray-800 antialiased" x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') !== null ? localStorage.getItem('sidebarOpen') === 'true' : window.innerWidth >= 1024, mounted: false }" x-init="$watch('sidebarOpen', value => localStorage.setItem('sidebarOpen', value)); $nextTick(() => mounted = true)">
 
     @includeWhen(!isset($hideNavbar) || !$hideNavbar, 'components.navbar', [
         'withSidebar' => $withSidebar ?? false,
