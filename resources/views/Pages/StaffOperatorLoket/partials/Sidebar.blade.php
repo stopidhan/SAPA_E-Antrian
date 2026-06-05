@@ -44,3 +44,41 @@
 
     </div>
 </div>
+
+{{-- Card: Riwayat Hari Ini --}}
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mt-6">
+    <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
+        <h3 class="text-sm font-bold text-gray-900">Riwayat Hari Ini</h3>
+        <span class="text-xs font-semibold text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full"
+              x-text="history.length + ' antrean'">0 antrean</span>
+    </div>
+    <div class="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+
+        {{-- Empty state --}}
+        <div x-show="history.length === 0" class="py-6 text-center">
+            <p class="text-sm text-gray-400">Belum ada riwayat pelayanan</p>
+        </div>
+
+        {{-- Dynamic history items --}}
+        <template x-for="item in history" :key="item.id">
+            <div class="flex items-center justify-between rounded-xl px-4 py-3 bg-gray-50 border border-gray-100">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900" x-text="item.nomor"></p>
+                    <p class="text-xs text-gray-500 mt-0.5" x-text="item.waktu"></p>
+                </div>
+                
+                {{-- Status Badge --}}
+                <span class="inline-flex items-center px-2 py-1 text-[10px] font-bold rounded-md border"
+                      :class="{
+                          'bg-emerald-50 text-emerald-600 border-emerald-200': item.status === 'completed',
+                          'bg-amber-50 text-amber-600 border-amber-200': item.status === 'skipped',
+                          'bg-red-50 text-red-600 border-red-200': item.status === 'cancelled'
+                      }"
+                      x-text="item.status === 'completed' ? 'Selesai' : (item.status === 'skipped' ? 'Dilewati' : 'Dibatalkan')">
+                </span>
+            </div>
+        </template>
+
+    </div>
+</div>
+

@@ -24,7 +24,7 @@ class BookingOnlineController extends Controller
 
         // Ambil layanan sesuai instance_id customer
         $layanans = Service::query()
-            ->where('instance_id', $authCustomer->instance_id ?? 1)
+            ->where('instance_id', $authCustomer->instance_id)
             ->where('is_active', true)
             ->with('queues')
             ->get();
@@ -127,7 +127,7 @@ class BookingOnlineController extends Controller
         // Cari layanan berdasarkan slug
         $service = Service::query()
             ->where('is_active', true)
-            ->where('instance_id', $authCustomer->instance_id ?? 1)
+            ->where('instance_id', $authCustomer->instance_id)
             ->get()
             ->first(function ($item) use ($slug) {
                 return Str::slug($item->service_name) === $slug;
@@ -137,10 +137,31 @@ class BookingOnlineController extends Controller
             return redirect()->route('booking.dashboard')->withErrors(['limit_booking' => 'Layanan tidak ditemukan.']);
         }
 
+        $today = now()->toDateString();
+        $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
+        
+        $lastQueue = \App\Models\Queue::query()
+            ->where('instance_id', $service->instance_id)
+            ->where('service_id', $service->id)
+            ->whereDate('queue_date', $today)
+            ->latest('id')
+            ->first();
+
+        if ($lastQueue) {
+            $parts = explode('-', $lastQueue->queue_number);
+            $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
+            $todayQueueSequence = $urutan + 1;
+        } else {
+            $todayQueueSequence = 1;
+        }
+
+        $estimatedQueueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
+
         return view('Pages.Remoteuser.Konfirmasi', [
             'service' => $service,
             'customer' => $authCustomer,
-            'slug' => $slug
+            'slug' => $slug,
+            'estimatedQueueNumber' => $estimatedQueueNumber
         ]);
     }
 
@@ -167,6 +188,20 @@ class BookingOnlineController extends Controller
         if ($bookingTodayCount >= 2) {
             return back()
                 ->withErrors(['limit_booking' => 'Limit antrean Anda telah habis. Maksimal 2 kali pengambilan antrean online per hari.'])
+                ->withInput();
+        }
+
+        // Cek jika ada antrean aktif yang belum discan
+        $activeQueue = Queue::query()
+            ->where('customer_id', $authCustomer->id)
+            ->whereDate('queue_date', now()->toDateString())
+            ->whereIn('queue_status', ['waiting', 'called', 'serving'])
+            ->whereNull('check_in_time')
+            ->exists();
+
+        if ($activeQueue) {
+            return back()
+                ->withErrors(['limit_booking' => 'Anda masih memiliki antrean aktif yang belum di-scan di Kiosk. Selesaikan terlebih dahulu sebelum mengambil antrean baru.'])
                 ->withInput();
         }
 
@@ -198,25 +233,44 @@ class BookingOnlineController extends Controller
         }
 
         $today = now()->toDateString();
-        $todayQueueSequence = Queue::query()
-            ->where('instance_id', $service->instance_id)
-            ->where('service_id', $service->id)
-            ->whereDate('queue_date', $today)
-            ->count() + 1;
-
         $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
-        $queueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
 
-        $queue = Queue::create([
-            'instance_id' => $service->instance_id,
-            'customer_id' => $authCustomer->id,
-            'service_id' => $service->id,
-            'queue_number' => $queueNumber,
-            'queue_date' => $today,
-            'taken_time' => now()->format('H:i:s'),
-            'queue_status' => 'waiting',
-            'queue_source' => 'online',
-        ]);
+        // Mencegah Race Condition dengan Atomic Lock (maksimal proses 10 detik, menunggu lock 5 detik)
+        $lockKey = 'queue_creation_' . $service->instance_id . '_' . $service->id . '_' . $today;
+        
+        $queue = \Illuminate\Support\Facades\Cache::lock($lockKey, 10)->block(5, function () use ($service, $authCustomer, $today, $queuePrefix) {
+            
+            // Database-level lock to ensure synchronization with Kiosk which uses DB locking
+            $lockedService = \App\Models\Service::where('id', $service->id)->lockForUpdate()->first();
+            
+            $lastQueue = Queue::query()
+                ->where('instance_id', $service->instance_id)
+                ->where('service_id', $service->id)
+                ->whereDate('queue_date', $today)
+                ->latest('id')
+                ->first();
+
+            if ($lastQueue) {
+                $parts = explode('-', $lastQueue->queue_number);
+                $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
+                $todayQueueSequence = $urutan + 1;
+            } else {
+                $todayQueueSequence = 1;
+            }
+
+            $queueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
+
+            return Queue::create([
+                'instance_id' => $service->instance_id,
+                'customer_id' => $authCustomer->id,
+                'service_id' => $service->id,
+                'queue_number' => $queueNumber,
+                'queue_date' => $today,
+                'taken_time' => now()->format('H:i:s'),
+                'queue_status' => 'waiting',
+                'queue_source' => 'online',
+            ]);
+        });
 
         session([
             'booking_last_queue_id' => $queue->id,
@@ -224,7 +278,30 @@ class BookingOnlineController extends Controller
             'booking_last_service_name' => $service->service_name,
         ]);
 
-        return redirect()->route('booking.tiket', ['queue_id' => $queue->id]);
+        return redirect()->route('booking.tiket');
+    }
+
+    public function setHalamanTiket(Request $request)
+    {
+        $queueId = $request->input('queue_id');
+        
+        if ($queueId) {
+            session(['booking_last_queue_id' => $queueId]);
+        }
+
+        return redirect()->route('booking.tiket');
+    }
+
+    public function halamanRiwayat()
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $riwayatAntrean = Queue::with('service')
+            ->where('customer_id', $customer->id)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return view('Pages.Remoteuser.Riwayat', compact('riwayatAntrean'));
     }
 
     public function halamanTiket(Request $request)
@@ -263,7 +340,8 @@ class BookingOnlineController extends Controller
             ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
             : now()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
 
-        $isExpired = $queue->queue_status === 'skipped' || now()->greaterThanOrEqualTo($batasWaktu);
+        // Tiket HANYA kedaluwarsa jika BELUM di-scan (check_in_time is null) dan melewati batas waktu
+        $isExpired = $queue->queue_status === 'skipped' || (is_null($queue->check_in_time) && now()->greaterThanOrEqualTo($batasWaktu));
 
         if ($isExpired && $queue->queue_status === 'waiting') {
             $queue->update(['queue_status' => 'skipped']);
@@ -325,6 +403,15 @@ class BookingOnlineController extends Controller
         $expiredAt = $queue->created_at
             ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
             : now()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
+
+        // Jika tiket sudah di-scan, tidak boleh dihanguskan
+        if (!is_null($queue->check_in_time)) {
+            return response()->json([
+                'success' => false,
+                'expired' => false,
+                'message' => 'Tiket sudah di-scan, tidak dapat ditandai hangus.',
+            ], 422);
+        }
 
         if (now()->lt($expiredAt)) {
             return response()->json([
@@ -413,6 +500,7 @@ class BookingOnlineController extends Controller
         Queue::query()
             ->where('queue_source', 'online')
             ->where('queue_status', 'waiting')
+            ->whereNull('check_in_time') // Hanya hanguskan yang BELUM di-scan
             ->where('created_at', '<=', now()->subMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES))
             ->update(['queue_status' => 'skipped']);
     }

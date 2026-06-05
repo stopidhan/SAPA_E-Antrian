@@ -9,20 +9,23 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Queue;
 
-class QueueCheckedIn implements ShouldBroadcastNow
+class QueueUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $message;
     public $queue;
+    public $instance_id;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(Queue $queue)
+    public function __construct($message = 'Update', $queue = null, $instance_id = null)
     {
+        $this->message = $message;
         $this->queue = $queue;
+        $this->instance_id = $instance_id;
     }
 
     /**
@@ -33,12 +36,12 @@ class QueueCheckedIn implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         $channels = [
-            new Channel('queues'), // global channel for backward compatibility
+            new Channel('queues'), // Backward kompatibel jika rekan Monitor masih pakai channel global
         ];
 
-        // Specific instance channel
-        if ($this->queue->instance_id) {
-            $channels[] = new Channel('queues.' . $this->queue->instance_id);
+        // Broadcast to a specific instance channel if provided
+        if ($this->instance_id) {
+            $channels[] = new Channel('queues.' . $this->instance_id);
         }
 
         return $channels;

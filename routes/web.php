@@ -10,86 +10,52 @@ use App\Http\Controllers\AdminInstanceController;
 use App\Http\Controllers\MediaContentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get("/", function () {
-    return redirect()->route("booking.register");
+Route::get('/', function () {
+    return redirect('/demo/remoteuser'); // Redirect ke cabang default untuk percobaan
 });
+
+
+
 
 // ==========================================
-// Booking — Pendaftaran Antrean Online
+// Booking — Pendaftaran Antrean Online (Multi-Tenant)
 // ==========================================
-Route::middleware("guest:customer")->group(function () {
-    Route::get("/remoteuser/login", [
-        CustomerAuthController::class,
-        "showLoginForm",
-    ])->name("booking.login");
-    Route::post("/remoteuser/login", [
-        CustomerAuthController::class,
-        "login",
-    ])->name("booking.login.submit");
+Route::prefix('{instance_code}/remoteuser')->group(function () {
+    Route::middleware('guest:customer')->group(function () {
+        Route::get('/login', [CustomerAuthController::class, 'showLoginForm'])->name('booking.login');
+        Route::post('/login', [CustomerAuthController::class, 'login'])->name('booking.login.submit');
 
-    Route::get("/remoteuser", [
-        CustomerAuthController::class,
-        "showRegisterForm",
-    ])->name("booking.register");
-    Route::post("/remoteuser/send-otp", [
-        CustomerAuthController::class,
-        "register",
-    ])->name("booking.register.submit");
-    Route::get("/remoteuser/verifikasi-otp", [
-        CustomerAuthController::class,
-        "showOtpForm",
-    ])->name("booking.otp.form");
-    Route::post("/remoteuser/verifikasi-otp", [
-        CustomerAuthController::class,
-        "verifyOtp",
-    ])->name("booking.otp.verify");
+        Route::get('/', [CustomerAuthController::class, 'showRegisterForm'])->name('booking.register');
+        Route::post('/send-otp', [CustomerAuthController::class, 'register'])->name('booking.register.submit');
+        Route::get('/verifikasi-otp', [CustomerAuthController::class, 'showOtpForm'])->name('booking.otp.form');
+        Route::post('/verifikasi-otp', [CustomerAuthController::class, 'verifyOtp'])->name('booking.otp.verify');
+    });
+
+    Route::middleware(['auth:customer', 'customer.instance'])->group(function () {
+        Route::get('/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
+        Route::post('/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
+
+        Route::get('/konfirmasi', [BookingOnlineController::class, 'halamanKonfirmasi'])->name('booking.konfirmasi');
+
+        Route::get('/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');
+        Route::post('/tiket/set', [BookingOnlineController::class, 'setHalamanTiket'])->name('booking.tiket.set');
+        Route::post('/tiket/hangus', [BookingOnlineController::class, 'tandaiTiketHangus'])->name('booking.tiket.expire');
+
+        Route::get('/riwayat', [BookingOnlineController::class, 'halamanRiwayat'])->name('booking.riwayat');
+
+        Route::get('/inventory', [BookingOnlineController::class, 'halamanInventory'])->name('booking.inventory');
+        Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('booking.logout');
+        Route::get('/logout', [CustomerAuthController::class, 'logout']);
+    });
 });
 
-Route::middleware("auth:customer")->group(function () {
-    Route::get("/remoteuser/dashboard", [
-        BookingOnlineController::class,
-        "halamanDashboard",
-    ])->name("booking.dashboard");
-    Route::post("/remoteuser/ambil-antrean", [
-        BookingOnlineController::class,
-        "prosesAmbilAntrean",
-    ])->name("booking.ambil-antrean");
-
-    Route::get("/remoteuser/konfirmasi", [
-        BookingOnlineController::class,
-        "halamanKonfirmasi",
-    ])->name("booking.konfirmasi");
-
-    Route::get("/remoteuser/tiket", [
-        BookingOnlineController::class,
-        "halamanTiket",
-    ])->name("booking.tiket");
-    Route::post("/remoteuser/tiket/hangus", [
-        BookingOnlineController::class,
-        "tandaiTiketHangus",
-    ])->name("booking.tiket.expire");
-
-    Route::get("/remoteuser/riwayat", function () {
-        return view("Pages.Remoteuser.Riwayat");
-    })->name("booking.riwayat");
-
-    Route::get("/remoteuser/inventory", [
-        BookingOnlineController::class,
-        "halamanInventory",
-    ])->name("booking.inventory");
-    Route::post("/remoteuser/logout", [
-        CustomerAuthController::class,
-        "logout",
-    ])->name("booking.logout");
-});
-
-Route::prefix("booking")->group(function () {
-    Route::redirect("/", "/remoteuser");
-    Route::redirect("/dashboard", "/remoteuser/dashboard");
-    Route::redirect("/konfirmasi", "/remoteuser/konfirmasi");
-    Route::redirect("/tiket", "/remoteuser/tiket");
-    Route::redirect("/riwayat", "/remoteuser/riwayat");
-    Route::redirect("/inventory", "/remoteuser/inventory");
+Route::prefix('booking')->group(function () {
+    Route::redirect('/', '/demo/remoteuser');
+    Route::redirect('/dashboard', '/demo/remoteuser/dashboard');
+    Route::redirect('/konfirmasi', '/demo/remoteuser/konfirmasi');
+    Route::redirect('/tiket', '/demo/remoteuser/tiket');
+    Route::redirect('/riwayat', '/demo/remoteuser/riwayat');
+    Route::redirect('/inventory', '/demo/remoteuser/inventory');
 });
 
 // ==========================================
@@ -97,51 +63,56 @@ Route::prefix("booking")->group(function () {
 // ==========================================
 use App\Http\Controllers\KioskController;
 
-Route::get("/on-site-user", [KioskController::class, "halamanHome"])->name(
-    "kiosk.home",
-);
-Route::get("/on-site-user/input", [
-    KioskController::class,
-    "halamanInput",
-])->name("kiosk.input");
-Route::get("/on-site-user/cetak", [
-    KioskController::class,
-    "halamanCetak",
-])->name("kiosk.cetak");
-Route::get("/on-site-user/scan", [KioskController::class, "halamanScan"])->name(
-    "kiosk.scan",
-);
+Route::prefix('{instance_code}')->group(function () {
+    Route::get('/on-site-user', [KioskController::class, 'halamanHome'])->name('kiosk.home');
+    Route::get('/on-site-user/input', [KioskController::class, 'halamanInput'])->name('kiosk.input');
+    Route::post('/on-site-user/input/simpan', [KioskController::class, 'simpanAntreanOffline'])->name('kiosk.input.simpan');
+    Route::get('/on-site-user/cetak', [KioskController::class, 'halamanCetak'])->name('kiosk.cetak');
+    Route::get('/on-site-user/scan', [KioskController::class, 'halamanScan'])->name('kiosk.scan');
+    Route::post('/on-site-user/verify-scan', [KioskController::class, 'verifyScan'])->name('kiosk.verify-scan');
+});
 
-// AJAX: Verifikasi Scan QR
-Route::post("/on-site-user/verify-scan", [
-    KioskController::class,
-    "verifyScan",
-])->name("kiosk.verify-scan");
-
-Route::prefix("kiosk")->group(function () {
-    Route::redirect("/", "/on-site-user");
-    Route::redirect("/input", "/on-site-user/input");
-    Route::redirect("/cetak", "/on-site-user/cetak");
-    Route::redirect("/scan", "/on-site-user/scan");
+Route::prefix('kiosk')->group(function () {
+    Route::redirect('/', '/demo/on-site-user'); // Fallback ke demo
+    Route::redirect('/input', '/demo/on-site-user/input');
+    Route::redirect('/cetak', '/demo/on-site-user/cetak');
+    Route::redirect('/scan', '/demo/on-site-user/scan');
 });
 
 // ==========================================
 // Monitor — TV Ruang Tunggu (Public Display)
 // ==========================================
-Route::get("/monitor", function () {
-    return view("Pages.MonitorPublic.monitor");
-})->name("monitor.display");
+use App\Http\Controllers\MonitorController;
+
+Route::get('/{instance_code}/monitor', [MonitorController::class, 'index'])->name('monitor.display');
+Route::get('/{instance_code}/monitor/api', [MonitorController::class, 'getMonitorApi'])->name('monitor.api');
+
+// Jika monitor diakses tanpa instance_code as a fallback (opsional)
+Route::redirect('/monitor', '/demo/monitor'); // default to 'demo' or whichever default instance
 
 // ==========================================
 // Operator — Dashboard Operator Loket
 // ==========================================
 
-Route::middleware(["role:operator"])->group(function () {
-    Route::get("/staff-operator-loket", function () {
-        return view("Pages.StaffOperatorLoket.Index");
-    })->name("operator.dashboard");
-    Route::redirect("/operator", "/staff-operator-loket");
+Route::middleware(['auth', 'role:staff_operator'])->prefix('{instance_code}/staff-operator-loket')->group(function () {
+    Route::get('/', [\App\Http\Controllers\OperatorController::class, 'index'])->name('operator.dashboard');
+    Route::post('/panggil/{id}', [\App\Http\Controllers\OperatorController::class, 'panggilAntrean'])->name('operator.panggil');
+    Route::post('/layani/{id}', [\App\Http\Controllers\OperatorController::class, 'layaniAntrean'])->name('operator.layani');
+    Route::post('/lewati/{id}', [\App\Http\Controllers\OperatorController::class, 'lewatiAntrean'])->name('operator.lewati');
+    Route::post('/batal/{id}', [\App\Http\Controllers\OperatorController::class, 'batalkanAntrean'])->name('operator.batal');
+    Route::post('/selesai/{id}', [\App\Http\Controllers\OperatorController::class, 'selesaiAntrean'])->name('operator.selesai');
+    Route::get('/api/queues', [\App\Http\Controllers\OperatorController::class, 'getQueuesApi'])->name('operator.api.queues');
 });
+
+// Redirect jika mengakses route lama ke route baru (opsional)
+Route::middleware(['auth', 'role:staff_operator'])->get('/staff-operator-loket', function () {
+    $instanceCode = auth()->user()->instance->instance_code ?? null;
+    if (!$instanceCode) {
+        abort(403, 'Anda tidak terdaftar di instansi manapun.');
+    }
+    return redirect()->route('operator.dashboard', ['instance_code' => $instanceCode]);
+});
+Route::redirect('/operator', '/staff-operator-loket');
 
 // ==========================================
 
@@ -193,7 +164,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::patch("services/{service}", [AdminInstanceController::class, "updateService"])->name("services.update");
     Route::delete("services/{service}", [AdminInstanceController::class, "destroyService"])->name("services.destroy");
     Route::patch("services/{service}/toggle", [AdminInstanceController::class, "toggleService"])->name("services.toggle");
-    
+
     // Counters
     Route::delete("counters/{counter}", [AdminInstanceController::class, "deleteCounter"])->name("counters.destroy");
 

@@ -47,39 +47,78 @@
                 <span class="text-2xl font-black text-emerald-600 tabular-nums" x-text="timerDisplay">00:00</span>
             </div>
 
-            {{-- Tombol Ambil Foto --}}
-            <button class="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition">
-                <span class="text-base">📷</span>
-                Ambil Foto
-            </button>
+            {{-- Area Kamera --}}
+            <div class="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden p-3 text-center">
+                
+                {{-- Mode Standby: Tombol Ambil Foto --}}
+                <div x-show="!isCameraOpen && !photoBase64">
+                    <button @click="startCamera()" class="w-full flex items-center justify-center gap-2 py-3 border-2 border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-white active:bg-gray-100 transition">
+                        <span class="text-base">📷</span>
+                        Ambil Foto Bukti Pelayanan
+                    </button>
+                </div>
+
+                {{-- Mode Kamera Aktif --}}
+                <div x-show="isCameraOpen && !photoBase64" class="relative">
+                    <video x-ref="videoElement" class="w-full aspect-video object-cover rounded-lg bg-black" playsinline></video>
+                    <div class="mt-3 flex gap-2">
+                        <button @click="stopCameraStream(); isCameraOpen = false" class="flex-1 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 text-sm">
+                            Batal
+                        </button>
+                        <button @click="takePhoto()" class="flex-1 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 text-sm flex items-center justify-center gap-1">
+                            <span>📸</span> Jepret
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Mode Pratinjau Foto Hasil --}}
+                <div x-show="photoBase64" class="relative">
+                    <img :src="photoBase64" class="w-full aspect-video object-cover rounded-lg border border-gray-300">
+                    <button @click="retakePhoto()" class="mt-3 w-full py-2 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 text-sm flex items-center justify-center gap-1">
+                        <span>🔄</span> Foto Ulang
+                    </button>
+                </div>
+
+                {{-- Hidden Canvas for Capture --}}
+                <canvas x-ref="canvasElement" style="display: none;"></canvas>
+            </div>
 
             {{-- Dropdown Kategori Layanan --}}
             <div>
                 <label class="block text-sm font-bold text-gray-900 mb-1.5">Kategori Layanan <span class="text-red-500">*</span></label>
-                <select class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none appearance-none cursor-pointer">
+                <select x-model="serviceCategory" class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none appearance-none cursor-pointer">
                     <option value="" disabled selected>Pilih kategori layanan</option>
-                    <option>Pembuatan KTP Baru</option>
-                    <option>Perpanjangan KTP</option>
-                    <option>Pergantian KTP</option>
-                    <option>Cetak Ulang KTP</option>
-                    <option>Lainnya</option>
+                    @foreach($services as $svc)
+                        <option value="{{ $svc->service_name }}">{{ $svc->service_name }}</option>
+                    @endforeach
+                    <option value="Lainnya">Lainnya</option>
                 </select>
             </div>
 
             {{-- Textarea Catatan / Deskripsi --}}
             <div>
-                <label class="block text-sm font-bold text-gray-900 mb-1.5">Deskripsi / Catatan Layanan</label>
-                <textarea rows="3"
+                <label class="block text-sm font-bold text-gray-900 mb-1.5">Deskripsi / Catatan Layanan <span class="text-red-500">*</span></label>
+                <textarea x-model="serviceDescription" rows="3"
                           placeholder="Catatan tambahan, keluhan..."
                           class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none resize-none placeholder:text-gray-300"></textarea>
             </div>
 
-            {{-- Tombol Selesai --}}
-            <button @click="state = 'standby'; stopServing()"
-                    class="w-full flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-base font-bold rounded-xl shadow-sm transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                Selesai
-            </button>
+            {{-- Tombol Aksi Akhir --}}
+            <div class="grid grid-cols-3 gap-3">
+                {{-- Tombol Batalkan --}}
+                <button @click="batalkanAntrean()"
+                        class="col-span-1 flex items-center justify-center gap-2 py-4 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-700 text-base font-bold rounded-xl shadow-sm transition border border-red-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    Batal
+                </button>
+
+                {{-- Tombol Selesai --}}
+                <button @click="stopServing()"
+                        class="col-span-2 flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-base font-bold rounded-xl shadow-sm transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                    Selesai
+                </button>
+            </div>
 
         </div>
     </div>

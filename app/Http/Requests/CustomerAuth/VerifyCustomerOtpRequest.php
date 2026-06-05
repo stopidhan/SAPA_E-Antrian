@@ -32,9 +32,35 @@ class VerifyCustomerOtpRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        $whatsapp = preg_replace('/\D+/', '', (string) $this->input('whatsapp'));
+        $whatsapp = $this->normalizeWhatsappDigits((string) $whatsapp);
+
         $this->merge([
-            'whatsapp' => preg_replace('/\D+/', '', (string) $this->input('whatsapp')),
+            'whatsapp' => $whatsapp,
             'otp_code' => preg_replace('/\D+/', '', (string) $this->input('otp_code')),
         ]);
+    }
+
+    private function normalizeWhatsappDigits(string $digits): string
+    {
+        $digits = preg_replace('/\D+/', '', $digits) ?? '';
+
+        if ($digits === '') {
+            return '';
+        }
+
+        if (str_starts_with($digits, '62')) {
+            return $digits;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            return '62' . substr($digits, 1);
+        }
+
+        if (str_starts_with($digits, '8')) {
+            return '62' . $digits;
+        }
+
+        return $digits;
     }
 }

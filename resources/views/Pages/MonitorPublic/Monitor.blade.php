@@ -25,7 +25,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-200 antialiased overflow-hidden">
+<body class="bg-gray-200 antialiased overflow-hidden" x-data="monitorRealtime()" x-init="initMonitor()">
 
 {{-- ====== OVERLAY AKTIFKAN SUARA ====== --}}
 <div id="audio-unlock-overlay" onclick="unlockAudio()">
@@ -49,8 +49,8 @@
                 <span class="text-blue-600 text-lg font-black tracking-tight">SAPA</span>
             </div>
             <div>
-                <h1 class="text-white text-2xl font-bold leading-tight">Sistem Antrean Publik</h1>
-                <p class="text-white/60 text-sm font-medium">Ruang Tunggu Utama</p>
+                <h1 class="text-white text-2xl font-bold leading-tight">{{ $instance->instance_name }}</h1>
+                <p class="text-white/60 text-sm font-medium">Sistem Antrean Publik</p>
             </div>
         </div>
 
@@ -97,7 +97,7 @@
                         {{-- Loket Aktif --}}
                         <div class="px-4">
                             <p class="text-white/60 text-xs font-semibold uppercase tracking-wider mb-1">Loket Aktif</p>
-                            <p class="text-2xl font-extrabold">2 / 3</p>
+                            <p class="text-2xl font-extrabold" x-text="stats.active + ' / ' + stats.total">- / -</p>
                         </div>
                         {{-- Status --}}
                         <div class="px-4">
@@ -125,8 +125,18 @@
                     </div>
                     {{-- Body --}}
                     <div class="flex-1 flex flex-col items-center justify-center p-10 text-center">
-                        <p class="text-blue-600 text-8xl font-black tracking-tight leading-none mb-3">A002</p>
-                        <p class="text-gray-900 text-xl font-bold">Silakan ke Loket 1</p>
+                        <template x-if="currentCall">
+                            <div>
+                                <p class="text-blue-600 text-8xl font-black tracking-tight leading-none mb-3" x-text="currentCall.queue_number">A000</p>
+                                <p class="text-gray-900 text-xl font-bold">Silakan ke Loket <span x-text="currentCall.counter_number"></span></p>
+                            </div>
+                        </template>
+                        <template x-if="!currentCall">
+                            <div>
+                                <p class="text-gray-300 text-6xl font-black tracking-tight leading-none mb-3">-</p>
+                                <p class="text-gray-400 text-xl font-bold">Belum Ada Panggilan</p>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
@@ -139,52 +149,33 @@
                     {{-- Body: Daftar Loket --}}
                     <div class="flex-1 flex flex-col divide-y divide-gray-100">
 
-                        {{-- Row 1: Loket 1 — Memanggil --}}
-                        <div class="flex items-center justify-between px-6 py-5 bg-blue-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                                    <span class="text-white text-sm font-black">1</span>
+                                                <template x-for="counter in counters" :key="counter.id">
+                            <div class="flex items-center justify-between px-6 py-5" :class="counter.status_bg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="counter.icon_bg">
+                                        <span class="text-white text-sm font-black" x-text="counter.counter_number"></span>
+                                    </div>
+                                    <span class="text-base font-bold text-gray-900">Loket <span x-text="counter.counter_number"></span></span>
                                 </div>
-                                <span class="text-base font-bold text-gray-900">Loket 1</span>
+                                <span class="text-xl font-black" :class="counter.queue_number == '-' ? 'text-gray-300' : 'text-gray-900'" x-text="counter.queue_number"></span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full" 
+                                    :class="{
+                                        'bg-blue-100 text-blue-700': counter.status === 'Memanggil',
+                                        'bg-emerald-100 text-emerald-700': counter.status === 'Dilayani',
+                                        'bg-red-100 text-red-700': counter.status === 'Tutup',
+                                        'border border-gray-300 text-gray-400': counter.status === 'Menunggu'
+                                    }">
+                                    <span class="w-2 h-2 rounded-full" 
+                                        :class="{
+                                            'bg-blue-500': counter.status === 'Memanggil',
+                                            'bg-emerald-500': counter.status === 'Dilayani',
+                                            'bg-red-500': counter.status === 'Tutup',
+                                            'border-2 border-gray-300': counter.status === 'Menunggu'
+                                        }"></span>
+                                    <span x-text="counter.status"></span>
+                                </span>
                             </div>
-                            <span class="text-xl font-black text-gray-900">A-024</span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
-                                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                Memanggil
-                            </span>
-                        </div>
-
-                        {{-- Row 2: Loket 2 — Melayani --}}
-                        <div class="flex items-center justify-between px-6 py-5 bg-emerald-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-                                    <span class="text-white text-sm font-black">2</span>
-                                </div>
-                                <span class="text-base font-bold text-gray-900">Loket 2</span>
-                            </div>
-                            <span class="text-xl font-black text-gray-900">A-025</span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-                                <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                                Melayani
-                            </span>
-                        </div>
-
-                        {{-- Row 3: Loket 3 — Standby --}}
-                        <div class="flex items-center justify-between px-6 py-5 bg-gray-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-gray-300 rounded-xl flex items-center justify-center">
-                                    <span class="text-white text-sm font-black">3</span>
-                                </div>
-                                <span class="text-base font-bold text-gray-900">Loket 3</span>
-                            </div>
-                            <span class="text-xl font-black text-gray-300">-</span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 border border-gray-300 text-gray-400 text-xs font-bold rounded-full">
-                                <span class="w-2 h-2 border-2 border-gray-300 rounded-full"></span>
-                                Standby
-                            </span>
-                        </div>
-
-                    </div>
+                        </template>
                 </div>
 
             </div>
@@ -202,7 +193,7 @@
     window.Echo = new Echo({
         broadcaster: 'reverb',
         key: '{{ config('broadcasting.connections.reverb.key') }}',
-        wsHost: '{{ config('broadcasting.connections.reverb.options.host') }}',
+        wsHost: window.location.hostname,
         wsPort: {{ config('broadcasting.connections.reverb.options.port') }},
         wssPort: {{ config('broadcasting.connections.reverb.options.port') }},
         forceTLS: false,
@@ -210,7 +201,7 @@
     });
 
     // Listen untuk Event Check-in
-    window.Echo.channel('queues')
+    window.Echo.channel('queues.{{ $instance->id }}')
         .listen('QueueCheckedIn', (e) => {
             console.log('Check-in event received:', e.queue);
             
@@ -222,6 +213,17 @@
             // Mainkan Suara Notifikasi (Pengaman Autoplay)
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
             audio.play().catch(e => console.log('Audio autoplay blocked by browser.'));
+        })
+        .listen('QueueUpdated', (e) => {
+            console.log('QueueUpdated event received:', e.message, e.queue);
+            
+            // Trigger fetch data to update the small counter cards
+            window.dispatchEvent(new CustomEvent('fetch-monitor-data'));
+
+            if (e.message === 'called' && e.queue) {
+                // If it is a new call, push it to our audio queue system
+                window.dispatchEvent(new CustomEvent('add-call-queue', { detail: e.queue }));
+            }
         });
     
     // Fungsi untuk membuka blokir audio browser
@@ -281,6 +283,75 @@
             }
         }
     }
+
+    function monitorRealtime() {
+        return {
+            currentCall: null,
+            counters: [],
+            stats: { active: '-', total: '-' },
+            
+            audioQueue: [],
+            isPlaying: false,
+
+            initMonitor() {
+                this.fetchData();
+                
+                // Set up event listener for websocket trigger
+                window.addEventListener('fetch-monitor-data', () => {
+                    this.fetchData();
+                });
+
+                window.addEventListener('add-call-queue', (e) => {
+                    this.audioQueue.push(e.detail);
+                    this.processAudioQueue();
+                });
+            },
+
+            processAudioQueue() {
+                if (this.isPlaying || this.audioQueue.length === 0) return;
+                
+                this.isPlaying = true;
+                const callInfo = this.audioQueue.shift();
+                
+                // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
+                this.currentCall = callInfo;
+                
+                // Mainkan bunyi panggilan
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+                audio.play().then(() => {
+                    // Beri waktu 4 detik menampilkan nomor ini sebelum memproses nomor loket berikutnya
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        this.processAudioQueue();
+                    }, 4000); 
+                }).catch(e => {
+                    console.log('Audio error:', e);
+                    setTimeout(() => {
+                        this.isPlaying = false;
+                        this.processAudioQueue();
+                    }, 2000); 
+                });
+            },
+
+            fetchData() {
+                const instanceCode = '{{ $instance->instance_code }}';
+                fetch(`/${instanceCode}/monitor/api`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
+                        if (!this.isPlaying && this.audioQueue.length === 0) {
+                            this.currentCall = data.current_call;
+                        }
+
+                        this.counters = data.counters;
+                        this.stats = data.counters_stats;
+                    })
+                    .catch(error => console.error('Error fetching monitor data:', error));
+            }
+        }
+    }
 </script>
 </body>
 </html>
+
+

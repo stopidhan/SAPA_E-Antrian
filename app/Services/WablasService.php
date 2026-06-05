@@ -58,12 +58,21 @@ class WablasService
     {
         $digits = preg_replace('/\D+/', '', $phone) ?? '';
 
+        if ($digits === '') {
+            return '';
+        }
+
         if (str_starts_with($digits, '62')) {
             return $digits;
         }
 
         if (str_starts_with($digits, '0')) {
             return '62' . substr($digits, 1);
+        }
+
+        // Umumnya user mengetik tanpa awalan 0/62 (contoh: 8123xxxx)
+        if (str_starts_with($digits, '8')) {
+            return '62' . $digits;
         }
 
         return $digits;

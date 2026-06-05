@@ -76,22 +76,51 @@
 <script>
     function operatorDashboard() {
         return {
-            state: 'standby',
-            loket: 'Loket 1',
+            loket: '{{ $namaLoket }}',
+            counterId: '{{ $idLoket }}',
             timerDisplay: '00:00',
-            timerSeconds: 0,
+            timerSeconds: {{ $timerSeconds ?? 0 }},
             timerInterval: null,
-            currentQueue: null,
+            currentQueue: @json($activeQueue ?? null),
+            state: '{{ $activeQueue ? ($activeQueue['status'] === 'serving' ? 'serving' : 'calling') : 'standby' }}',
             notifications: [],
             notifCounter: 0,
+            serviceCategory: '',
+            serviceDescription: '',
 
-            queue: [
-                { id: 1, nomor: 'A-024', layanan: 'Pelayanan KTP', tipe: 'onsite' },
-                { id: 2, nomor: 'B-015', layanan: 'Pelayanan KK', tipe: 'online' },
-                { id: 3, nomor: 'C-008', layanan: 'Pelayanan Akta', tipe: 'onsite' },
-                { id: 4, nomor: 'A-025', layanan: 'Pelayanan KTP', tipe: 'online' },
-            ],
+            // Camera states
+            isCameraOpen: false,
+            videoStream: null,
+            photoBase64: null,
 
+            queue: @json($queuesData),
+            history: @json($historyData),
+            instanceCode: '{{ auth()->user()->instance->instance_code ?? '' }}',
+
+              init() {
+                  // Jika halaman direfresh dan sedang melayani, lanjutkan timer
+                  if (this.state === 'serving') {
+                      this.startTimer();
+                  } else if (this.timerSeconds > 0) {
+                      // Jika masih ada sisa timer tapi tidak serving, reset
+                      this.timerSeconds = 0;
+                  }
+
+                  // Memulai polling otomatis setiap 5 detik
+                  setInterval(() => {
+                      this.fetchQueues();
+                  }, 5000);
+              },
+
+              fetchQueues() {
+                  fetch(`/${this.instanceCode}/staff-operator-loket/api/queues`)
+                      .then(res => res.json())
+                      .then(data => {
+                          this.queue = data.waiting;
+                          this.history = data.history;
+                      })
+                      .catch(err => console.error("Gagal refresh antrean", err));
+              },
             showNotif(message, type = 'call') {
                 const id = ++this.notifCounter;
                 const notif = { id, message, type, visible: true };
@@ -107,44 +136,111 @@
             panggilBerikutnya() {
                 if (this.queue.length === 0) return;
                 this.currentQueue = this.queue.shift();
-                this.state = 'calling';
-                this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
+
+                // Request ke server untuk mengubah status di database menjadi 'called'
+                fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ counter_id: this.counterId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        // Jika bentrok (race condition) dengan operator lain
+                        this.showNotif(data.message, 'skip');
+                        this.currentQueue = null;
+                        this.state = 'standby';
+                        this.fetchQueues(); // Segarkan antrean seketika
+                        return;
+                    }
+                    console.log(data.message);
+                    this.state = 'calling';
+                    this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
+                })
+                .catch(error => console.error('Error:', error));
             },
 
             panggilUlang() {
                 if (!this.currentQueue) return;
+
+                // Request kembali ke server untuk memperbarui waktu panggil (called_time)
+                fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ counter_id: this.counterId })
+                });
+
                 this.showNotif('Memanggil ulang nomor ' + this.currentQueue.nomor + '...', 'call');
             },
 
             lewatiAntrian() {
                 if (!this.currentQueue) return;
                 const skipped = this.currentQueue;
-                this.showNotif('Nomor ' + skipped.nomor + ' dilewati', 'skip');
-                this.queue.push(skipped);
+                
+                // POST API ke db (dilewati -> skipped)
+                fetch(`/${this.instanceCode}/staff-operator-loket/lewati/${skipped.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({})
+                });
 
-                if (this.queue.length > 1) {
+                this.showNotif('Nomor ' + skipped.nomor + ' dilewati', 'skip'); 
+
+                if (this.queue.length > 0) {
                     this.currentQueue = this.queue.shift();
-                    setTimeout(() => {
+                    
+                    // Otomatis panggil antrean berikutnya
+                    fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ counter_id: this.counterId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            this.showNotif(data.message, 'skip');
+                            this.currentQueue = null;
+                            this.state = 'standby';
+                            this.fetchQueues();
+                            return;
+                        }
+                        this.state = 'calling';
                         this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
-                    }, 500);
+                    });
+                    
                 } else {
                     this.currentQueue = null;
                     this.state = 'standby';
                 }
             },
 
-            startServing() {
-                this.timerSeconds = 0;
-                this.timerDisplay = '00:00';
-                this.timerInterval = setInterval(() => {
-                    this.timerSeconds++;
-                    const m = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
-                    const s = String(this.timerSeconds % 60).padStart(2, '0');
-                    this.timerDisplay = m + ':' + s;
-                }, 1000);
-            },
+            batalkanAntrean() {
+                if (!this.currentQueue) return;
+                const cancelled = this.currentQueue;
+                
+                fetch(`/${this.instanceCode}/staff-operator-loket/batal/${cancelled.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ counter_id: this.counterId })
+                });
 
-            stopServing() {
+                this.showNotif('Nomor ' + cancelled.nomor + ' dibatalkan', 'skip'); 
+
                 if (this.timerInterval) {
                     clearInterval(this.timerInterval);
                     this.timerInterval = null;
@@ -152,6 +248,131 @@
                 this.timerSeconds = 0;
                 this.timerDisplay = '00:00';
                 this.currentQueue = null;
+                this.state = 'standby';
+                this.fetchQueues();
+            },
+
+            startTimer() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                
+                // Pastikan timerSeconds adalah integer bulat
+                this.timerSeconds = Math.floor(this.timerSeconds);
+                
+                // Update display immediately before interval ticks
+                const m = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+                const s = String(this.timerSeconds % 60).padStart(2, '0');  
+                this.timerDisplay = m + ':' + s;
+
+                this.timerInterval = setInterval(() => {
+                    this.timerSeconds++;
+                    const min = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+                    const sec = String(this.timerSeconds % 60).padStart(2, '0');  
+                    this.timerDisplay = min + ':' + sec;
+                }, 1000);
+            },
+
+            startServing() {
+                if (!this.currentQueue) return;
+
+                fetch(`/${this.instanceCode}/staff-operator-loket/layani/${this.currentQueue.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ counter_id: this.counterId })
+                });
+
+                this.state = 'serving';
+                this.timerSeconds = 0;
+                this.startTimer();
+            },
+
+            stopServing() {
+                if (!this.currentQueue) return;
+
+                if (!this.serviceCategory || this.serviceCategory.trim() === '') {
+                    this.showNotif('Peringatan: Kategori Layanan wajib dipilih!', 'skip');
+                    return;
+                }
+                
+                if (!this.serviceDescription || this.serviceDescription.trim() === '') {
+                    this.showNotif('Peringatan: Deskripsi / Catatan Layanan wajib diisi!', 'skip');
+                    return;
+                }
+
+                fetch(`/${this.instanceCode}/staff-operator-loket/selesai/${this.currentQueue.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ 
+                        category: this.serviceCategory, 
+                        description: this.serviceDescription,
+                        photo: this.photoBase64 
+                    })
+                });
+
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                this.timerSeconds = 0;
+                this.timerDisplay = '00:00';
+                this.currentQueue = null;
+                this.serviceCategory = '';
+                this.serviceDescription = '';
+                
+                this.stopCameraStream();
+                this.isCameraOpen = false;
+                this.photoBase64 = null;
+                
+                this.state = 'standby'; // Auto reset UI ke mode menunggu/Standby
+            },
+
+            startCamera() {
+                this.isCameraOpen = true;
+                this.photoBase64 = null;
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        this.videoStream = stream;
+                        // wait for alpine to show video element
+                        setTimeout(() => {
+                            if (this.$refs.videoElement) {
+                                this.$refs.videoElement.srcObject = stream;
+                                this.$refs.videoElement.play();
+                            }
+                        }, 100);
+                    })
+                    .catch(err => {
+                        console.error("Camera access denied:", err);
+                        this.showNotif('Gagal mengakses kamera.', 'skip');
+                        this.isCameraOpen = false;
+                    });
+            },
+
+            takePhoto() {
+                const canvas = this.$refs.canvasElement;
+                const video = this.$refs.videoElement;
+                if (!video) return;
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                this.photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                this.stopCameraStream();
+            },
+
+            retakePhoto() {
+                this.startCamera();
+            },
+
+            stopCameraStream() {
+                if (this.videoStream) {
+                    this.videoStream.getTracks().forEach(track => track.stop());
+                    this.videoStream = null;
+                }
             }
         }
     }
