@@ -255,6 +255,46 @@ class SuperVisorController extends Controller
     }
 
     /**
+     * Get filtered completed queues for history.
+     */
+    private function getFilteredHistory(Request $request, $instanceId)
+    {
+        return Queue::where('instance_id', $instanceId)
+            ->where('queue_status', 'completed')
+            ->with(['service', 'counter.user', 'photos', 'customer'])
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('queue_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($cq) use ($search) {
+                            $cq->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($request->start_date, function ($query, $date) {
+                $query->whereDate('queue_date', '>=', $date);
+            })
+            ->when($request->end_date, function ($query, $date) {
+                $query->whereDate('queue_date', '<=', $date);
+            })
+            ->when($request->service_id && $request->service_id !== 'all', function ($query) use ($request) {
+                $query->where('service_id', $request->service_id);
+            })
+            ->when($request->operator && $request->operator !== 'all', function ($query) use ($request) {
+                $query->whereHas('counter', function ($q) use ($request) {
+                    $q->where('user_id', $request->operator);
+                });
+            })
+            ->when($request->counter_id && $request->counter_id !== 'all', function ($query) use ($request) {
+                $query->where('service_counter_id', $request->counter_id);
+            })
+            ->when($request->source && $request->source !== 'all', function ($query) use ($request) {
+                $query->where('queue_source', $request->source);
+            })
+            ->orderBy('queue_date', 'desc')
+            ->orderBy('service_end_time', 'desc');
+    }
+
+    /**
      * Main dashboard page.
      */
     public function index(Request $request)
@@ -277,11 +317,34 @@ class SuperVisorController extends Controller
         // Chart data for analytics tab
         $chartData = $this->getChartData($instanceId);
 
-        // History tab: paginated completed queues
-        $completedQueues = Queue::where('instance_id', $instanceId)
-            ->where('queue_status', 'completed')
-            ->with(['service', 'counter.user', 'photos'])
-            ->orderBy('service_end_time', 'desc')
+        // Filter Options for History Tab
+        $serviceOptions = Service::where('instance_id', $instanceId)
+            ->get(['id', 'service_name'])
+            ->map(fn($s) => ['value' => (string)$s->id, 'label' => $s->service_name])
+            ->prepend(['value' => 'all', 'label' => 'Semua Layanan'])
+            ->toArray();
+
+        $operatorOptions = User::where('instance_id', $instanceId)
+            ->where('role', 'staff_operator')
+            ->get(['id', 'name'])
+            ->map(fn($u) => ['value' => (string)$u->id, 'label' => $u->name])
+            ->prepend(['value' => 'all', 'label' => 'Semua Operator'])
+            ->toArray();
+
+        $counterOptions = ServiceCounter::where('instance_id', $instanceId)
+            ->get(['id', 'counter_number'])
+            ->map(fn($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
+            ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
+            ->toArray();
+
+        $sourceOptions = [
+            ['value' => 'all', 'label' => 'Semua Sumber'],
+            ['value' => 'online', 'label' => 'Online'],
+            ['value' => 'onsite', 'label' => 'Onsite'],
+        ];
+
+        // History tab: filtered & paginated completed queues
+        $completedQueues = $this->getFilteredHistory($request, $instanceId)
             ->paginate(10)
             ->withQueryString();
 
@@ -290,6 +353,8 @@ class SuperVisorController extends Controller
             return (object) [
                 'id' => $queue->id,
                 'queue_number' => $queue->queue_number,
+                'customer_name' => $queue->customer->name ?? '-',
+                'queue_source' => $queue->queue_source,
                 'service_name' => $queue->service->service_name ?? '-',
                 'service_category' => $queue->service->description ?? '-',
                 'description' => $queue->service_description,
@@ -299,6 +364,9 @@ class SuperVisorController extends Controller
                 'started_at' => $queue->service_start_time
                     ? Carbon::parse($queue->queue_date . ' ' . $queue->service_start_time)->format('Y-m-d H:i:s')
                     : null,
+                'taken_at' => $queue->taken_time
+                    ? Carbon::parse($queue->queue_date . ' ' . $queue->taken_time)->translatedFormat('d M Y, H:i')
+                    : Carbon::parse($queue->queue_date)->translatedFormat('d M Y'),
                 'counter_id' => $queue->service_counter_id,
                 'counter_name' => $queue->counter
                     ? 'Loket ' . $queue->counter->counter_number
@@ -320,7 +388,11 @@ class SuperVisorController extends Controller
             'counters',
             'registrationTypes',
             'chartData',
-            'completedQueues'
+            'completedQueues',
+            'serviceOptions',
+            'operatorOptions',
+            'counterOptions',
+            'sourceOptions'
         ));
     }
 
@@ -388,11 +460,7 @@ class SuperVisorController extends Controller
     {
         $instance = $this->getInstance();
 
-        $queues = Queue::where('instance_id', $instance->id)
-            ->where('queue_status', 'completed')
-            ->with(['service', 'counter.user'])
-            ->orderBy('service_end_time', 'desc')
-            ->get();
+        $queues = $this->getFilteredHistory($request, $instance->id)->get();
 
         $stats = [
             'totalQueue' => $queues->count(),
@@ -415,11 +483,7 @@ class SuperVisorController extends Controller
     {
         $instance = $this->getInstance();
 
-        $queues = Queue::where('instance_id', $instance->id)
-            ->where('queue_status', 'completed')
-            ->with(['service', 'counter.user'])
-            ->orderBy('service_end_time', 'desc')
-            ->get();
+        $queues = $this->getFilteredHistory($request, $instance->id)->get();
 
         $stats = [
             'totalQueue' => $queues->count(),

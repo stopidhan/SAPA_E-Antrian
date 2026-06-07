@@ -56,19 +56,39 @@
                     <h2 class="text-lg font-bold">Filter Laporan</h2>
                 </div>
 
-                <form method="GET" action="{{ route('reports.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4"
-                    id="filterForm" x-data="{ startDate: '{{ request('start_date', date('Y-m-d')) }}', endDate: '{{ request('end_date', date('Y-m-d')) }}' }">
-                    <x-input-date name="start_date" label="Tanggal Mulai" value="{{ request('start_date', date('Y-m-d')) }}"
-                        x-model="startDate" x-bind:max="endDate" />
-                    <x-input-date name="end_date" label="Tanggal Akhir" value="{{ request('end_date', date('Y-m-d')) }}"
-                        x-model="endDate" x-bind:min="startDate" />
-                    <x-input-dropdown name="service_id" label="Layanan" :options="$serviceOptions"
-                        value="{{ request('service_id', 'all') }}" />
-                    <x-input-dropdown name="operator" label="Operator" :options="$operatorOptions"
-                        value="{{ request('operator', 'all') }}" />
-                    <div class="md:col-span-4 flex justify-end">
+                <form method="GET" action="{{ route('reports.index') }}" class="space-y-4">
+
+                    {{-- Row 1: Search & Dates --}}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <x-input-text name="search" label="Cari Antrean"
+                                placeholder="No. Antrean atau Nama Pelanggan..." value="{{ request('search') }}" />
+                        </div>
+                        <x-input-date name="start_date" label="Tanggal Mulai" value="{{ request('start_date', date('Y-m-d')) }}" />
+                        <x-input-date name="end_date" label="Tanggal Akhir" value="{{ request('end_date', date('Y-m-d')) }}" />
+                    </div>
+
+                    {{-- Row 2: Dropdowns --}}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <x-input-dropdown name="service_id" label="Layanan" :options="$serviceOptions"
+                            value="{{ request('service_id', 'all') }}" />
+                        <x-input-dropdown name="operator" label="Operator" :options="$operatorOptions"
+                            value="{{ request('operator', 'all') }}" />
+                        <x-input-dropdown name="counter_id" label="Loket" :options="$counterOptions"
+                            value="{{ request('counter_id', 'all') }}" />
+                        <x-input-dropdown name="source" label="Sumber" :options="$sourceOptions"
+                            value="{{ request('source', 'all') }}" />
+                    </div>
+
+                    {{-- Action Row --}}
+                    <div class="flex justify-end gap-2 pt-2">
+                        <a href="{{ route('reports.index') }}">
+                            <x-button type="button" variant="white" class="border-gray-200">
+                                Reset
+                            </x-button>
+                        </a>
                         <x-button type="submit" variant="primary"
-                            icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>'>
+                            icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>'>
                             Terapkan Filter
                         </x-button>
                     </div>
@@ -105,27 +125,58 @@
                 <div x-show="activeTab === 'service'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Antrean Per Layanan</h3>
                     <p class="text-sm text-gray-500 mb-4">Jumlah antrean untuk setiap jenis layanan</p>
-                    <div style="height:380px" class="relative">
-                        <canvas id="chart-per-service"></canvas>
-                    </div>
+                    @if(count($chartData['service']['labels']) > 0)
+                        <div style="height:380px" class="relative">
+                            <canvas id="chart-per-service"></canvas>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
+                            <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Per Jam --}}
                 <div x-show="activeTab === 'hourly'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Antrean Per Jam</h3>
                     <p class="text-sm text-gray-500 mb-4">Distribusi antrean berdasarkan waktu</p>
-                    <div style="height:380px" class="relative">
-                        <canvas id="chart-per-hour"></canvas>
-                    </div>
+                    @if(count($chartData['hourly']['labels']) > 0)
+                        <div style="height:380px" class="relative">
+                            <canvas id="chart-per-hour"></canvas>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
+                            <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Tipe Registrasi --}}
                 <div x-show="activeTab === 'type'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Tipe Registrasi</h3>
                     <p class="text-sm text-gray-500 mb-4">Perbandingan registrasi online vs onsite</p>
-                    <div style="height:380px" class="relative flex justify-center">
-                        <canvas id="chart-reg-type"></canvas>
-                    </div>
+                    @if(count($chartData['regType']['labels']) > 0)
+                        <div style="height:380px" class="relative flex justify-center">
+                            <canvas id="chart-reg-type"></canvas>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
+                            <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
+                        </div>
+                    @endif
                 </div>
             </x-tab>
 
@@ -139,45 +190,71 @@
                 <x-table :columns="[
                     'No. Antrean',
                     'Layanan',
-                    'Tipe',
-                    'Waktu Mulai',
-                    'Waktu Selesai',
+                    'Pelanggan',
+                    'Tanggal',
                     'Durasi',
                     'Operator',
                     'Status',
+                    'Foto',
                     'Aksi',
                 ]" :rows="$queueData" emptyMessage="Tidak ada data antrean">
-                    @foreach ($queueData as $item)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-4 py-3 font-mono font-bold">{{ $item->queue_number }}</td>
-                            <td class="px-4 py-3">{{ $item->service_name }}</td>
+                    @foreach ($queueData as $queue)
+                        @php
+                            $duration =
+                                $queue->started_at && $queue->completed_at
+                                    ? round(\Carbon\Carbon::parse($queue->started_at)->diffInMinutes($queue->completed_at))
+                                    : 0;
+                        @endphp
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-semibold font-mono text-blue-700">{{ $queue->queue_number }}</td>
                             <td class="px-4 py-3">
-                                <x-label-status type="registration_type" :value="$item->registration_type" />
-                            </td>
-                            <td class="px-4 py-3 text-gray-500">
-                                {{ $item->start_at ? \Carbon\Carbon::parse($item->start_at)->format('H:i') : '-' }}
-                            </td>
-                            <td class="px-4 py-3 text-gray-500">
-                                {{ $item->completed_at ? \Carbon\Carbon::parse($item->completed_at)->format('H:i') : '-' }}
-                            </td>
-                            <td class="px-4 py-3">
-                                {{ $item->service_time ? $item->service_time . ' mnt' : '-' }}
-                            </td>
-                            <td class="px-4 py-3 text-gray-600">{{ $item->operator_name }}</td>
-                            <td class="px-4 py-3">
-                                <x-label-status type="status" :value="$item->status" />
+                                <div class="font-medium">{{ $queue->service_name }}</div>
+                                <div class="text-xs text-gray-400 truncate max-w-[150px]">{{ $queue->service_category }}
+                                </div>
                             </td>
                             <td class="px-4 py-3">
-                                <button type="button" @click="viewDetail({{ $item->id }})"
-                                    class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-600 transition-colors"
-                                    title="Lihat Detail">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="font-medium">{{ $queue->customer_name ?? '-' }}</div>
+                                <div class="text-xs text-gray-400 capitalize">{{ $queue->queue_source }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-gray-500 whitespace-nowrap">
+                                {{ $queue->taken_at ?? '-' }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                </button>
+                                    {{ $duration }} mnt
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-gray-600">
+                                <div class="font-medium">{{ $queue->operator_name }}</div>
+                                <div class="text-xs text-gray-400">{{ $queue->counter_name }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <x-label-status type="status" :value="$queue->status" />
+                            </td>
+                            <td class="px-4 py-3">
+                                @if ($queue->photo_path)
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-green-600 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                @else
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-gray-400 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="flex justify-end">
+                                    <x-action-buttons :view="true" viewAction="viewDetail({{ $queue->id }})" :edit="false" :delete="false" />
+                                </div>
                             </td>
                         </tr>
                     @endforeach

@@ -17,7 +17,7 @@
                 ['id' => 'live', 'label' => 'Live Tracking'],
                 ['id' => 'analytics', 'label' => 'Analitik'],
                 ['id' => 'history', 'label' => 'Riwayat Layanan'],
-            ]">
+            ]" :activeTab="request('tab', 'live')">
                 @slot('header')
                     {{-- Export buttons — visibility controlled per tab via Alpine --}}
                     <template x-if="activeTab === 'live'">

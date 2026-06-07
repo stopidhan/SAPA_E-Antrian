@@ -34,22 +34,29 @@
                             class="relative bg-gray-50 text-center px-4 py-8 rounded flex flex-col items-center justify-center border-2 border-gray-300 border-dashed">
 
                             <!-- Tombol X Hapus File -->
-                            <button type="button" id="remove-file-btn" onclick="clearFilePreview()" class="hidden absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1.5 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            <button type="button" id="remove-file-btn" onclick="clearFilePreview()"
+                                class="hidden absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-full p-1.5 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
                                 </svg>
                             </button>
 
                             <!-- Preview gambar -->
                             <div id="preview-container" class="hidden w-full flex-col items-center">
-                                <img id="preview-image" src="" alt="Preview" class="max-h-48 rounded mb-2 object-contain">
-                                <p id="preview-filename-image" class="text-sm font-medium text-gray-700 w-full truncate px-4"></p>
+                                <img id="preview-image" src="" alt="Preview"
+                                    class="max-h-48 rounded mb-2 object-contain">
+                                <p id="preview-filename-image"
+                                    class="text-sm font-medium text-gray-700 w-full truncate px-4"></p>
                             </div>
 
                             <!-- Preview video untuk MP4/video lainnya -->
                             <div id="video-preview-container" class="hidden w-full flex-col items-center">
                                 <video id="previewVideo" class="w-full max-w-md rounded mb-2" controls></video>
-                                <p id="preview-filename-video" class="text-sm font-medium text-gray-700 w-full truncate px-4"></p>
+                                <p id="preview-filename-video"
+                                    class="text-sm font-medium text-gray-700 w-full truncate px-4"></p>
                             </div>
 
                             <div id="upload-placeholder" class="w-full">
@@ -203,7 +210,7 @@
                 </div>
 
                 {{-- Preview TV Monitor --}}
-                <div
+                {{-- <div
                     class="p-6 text-gray-900 bg-blue-200/50 border border-blue-300 overflow-hidden shadow-lg sm:rounded-lg space-y-4">
                     <h3 class="text-lg font-semibold mb-2">Preview TV Monitor</h3>
                     <a href="{{ route('monitor.display') }}" target="_blank"
@@ -213,7 +220,7 @@
                     <p class="text-sm text-gray-600 text-center">
                         Lihat tampilan media di layar TV Monitor
                     </p>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div> {{-- Edit Modal Component --}}

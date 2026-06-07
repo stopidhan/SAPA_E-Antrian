@@ -17,10 +17,21 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', date('Y-m-d'));
         $serviceId = $request->input('service_id', 'all');
         $operatorId = $request->input('operator', 'all');
+        $counterId = $request->input('counter_id', 'all');
+        $source = $request->input('source', 'all');
+        $search = $request->input('search');
 
         $queryBase = Queue::where('instance_id', $instance->id)
             ->with(['service', 'counter.user', 'customer']);
 
+        if ($search) {
+            $queryBase->where(function ($q) use ($search) {
+                $q->where('queue_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
         if ($startDate) {
             $queryBase->where('queue_date', '>=', $startDate);
         }
@@ -34,6 +45,12 @@ class ReportController extends Controller
             $queryBase->whereHas('counter', function ($q) use ($operatorId) {
                 $q->where('user_id', $operatorId);
             });
+        }
+        if ($counterId && $counterId !== 'all') {
+            $queryBase->where('service_counter_id', $counterId);
+        }
+        if ($source && $source !== 'all') {
+            $queryBase->where('queue_source', $source);
         }
 
         return $queryBase;
@@ -176,22 +193,34 @@ class ReportController extends Controller
 
         $queues->getCollection()->transform(function ($queue) {
             return (object) [
-                'id' => $queue->id, // Add ID for the modal
+                'id' => $queue->id,
                 'queue_number' => $queue->queue_number,
-                'service_name' => $queue->service->service_name ?? '-',
-                'registration_type' => $queue->queue_source,
-                'start_at' => $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time)->format('H:i') : null,
-                'completed_at' => $queue->service_end_time ? \Carbon\Carbon::parse($queue->service_end_time)->format('H:i') : null,
-                'service_time' => $queue->service_duration,
-                'operator_name' => $queue->counter?->user?->name ?? '-',
-                'status' => $queue->queue_status,
-                // Additional data for detail modal
                 'customer_name' => $queue->customer->name ?? '-',
-                'customer_phone' => $queue->customer->phone ?? '-',
-                'taken_time' => $queue->taken_time ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->taken_time)->translatedFormat('d M Y, H:i') : null,
+                'queue_source' => $queue->queue_source,
+                'service_name' => $queue->service->service_name ?? '-',
+                'service_category' => $queue->service->description ?? '-',
+                'description' => $queue->service_description,
+                'status' => $queue->queue_status,
+                'completed_at' => $queue->service_end_time
+                    ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->service_end_time)->format('Y-m-d H:i:s')
+                    : null,
+                'started_at' => $queue->service_start_time
+                    ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->service_start_time)->format('Y-m-d H:i:s')
+                    : null,
+                'taken_at' => $queue->taken_time
+                    ? \Carbon\Carbon::parse($queue->queue_date . ' ' . $queue->taken_time)->translatedFormat('d M Y, H:i')
+                    : \Carbon\Carbon::parse($queue->queue_date)->translatedFormat('d M Y'),
+                'counter_id' => $queue->service_counter_id,
+                'counter_name' => $queue->counter
+                    ? 'Loket ' . $queue->counter->counter_number
+                    : '-',
+                'operator_name' => $queue->counter?->user?->name ?? '-',
+                'photo_path' => $queue->photos->isNotEmpty()
+                    ? $queue->photos->first()->photo_path
+                    : null,
                 'photos' => $queue->photos->map(function ($photo) {
                     $path = $photo->photo_path;
-                    return str_starts_with($path, 'http') ? $path : asset('storage/' . $path);
+                    return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
                 })->toArray(),
             ];
         });
@@ -210,10 +239,24 @@ class ReportController extends Controller
             $operatorOptions[] = ['value' => $operator->id, 'label' => $operator->name];
         }
 
+        $counterOptions = \App\Models\ServiceCounter::where('instance_id', $instance->id)
+            ->get(['id', 'counter_number'])
+            ->map(fn($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
+            ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
+            ->toArray();
+
+        $sourceOptions = [
+            ['value' => 'all', 'label' => 'Semua Sumber'],
+            ['value' => 'online', 'label' => 'Online'],
+            ['value' => 'onsite', 'label' => 'Onsite'],
+        ];
+
         return view('Pages.AdminInstansi.report', array_merge([
             'queueData' => $queues,
             'serviceOptions' => $serviceOptions,
             'operatorOptions' => $operatorOptions,
+            'counterOptions' => $counterOptions,
+            'sourceOptions' => $sourceOptions,
             'chartData' => $chartData,
         ], $stats));
     }
