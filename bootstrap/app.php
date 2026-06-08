@@ -15,26 +15,45 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'customer.instance' => \App\Http\Middleware\CheckCustomerInstance::class,
+            'identify.tenant' => \App\Http\Middleware\IdentifyTenant::class,
         ]);
 
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
-            if ($request->is('*/remoteuser') || $request->is('*/remoteuser/*') || $request->is('booking/*')) {
-                // Gunakan default route jika parameter URL tidak tersedia (misal saat error session)
-                $instance = $request->route('instance_code') ?? 'demo';
-                return route('booking.login', ['instance_code' => $instance]);
+            $instance = $request->route('instance_slug');
+            
+            // if we somehow are not inside a tenant route but try to access protected stuff
+            if (!$instance && session('last_instance_slug')) {
+                $instance = session('last_instance_slug');
             }
 
-            return route('login');
+            if (!$instance) {
+                return route('select.instance');
+            }
+
+            if ($request->is('*/booking') || $request->is('*/booking/*')) {
+                return route('booking.login', ['instance_slug' => $instance]);
+            }
+
+            return route('login', ['instance_slug' => $instance]);
         });
 
         $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
-            // Jika pengunjung yang sedang dicek ternyata sudah ter-autentikasi sebagai customer
-            if (\Illuminate\Support\Facades\Auth::guard('customer')->check() && ($request->is('*/remoteuser') || $request->is('*/remoteuser/*') || $request->is('booking/*'))) {
-                $instance = $request->route('instance_code') ?? 'demo';
-                return route('booking.dashboard', ['instance_code' => $instance]);
+            $instance = $request->route('instance_slug');
+            
+            if (!$instance && session('last_instance_slug')) {
+                $instance = session('last_instance_slug');
             }
 
-            return route('dashboard');
+            if (!$instance) {
+                 return route('select.instance');
+            }
+
+            // Jika pengunjung yang sedang dicek ternyata sudah ter-autentikasi sebagai customer
+            if (\Illuminate\Support\Facades\Auth::guard('customer')->check() && ($request->is('*/booking') || $request->is('*/booking/*'))) {
+                return route('booking.dashboard', ['instance_slug' => $instance]);
+            }
+
+            return route('dashboard', ['instance_slug' => $instance]);
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

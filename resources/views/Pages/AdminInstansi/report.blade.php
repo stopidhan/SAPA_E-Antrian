@@ -5,6 +5,7 @@
 @php
     $withSidebar = true;
     $today = date('Y-m-d');
+    $instanceSlug = auth()->user()->instance->instance_slug ?? null;
 
     $statCards = [
         [
@@ -56,7 +57,8 @@
                     <h2 class="text-lg font-bold">Filter Laporan</h2>
                 </div>
 
-                <form method="GET" action="{{ route('reports.index') }}" class="space-y-4">
+                <form method="GET" action="{{ route('reports.index', ['instance_slug' => $instanceSlug]) }}"
+                    class="space-y-4">
 
                     {{-- Row 1: Search & Dates --}}
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -64,8 +66,10 @@
                             <x-input-text name="search" label="Cari Antrean"
                                 placeholder="No. Antrean atau Nama Pelanggan..." value="{{ request('search') }}" />
                         </div>
-                        <x-input-date name="start_date" label="Tanggal Mulai" value="{{ request('start_date', date('Y-m-d')) }}" />
-                        <x-input-date name="end_date" label="Tanggal Akhir" value="{{ request('end_date', date('Y-m-d')) }}" />
+                        <x-input-date name="start_date" label="Tanggal Mulai"
+                            value="{{ request('start_date', date('Y-m-d')) }}" />
+                        <x-input-date name="end_date" label="Tanggal Akhir"
+                            value="{{ request('end_date', date('Y-m-d')) }}" />
                     </div>
 
                     {{-- Row 2: Dropdowns --}}
@@ -82,7 +86,7 @@
 
                     {{-- Action Row --}}
                     <div class="flex justify-end gap-2 pt-2">
-                        <a href="{{ route('reports.index') }}">
+                        <a href="{{ route('reports.index', ['instance_slug' => $instanceSlug]) }}">
                             <x-button type="button" variant="white" class="border-gray-200">
                                 Reset
                             </x-button>
@@ -107,13 +111,15 @@
                 ['id' => 'type', 'label' => 'Tipe Registrasi'],
             ]">
                 @slot('header')
-                    <a href="{{ route('reports.export.pdf', request()->all()) }}" target="_blank">
+                    <a href="{{ route('reports.export.pdf', array_merge(['instance_slug' => $instanceSlug], request()->except('instance_slug'))) }}"
+                        target="_blank">
                         <x-button variant="white" type="button"
                             icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>'>
                             Export PDF
                         </x-button>
                     </a>
-                    <a href="{{ route('reports.export.excel', request()->all()) }}">
+                    <a
+                        href="{{ route('reports.export.excel', array_merge(['instance_slug' => $instanceSlug], request()->except('instance_slug'))) }}">
                         <x-button variant="success" type="button"
                             icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'>
                             Export Excel
@@ -125,14 +131,17 @@
                 <div x-show="activeTab === 'service'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Antrean Per Layanan</h3>
                     <p class="text-sm text-gray-500 mb-4">Jumlah antrean untuk setiap jenis layanan</p>
-                    @if(count($chartData['service']['labels']) > 0)
+                    @if (count($chartData['service']['labels']) > 0)
                         <div style="height:380px" class="relative">
                             <canvas id="chart-per-service"></canvas>
                         </div>
                     @else
                         <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
-                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                </path>
                             </svg>
                             <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
                             <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
@@ -144,14 +153,16 @@
                 <div x-show="activeTab === 'hourly'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Antrean Per Jam</h3>
                     <p class="text-sm text-gray-500 mb-4">Distribusi antrean berdasarkan waktu</p>
-                    @if(count($chartData['hourly']['labels']) > 0)
+                    @if (count($chartData['hourly']['labels']) > 0)
                         <div style="height:380px" class="relative">
                             <canvas id="chart-per-hour"></canvas>
                         </div>
                     @else
                         <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
-                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
                             <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
@@ -163,15 +174,18 @@
                 <div x-show="activeTab === 'type'" x-cloak class="bg-white rounded-2xl border shadow-sm p-6">
                     <h3 class="font-bold mb-1">Tipe Registrasi</h3>
                     <p class="text-sm text-gray-500 mb-4">Perbandingan registrasi online vs onsite</p>
-                    @if(count($chartData['regType']['labels']) > 0)
+                    @if (count($chartData['regType']['labels']) > 0)
                         <div style="height:380px" class="relative flex justify-center">
                             <canvas id="chart-reg-type"></canvas>
                         </div>
                     @else
                         <div class="flex flex-col items-center justify-center text-gray-400 py-12" style="height:380px">
-                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
                             </svg>
                             <p class="text-lg font-medium text-gray-500">Belum ada data grafik</p>
                             <p class="text-sm">Tidak ada data untuk rentang waktu dan filter yang dipilih.</p>
@@ -202,7 +216,9 @@
                         @php
                             $duration =
                                 $queue->started_at && $queue->completed_at
-                                    ? round(\Carbon\Carbon::parse($queue->started_at)->diffInMinutes($queue->completed_at))
+                                    ? round(
+                                        \Carbon\Carbon::parse($queue->started_at)->diffInMinutes($queue->completed_at),
+                                    )
                                     : 0;
                         @endphp
                         <tr class="hover:bg-gray-50">
@@ -239,21 +255,26 @@
                             <td class="px-4 py-3">
                                 @if ($queue->photo_path)
                                     <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-green-600 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                        <svg class="w-5 h-5 text-green-600 font-bold" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M5 13l4 4L19 7"></path>
                                         </svg>
                                     </div>
                                 @else
                                     <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-gray-400 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path>
+                                        <svg class="w-5 h-5 text-gray-400 font-bold" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M20 12H4"></path>
                                         </svg>
                                     </div>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex justify-end">
-                                    <x-action-buttons :view="true" viewAction="viewDetail({{ $queue->id }})" :edit="false" :delete="false" />
+                                    <x-action-buttons :view="true" viewAction="viewDetail({{ $queue->id }})"
+                                        :edit="false" :delete="false" />
                                 </div>
                             </td>
                         </tr>
@@ -382,7 +403,8 @@
                     this.$dispatch('open-modal', 'queue-detail-modal');
 
                     try {
-                        const response = await fetch(`/supervisor/api/queue/${queueId}`, {
+                        const url = `{{ route('reports.api.queue-detail', ['instance_slug' => $instanceSlug, 'queue' => '__ID__']) }}`.replace('__ID__', queueId);
+                        const response = await fetch(url, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',

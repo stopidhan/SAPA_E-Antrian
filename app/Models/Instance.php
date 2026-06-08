@@ -11,6 +11,7 @@ class Instance extends Model
 
     protected $fillable = [
         'instance_code',
+        'instance_slug',
         'instance_name',
         'address',
         'phone',
@@ -61,13 +62,12 @@ class Instance extends Model
         return $this->hasMany(QrCode::class);
     }
 
-    // Opsional: Mutator untuk generate UUID otomatis saat create
-    // protected static function booted()
-    // {
-    //     static::creating(function ($instance) {
-    //         if (empty($instance->instance_code)) {
-    //             $instance->instance_code = Str::uuid();
-    //         }
-    //     });
-    // }
+    protected static function booted()
+    {
+        static::saving(function ($instance) {
+            if (empty($instance->instance_slug) && !empty($instance->instance_name)) {
+                $instance->instance_slug = \Illuminate\Support\Str::slug($instance->instance_name);
+            }
+        });
+    }
 }

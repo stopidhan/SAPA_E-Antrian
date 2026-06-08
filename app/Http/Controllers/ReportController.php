@@ -261,6 +261,45 @@ class ReportController extends Controller
         ], $stats));
     }
 
+    public function queueDetail(string $instance_slug, Queue $queue)
+    {
+        $auth = Auth::user();
+        $instance = $auth->instance;
+
+        // Ensure the queue belongs to this instance
+        if ($queue->instance_id !== $instance->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $queue->load(['service', 'counter.user', 'customer', 'photos']);
+
+        return response()->json([
+            'id' => $queue->id,
+            'queue_number' => $queue->queue_number,
+            'service_name' => $queue->service->service_name ?? '-',
+            'service_category' => $queue->service->description ?? '-',
+            'customer_name' => $queue->customer->name ?? '-',
+            'customer_phone' => $queue->customer->phone ?? '-',
+            'queue_source' => $queue->queue_source,
+            'queue_date' => $queue->queue_date,
+            'taken_time' => $queue->taken_time,
+            'call_time' => $queue->call_time,
+            'service_start_time' => $queue->service_start_time,
+            'service_end_time' => $queue->service_end_time,
+            'service_duration' => $queue->service_duration,
+            'service_description' => $queue->service_description,
+            'queue_status' => $queue->queue_status,
+            'counter_name' => $queue->counter
+                ? 'Loket ' . $queue->counter->counter_number
+                : '-',
+            'operator_name' => $queue->counter?->user?->name ?? '-',
+            'photos' => $queue->photos->map(function ($photo) {
+                $path = $photo->photo_path;
+                return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
+            })->toArray(),
+        ]);
+    }
+
     public function exportPdf(Request $request)
     {
         $auth = Auth::user();

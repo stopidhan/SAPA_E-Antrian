@@ -12,7 +12,7 @@
 <div class="flex items-center gap-1.5 shrink-0">
     {{-- View/Detail --}}
     @if ($view && $viewAction)
-        <button type="button" @click="{{ $viewAction }}($event)"
+        <button type="button" @click="{{ $viewAction }}"
             class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-sky-50 hover:border-sky-300 hover:text-sky-600 transition-colors"
             title="Lihat Detail">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@
 
     {{-- Edit --}}
     @if ($edit && $editAction)
-        <button type="button" @click="{{ $editAction }}($event)"
+        <button type="button" @click="{{ $editAction }}"
             class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
             title="Edit">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +38,7 @@
 
     {{-- Toggle --}}
     @if ($toggle && $toggleAction)
-        <button type="button" @click="{{ $toggleAction }}($event)"
+        <button type="button" @click="{{ $toggleAction }}"
             class="p-2 border border-orange-200 rounded-lg text-orange-600 hover:bg-orange-50 transition-colors"
             title="Toggle Status">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,7 +50,7 @@
 
     {{-- Delete --}}
     @if ($delete && $deleteAction)
-        <button type="button" @click="{{ $deleteAction }}($event)"
+        <button type="button" @click="{{ $deleteAction }}"
             class="p-2 border border-red-200 rounded-lg text-red-600 hover:bg-red-50 transition-colors" title="Hapus">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

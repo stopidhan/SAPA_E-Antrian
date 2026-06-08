@@ -11,7 +11,7 @@ class ProfileInstanceController extends Controller
     /**
      * Show the profile instance edit form.
      */
-    public function edit()
+    public function edit(Request $request, string $instanceSlug)
     {
         $instance = auth()->user()->instance ?? new Instance();
 
@@ -23,7 +23,7 @@ class ProfileInstanceController extends Controller
     /**
      * Update the instance profile information.
      */
-    public function update(Request $request)
+    public function update(Request $request, string $instanceSlug)
     {
         $instance = auth()->user()->instance;
 

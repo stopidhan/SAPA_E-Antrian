@@ -50,7 +50,7 @@ class MediaContentController extends Controller
                 "title" => "required|string|max:255",
                 "file" =>
                     "required|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:51200", // 50MB max
-                "duration" => "nullable|integer|min:1|max:300",
+                "duration" => "required|integer|min:1|max:300",
                 "is_active" => "boolean",
             ],
             [
@@ -116,7 +116,7 @@ class MediaContentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, MediaContent $content)
+    public function update(Request $request, string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only update their own instance's content
         if ($content->instance_id !== auth()->user()->instance_id) {
@@ -132,7 +132,7 @@ class MediaContentController extends Controller
                 "title" => "required|string|max:255",
                 "file" =>
                     "nullable|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:51200",
-                "duration" => "nullable|integer|min:1|max:300",
+                "duration" => "required|integer|min:1|max:300",
                 "is_active" => "boolean",
             ],
             [
@@ -212,7 +212,7 @@ class MediaContentController extends Controller
     /**
      * Toggle the active status of the specified resource.
      */
-    public function toggle(MediaContent $content)
+    public function toggle(string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only toggle their own instance's content
         if ($content->instance_id !== auth()->user()->instance_id) {
@@ -237,7 +237,7 @@ class MediaContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MediaContent $content)
+    public function destroy(string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only delete their own instance's content
         if ($content->instance_id !== auth()->user()->instance_id) {

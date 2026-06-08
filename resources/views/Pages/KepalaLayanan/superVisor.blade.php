@@ -106,7 +106,9 @@
                             data: {
                                 labels: ['Online', 'Onsite'],
                                 datasets: [{
-                                    data: [{{ $registrationTypes['online'] ?? 0 }}, {{ $registrationTypes['onsite'] ?? 0 }}],
+                                    data: [{{ $registrationTypes['online'] ?? 0 }},
+                                        {{ $registrationTypes['onsite'] ?? 0 }}
+                                    ],
                                     backgroundColor: [
                                         'rgba(59, 130, 246, 0.8)', // Blue for Online
                                         'rgba(16, 185, 129, 0.8)' // Green for Onsite
@@ -177,7 +179,7 @@
                     this.$dispatch('open-modal', 'queue-detail-modal');
 
                     try {
-                        const response = await fetch(`/supervisor/api/queue/${queueId}`, {
+                        const response = await fetch(`{{ route('supervisor.api.queue-detail', ':id') }}`.replace(':id', queueId), {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',

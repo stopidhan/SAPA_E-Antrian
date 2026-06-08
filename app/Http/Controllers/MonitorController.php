@@ -8,15 +8,15 @@ use App\Models\ServiceCounter;
 
 class MonitorController extends Controller
 {
-    public function index($instance_code)
+    public function index(string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = \App\Models\Instance::where('instance_slug', $instanceSlug)->firstOrFail();
         return view('Pages.MonitorPublic.monitor', compact('instance'));
     }
 
-    public function getMonitorApi($instance_code)
+    public function getMonitorApi(string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = \App\Models\Instance::where('instance_slug', $instanceSlug)->firstOrFail();
         $instanceId = $instance->id;
 
         $currentCall = Queue::with('counter')

@@ -293,7 +293,7 @@
 
                 async fetchConfig() {
                     try {
-                        const response = await fetch('/instance-config', {
+                        const response = await fetch("{{ route('instance.config.show') }}", {
                             headers: {
                                 'Accept': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest',
@@ -314,7 +314,7 @@
 
                 async saveConfig() {
                     try {
-                        const response = await fetch('/instance-config', {
+                        const response = await fetch("{{ route('instance.config.update') }}", {
                             method: 'PATCH',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -347,7 +347,7 @@
                 async fetchServices() {
                     this.isLoadingServices = true;
                     try {
-                        const response = await fetch('/services', {
+                        const response = await fetch("{{ route('services.index') }}", {
                             headers: {
                                 'Accept': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest',
@@ -404,8 +404,8 @@
 
                 async saveService() {
                     const url = this.editingService ?
-                        `/services/${this.editingService.id}` :
-                        '/services';
+                        `{{ route('services.update', ':id') }}`.replace(':id', this.editingService.id) :
+                        "{{ route('services.store') }}";
                     const method = this.editingService ? 'PATCH' : 'POST';
 
                     const payload = {
@@ -455,7 +455,7 @@
                     if (!this.selectedService || this.isToggling) return;
                     this.isToggling = true;
                     try {
-                        const response = await fetch(`/services/${this.selectedService.id}/toggle`, {
+                        const response = await fetch(`{{ route('services.toggle', ':id') }}`.replace(':id', this.selectedService.id), {
                             method: 'PATCH',
                             headers: {
                                 'Accept': 'application/json',
@@ -482,7 +482,7 @@
                     this.selectedService = service;
                     const form = document.getElementById('deleteForm');
                     if (form) {
-                        form.action = `/services/${service.id}`;
+                        form.action = `{{ route('services.destroy', ':id') }}`.replace(':id', service.id);
                     }
                     const nameEl = document.getElementById('delete-item-name');
                     if (nameEl) {

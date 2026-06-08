@@ -27,6 +27,11 @@
             'placeholder' => 'Konten Ini',
             'description' => 'Semua data konten akan dihapus secara permanen. Tindakan ini tidak dapat dikembalikan.',
         ],
+        'logout' => [
+            'title' => 'Konfirmasi Logout',
+            'placeholder' => '',
+            'description' => 'Apakah Anda yakin ingin keluar dari sistem? Sesi Anda akan diakhiri.',
+        ],
     ];
 
     $variantConfig = $configs[$variant] ?? $configs['user'];
@@ -42,8 +47,8 @@
         <div class="p-6 space-y-4">
             <!-- Icon -->
             <div class="flex justify-center">
-                <div class="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-full {{ in_array($variant, ['user', 'toggle-service']) ? 'bg-yellow-100' : 'bg-red-100' }}">
-                    @if(in_array($variant, ['user', 'toggle-service']))
+                <div class="w-14 h-14 flex-shrink-0 flex items-center justify-center rounded-full {{ in_array($variant, ['user', 'toggle-service', 'logout']) ? 'bg-yellow-100' : 'bg-red-100' }}">
+                    @if(in_array($variant, ['user', 'toggle-service', 'logout']))
                     <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -136,6 +141,8 @@
                             </span>
                         </div>
                     </div>
+                @elseif($variant === 'logout')
+                    {{-- Logout variant — no extra info needed --}}
                 @else
                     <!-- Other Variants Info -->
                     <div class="bg-gray-50 rounded-lg p-3 text-center">
@@ -165,6 +172,16 @@
                             Memproses...
                         </span>
                     </x-button>
+                @elseif($variant === 'logout')
+                    <x-button type="button" variant="secondary" @click="closeModal()">
+                        Batal
+                    </x-button>
+                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                        @csrf
+                        <x-button type="submit" variant="danger">
+                            Ya, Logout
+                        </x-button>
+                    </form>
                 @else
                     <x-button type="button" variant="secondary" @click="closeModal()">
                         Batal

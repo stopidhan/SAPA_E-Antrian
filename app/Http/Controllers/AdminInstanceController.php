@@ -154,7 +154,7 @@ class AdminInstanceController extends Controller
         }
     }
 
-    public function updateService(Request $request, Service $service): JsonResponse|RedirectResponse
+    public function updateService(Request $request, string $instanceSlug, Service $service): JsonResponse|RedirectResponse
     {
         // Instance ownership check
         if ($service->instance_id !== auth()->user()->instance_id) {
@@ -245,7 +245,7 @@ class AdminInstanceController extends Controller
         }
     }
 
-    public function destroyService(Service $service): JsonResponse|RedirectResponse
+    public function destroyService(string $instanceSlug, Service $service): JsonResponse|RedirectResponse
     {
         // Instance ownership check
         if ($service->instance_id !== auth()->user()->instance_id) {
@@ -278,7 +278,7 @@ class AdminInstanceController extends Controller
         }
     }
 
-    public function toggleService(Service $service): JsonResponse
+    public function toggleService(string $instanceSlug, Service $service): JsonResponse
     {
         // Instance ownership check
         if ($service->instance_id !== auth()->user()->instance_id) {
@@ -303,7 +303,7 @@ class AdminInstanceController extends Controller
         }
     }
 
-    public function deleteCounter(ServiceCounter $counter): JsonResponse
+    public function deleteCounter(string $instanceSlug, ServiceCounter $counter): JsonResponse
     {
         // Instance ownership check
         if ($counter->instance_id !== auth()->user()->instance_id) {

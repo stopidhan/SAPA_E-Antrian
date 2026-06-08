@@ -17,7 +17,8 @@ class CustomerOtpAuthTest extends TestCase
 
     public function test_customer_can_request_otp_with_full_name_and_whatsapp(): void
     {
-        $this->createInstance();
+        $this->withoutExceptionHandling();
+        $instance = $this->createInstance();
 
         config(['services.turnstile.secret' => 'test-secret']);
         Http::fake([
@@ -71,12 +72,12 @@ class CustomerOtpAuthTest extends TestCase
             'customer_auth.otp_hash' => Hash::make('123456'),
             'customer_auth.otp_expires_at' => now()->addMinutes(5),
             'customer_auth.otp_attempts' => 0,
-        ])->post(route('booking.otp.verify', absolute: false), [
+        ])->post(route('booking.otp.verify', ['instance_slug' => $instance->instance_slug], false), [
             'whatsapp' => '081234567890',
             'otp_code' => '123456',
         ]);
 
-        $response->assertRedirect(route('booking.dashboard', absolute: false));
+        $response->assertRedirect(route('booking.dashboard', ['instance_slug' => $instance->instance_slug], false));
         $this->assertAuthenticated('customer');
 
         $customer = \App\Models\Customer::query()->where('phone', $pendingPhone)->first();
@@ -91,6 +92,7 @@ class CustomerOtpAuthTest extends TestCase
     {
         return Instance::query()->create([
             'instance_code' => (string) Str::uuid(),
+            'instance_slug' => (string) Str::uuid(),
             'instance_name' => 'Disdukcapil Kudus',
         ]);
     }

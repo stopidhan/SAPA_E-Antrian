@@ -21,13 +21,16 @@
                         <x-input-number name="duration" label="Durasi Tampil (detik)" placeholder="10" min="1"
                             max="300" value="{{ old('duration', 10) }}" class="mb-4" />
 
-                        <div class="mb-4">
-                            <label class="flex items-center">
+                        <div class="mb-4 flex items-center gap-3">
+                            <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="is_active" value="1"
                                     {{ old('is_active') ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-700">Aktifkan di TV Monitor</span>
+                                    class="sr-only peer">
+                                <div
+                                    class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                </div>
                             </label>
+                            <label class="text-sm font-medium text-gray-700">Aktifkan di TV Monitor</label>
                         </div>
 
                         <div
@@ -139,7 +142,7 @@
                                     </div>
 
                                     <div class="ml-auto flex flex-col justify-between items-end">
-                                        <div class="mb-2">
+                                        <div class="mb-2" id="status-label-{{ $content->id }}">
                                             @if ($content->is_active)
                                                 <span
                                                     class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
@@ -210,7 +213,7 @@
                 </div>
 
                 {{-- Preview TV Monitor --}}
-                {{-- <div
+                <div
                     class="p-6 text-gray-900 bg-blue-200/50 border border-blue-300 overflow-hidden shadow-lg sm:rounded-lg space-y-4">
                     <h3 class="text-lg font-semibold mb-2">Preview TV Monitor</h3>
                     <a href="{{ route('monitor.display') }}" target="_blank"
@@ -220,7 +223,7 @@
                     <p class="text-sm text-gray-600 text-center">
                         Lihat tampilan media di layar TV Monitor
                     </p>
-                </div> --}}
+                </div>
             </div>
         </div>
     </div> {{-- Edit Modal Component --}}
@@ -304,7 +307,7 @@
             if (!content) return;
 
             const form = document.getElementById('editForm');
-            if (form) form.action = `/content/${id}`;
+            if (form) form.action = `{{ route('content.update', ':id') }}`.replace(':id', id);
 
             // Isi nilai untuk komponen input (membaca input dalam #editForm)
             const titleInput = form?.querySelector('input[name="title"]');
@@ -332,7 +335,7 @@
             if (!content) return;
 
             const form = document.getElementById('deleteForm');
-            if (form) form.action = `/content/${id}`;
+            if (form) form.action = `{{ route('content.destroy', ':id') }}`.replace(':id', id);
 
             const nameEl = document.getElementById('delete-item-name');
             if (nameEl) nameEl.textContent = content.title;
@@ -357,7 +360,7 @@
                     const contentId = this.getAttribute('data-id');
                     const isChecked = this.checked;
 
-                    fetch(`/content/${contentId}/toggle`, {
+                    fetch(`{{ route('content.toggle', ':id') }}`.replace(':id', contentId), {
                             method: 'PATCH',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -371,6 +374,16 @@
                                     showToast(data.message, 'success');
                                 } else {
                                     console.log(data.message);
+                                }
+                                
+                                // Update status badge dynamically
+                                const statusLabel = document.getElementById(`status-label-${contentId}`);
+                                if (statusLabel) {
+                                    if (data.is_active) {
+                                        statusLabel.innerHTML = `<span class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">Aktif</span>`;
+                                    } else {
+                                        statusLabel.innerHTML = `<span class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">Nonaktif</span>`;
+                                    }
                                 }
                             } else {
                                 this.checked = !isChecked;

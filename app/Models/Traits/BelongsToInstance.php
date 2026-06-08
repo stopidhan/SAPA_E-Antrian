@@ -3,7 +3,6 @@
 namespace App\Models\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 trait BelongsToInstance
 {
@@ -11,17 +10,23 @@ trait BelongsToInstance
     {
         // AUTO isi instance_id saat create
         static::creating(function ($model) {
-            if (Auth::check() && empty($model->instance_id)) {
-                $model->instance_id = Auth::user()->instance_id;
+            $tenantManager = app(\App\Services\TenantManager::class);
+            $instanceId = $tenantManager->getInstanceId();
+            
+            if ($instanceId && empty($model->instance_id)) {
+                $model->instance_id = $instanceId;
             }
         });
 
         // AUTO filter berdasarkan instance login
         static::addGlobalScope('instance', function (Builder $builder) {
-            if (Auth::check()) {
+            $tenantManager = app(\App\Services\TenantManager::class);
+            $instanceId = $tenantManager->getInstanceId();
+
+            if ($instanceId) {
                 $builder->where(
                     $builder->getModel()->getTable().'.instance_id',
-                    Auth::user()->instance_id
+                    $instanceId
                 );
             }
         });

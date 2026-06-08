@@ -415,7 +415,7 @@ class SuperVisorController extends Controller
     /**
      * AJAX endpoint for queue detail (for history detail modal).
      */
-    public function queueDetail(Queue $queue)
+    public function queueDetail(string $instanceSlug, Queue $queue)
     {
         $instance = $this->getInstance();
 

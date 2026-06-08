@@ -28,9 +28,12 @@ class OperatorMonitorFlowTest extends TestCase
 
         // 1. Persiapkan Data Dasar: Instansi, User Operator, Loket, Layanan, dan Antrean
         $this->instance = Instance::create([
-            'instance_code' => 'DEMO-01',
+            'instance_code' => 'DEMO-01-CODE',
+            'instance_slug' => 'DEMO-01',
             'instance_name' => 'Instansi Demo',
         ]);
+
+        \Illuminate\Support\Facades\URL::defaults(['instance_slug' => $this->instance->instance_slug]);
 
         $this->user = User::factory()->create([
             'role' => 'staff_operator',
@@ -68,7 +71,7 @@ class OperatorMonitorFlowTest extends TestCase
         Event::fake([QueueUpdated::class]);
 
         // A. CEK STATUS AWAL MONITOR: Harus menampilkan loket "Menunggu"
-        $monitorInit = $this->getJson(route('monitor.api'));
+        $monitorInit = $this->getJson(route('monitor.api', ['instance_slug' => $this->instance->instance_slug]));
         
         $monitorInit->assertStatus(200);
         $monitorDataInit = $monitorInit->json();
@@ -96,7 +99,7 @@ class OperatorMonitorFlowTest extends TestCase
         $this->assertEquals('DM-001', $monitorDataPanggil['counters'][0]['queue_number']);
 
         // C. AKSI OPERATOR: Melayani antrean
-        $responseLayani = $this->actingAs($this->user)->postJson(route('operator.layani', $this->queue->id), [
+        $responseLayani = $this->actingAs($this->user)->postJson(route('operator.layani', ['instance_slug' => $this->instance->instance_slug, 'id' => $this->queue->id]), [
             'counter_id' => $this->counter->id
         ]);
         

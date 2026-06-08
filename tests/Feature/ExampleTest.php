@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 // use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\Instance;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -12,8 +14,10 @@ class ExampleTest extends TestCase
      */
     public function test_the_application_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
+        $instance = Instance::where('instance_slug', 'demo-instance')->first();
 
-        $response->assertRedirect(route('booking.register'));
+        $response = $this->get('/' . $instance->instance_slug . '/booking');
+
+        $response->assertStatus(200);
     }
 }

@@ -269,7 +269,7 @@
                     this.isToggling = true;
 
                     try {
-                        const url = `{{ url('/users') }}/${this.selectedUser.id}/toggle`;
+                        const url = `{{ route('users.toggle', ':id') }}`.replace(':id', this.selectedUser.id);
                         const response = await fetch(url, {
                             method: 'PATCH',
                             headers: {
@@ -283,14 +283,15 @@
                         const data = await response.json();
 
                         if (response.ok) {
-                            window.location.reload();
+                            showToast(data.message || 'Berhasil mengubah status user', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
                             return;
                         }
 
-                        alert('Error: ' + (data.message || 'Gagal mengubah status user'));
+                        showToast(data.message || 'Gagal mengubah status user', 'error');
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('Terjadi kesalahan: ' + error.message);
+                        showToast('Terjadi kesalahan: ' + error.message, 'error');
                     } finally {
                         this.isToggling = false;
                     }
@@ -357,7 +358,7 @@
 
                     try {
                         const url = this.isEditMode ?
-                            `{{ url('/users') }}/${this.form.id}` :
+                            `{{ route('users.update', ':id') }}`.replace(':id', this.form.id) :
                             '{{ route('users.store') }}';
 
                         const payload = {
@@ -386,13 +387,14 @@
                         const data = await response.json();
 
                         if (response.ok) {
-                            window.location.reload();
+                            showToast(data.message || 'Berhasil menyimpan user', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
                         } else {
-                            alert('Error: ' + (data.message || 'Gagal menyimpan user'));
+                            showToast(data.message || 'Gagal menyimpan user', 'error');
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('Terjadi kesalahan: ' + error.message);
+                        showToast('Terjadi kesalahan: ' + error.message, 'error');
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -400,34 +402,34 @@
 
                 validateForm() {
                     if (!this.form.name.trim()) {
-                        alert('Nama tidak boleh kosong');
+                        showToast('Nama tidak boleh kosong', 'warning');
                         return false;
                     }
                     if (!this.form.email.trim()) {
-                        alert('Email tidak boleh kosong');
+                        showToast('Email tidak boleh kosong', 'warning');
                         return false;
                     }
 
                     if (this.isEditMode) {
                         if (this.form.password && this.form.password.length < 8) {
-                            alert('Password minimal 8 karakter');
+                            showToast('Password minimal 8 karakter', 'warning');
                             return false;
                         }
                         if (this.form.password && this.form.password !== this.form.password_confirmation) {
-                            alert('Password tidak cocok');
+                            showToast('Password tidak cocok', 'warning');
                             return false;
                         }
                     } else {
                         if (!this.form.password) {
-                            alert('Password tidak boleh kosong');
+                            showToast('Password tidak boleh kosong', 'warning');
                             return false;
                         }
                         if (this.form.password.length < 8) {
-                            alert('Password minimal 8 karakter');
+                            showToast('Password minimal 8 karakter', 'warning');
                             return false;
                         }
                         if (this.form.password !== this.form.password_confirmation) {
-                            alert('Password tidak cocok');
+                            showToast('Password tidak cocok', 'warning');
                             return false;
                         }
                     }
