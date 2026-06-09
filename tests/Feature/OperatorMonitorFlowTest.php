@@ -33,7 +33,12 @@ class OperatorMonitorFlowTest extends TestCase
             'instance_name' => 'Instansi Demo',
         ]);
 
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+
         \Illuminate\Support\Facades\URL::defaults(['instance_slug' => $this->instance->instance_slug]);
+
+        app(\App\Services\TenantManager::class)->resolve($this->instance->instance_slug);
+        $this->withoutMiddleware();
 
         $this->user = User::factory()->create([
             'role' => 'staff_operator',
@@ -51,9 +56,17 @@ class OperatorMonitorFlowTest extends TestCase
         $this->counter = ServiceCounter::create([
             'instance_id' => $this->instance->id,
             'service_id' => $this->service->id,
-            'user_id' => $this->user->id,
-            'counter_number' => 1,
+            'counter_number' => 'Loket 1',
             'is_active' => true,
+        ]);
+
+        // Simulasikan operator membuka sesi di loket
+        \App\Models\CounterSession::create([
+            'instance_id' => $this->instance->id,
+            'service_counter_id' => $this->counter->id,
+            'user_id' => $this->user->id,
+            'status' => 'open',
+            'started_at' => now(),
         ]);
 
         $this->queue = Queue::create([
@@ -80,7 +93,7 @@ class OperatorMonitorFlowTest extends TestCase
         $this->assertEquals('-', $monitorDataInit['counters'][0]['queue_number']);
 
         // B. AKSI OPERATOR: Memanggil antrean
-        $responsePanggil = $this->actingAs($this->user)->postJson(route('operator.panggil', $this->queue->id), [
+        $responsePanggil = $this->actingAs($this->user)->postJson(route('operator.panggil', ['instance_slug' => $this->instance->instance_slug, 'id' => $this->queue->id]), [
             'counter_id' => $this->counter->id
         ]);
         
@@ -91,7 +104,7 @@ class OperatorMonitorFlowTest extends TestCase
         });
 
         // B.2. CEK MONITOR: Harus terpampang di antrean saat ini dan statusnya "Memanggil"
-        $monitorPanggil = $this->getJson(route('monitor.api'));
+        $monitorPanggil = $this->getJson(route('monitor.api', ['instance_slug' => $this->instance->instance_slug]));
         $monitorDataPanggil = $monitorPanggil->json();
         
         $this->assertEquals('DM-001', $monitorDataPanggil['current_call']['queue_number']);
@@ -110,13 +123,13 @@ class OperatorMonitorFlowTest extends TestCase
         });
 
         // C.2. CEK MONITOR: Status loket menjadi "Dilayani"
-        $monitorLayani = $this->getJson(route('monitor.api'));
+        $monitorLayani = $this->getJson(route('monitor.api', ['instance_slug' => $this->instance->instance_slug]));
         $monitorDataLayani = $monitorLayani->json();
         
         $this->assertEquals('Dilayani', $monitorDataLayani['counters'][0]['status']);
 
         // D. AKSI OPERATOR: Menyelesaikan antrean
-        $responseSelesai = $this->actingAs($this->user)->postJson(route('operator.selesai', $this->queue->id), [
+        $responseSelesai = $this->actingAs($this->user)->postJson(route('operator.selesai', ['instance_slug' => $this->instance->instance_slug, 'id' => $this->queue->id]), [
             'counter_id' => $this->counter->id,
             'category' => 'Umum',
             'description' => 'Selesai dilayani'
@@ -129,7 +142,7 @@ class OperatorMonitorFlowTest extends TestCase
         });
 
         // D.2. CEK MONITOR: Antrean hilang dari current_call dan status kembali "Menunggu"
-        $monitorSelesai = $this->getJson(route('monitor.api'));
+        $monitorSelesai = $this->getJson(route('monitor.api', ['instance_slug' => $this->instance->instance_slug]));
         $monitorDataSelesai = $monitorSelesai->json();
         
         $this->assertNull($monitorDataSelesai['current_call']);

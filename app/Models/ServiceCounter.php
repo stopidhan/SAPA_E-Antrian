@@ -12,7 +12,6 @@ class ServiceCounter extends Model
     protected $fillable = [
         'instance_id',
         'service_id',
-        'user_id',
         'counter_number',
         'is_active'
     ];
@@ -27,9 +26,14 @@ class ServiceCounter extends Model
         return $this->belongsTo(Service::class);
     }
 
-    public function user()
+    public function sessions()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(CounterSession::class);
+    }
+
+    public function currentSession()
+    {
+        return $this->hasOne(CounterSession::class)->where('status', 'open')->latestOfMany('started_at');
     }
 
     public function queues()

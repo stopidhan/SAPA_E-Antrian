@@ -22,7 +22,7 @@ class ReportController extends Controller
         $search = $request->input('search');
 
         $queryBase = Queue::where('instance_id', $instance->id)
-            ->with(['service', 'counter.user', 'customer']);
+            ->with(['service', 'counter', 'user', 'customer']);
 
         if ($search) {
             $queryBase->where(function ($q) use ($search) {
@@ -42,9 +42,7 @@ class ReportController extends Controller
             $queryBase->where('service_id', $serviceId);
         }
         if ($operatorId !== 'all') {
-            $queryBase->whereHas('counter', function ($q) use ($operatorId) {
-                $q->where('user_id', $operatorId);
-            });
+            $queryBase->where('user_id', $operatorId);
         }
         if ($counterId && $counterId !== 'all') {
             $queryBase->where('service_counter_id', $counterId);
@@ -106,9 +104,7 @@ class ReportController extends Controller
             $yesterdayQuery->where('service_id', $serviceId);
         }
         if ($operatorId !== 'all') {
-            $yesterdayQuery->whereHas('counter', function ($q) use ($operatorId) {
-                $q->where('user_id', $operatorId);
-            });
+            $yesterdayQuery->where('user_id', $operatorId);
         }
         $yesterdayQuery->whereBetween('queue_date', [
             $start->copy()->subDays($diffDays)->format('Y-m-d'),
@@ -326,5 +322,8 @@ class ReportController extends Controller
 
         $stats = $this->getStatistics($queues, $request, $instance);
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\QueueExport($queues, $stats), 'laporan-antrean-' . date('Y-m-d-His') . '.xlsx');
+    }
+}
+$queues, $stats), 'laporan-antrean-' . date('Y-m-d-His') . '.xlsx');
     }
 }

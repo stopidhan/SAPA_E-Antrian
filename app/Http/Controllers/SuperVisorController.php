@@ -92,64 +92,69 @@ class SuperVisorController extends Controller
     {
         $date = $date ?? today()->toDateString();
 
-        $counters = ServiceCounter::where('instance_id', $instanceId)
-            ->where('is_active', true)
-            ->whereNotNull('user_id')
-            ->with(['user', 'service'])
+        $operators = User::where('instance_id', $instanceId)
+            ->where('role', 'staff_operator')
             ->get();
 
         $performance = [];
 
-        foreach ($counters as $counter) {
-            // All completed queues for this counter (all time)
-            $totalServed = Queue::where('service_counter_id', $counter->id)
+        foreach ($operators as $operator) {
+            // All completed queues for this operator (all time)
+            $totalServed = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->count();
 
             // Today's completed queues
-            $todayServed = Queue::where('service_counter_id', $counter->id)
+            $todayServed = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->where('queue_date', $date)
                 ->count();
 
-            // Average service time for this counter's completed queues
-            $avgServiceTime = Queue::where('service_counter_id', $counter->id)
+            // Average service time for this operator's completed queues
+            $avgServiceTime = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->whereNotNull('service_duration')
                 ->avg('service_duration') ?? 0;
 
             // Service time distribution (based on service_duration in minutes)
-            $fastServices = Queue::where('service_counter_id', $counter->id)
+            $fastServices = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->whereNotNull('service_duration')
                 ->where('service_duration', '<=', 2)
                 ->count();
 
-            $mediumServices = Queue::where('service_counter_id', $counter->id)
+            $mediumServices = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->whereNotNull('service_duration')
                 ->whereBetween('service_duration', [3, 5])
                 ->count();
 
-            $slowServices = Queue::where('service_counter_id', $counter->id)
+            $slowServices = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->whereNotNull('service_duration')
                 ->where('service_duration', '>=', 6)
                 ->count();
 
-            $performance[] = (object) [
-                'counter_name' => 'Loket ' . $counter->counter_number,
-                'operator_name' => $counter->user->name ?? 'N/A',
-                'avg_service_time' => round($avgServiceTime, 1),
-                'total_served' => $totalServed,
-                'today_served' => $todayServed,
-                'fast_services' => $fastServices,
-                'medium_services' => $mediumServices,
-                'slow_services' => $slowServices,
-            ];
+            // Find current active session to get the counter name, or N/A
+            $session = $operator->activeCounterSession;
+            $counterName = $session ? 'Loket ' . $session->counter->counter_number : 'Offline';
+
+            // Only include if they have served something today or are currently online
+            if ($todayServed > 0 || $session) {
+                $performance[] = (object) [
+                    'counter_name' => $counterName,
+                    'operator_name' => $operator->name,
+                    'avg_service_time' => round($avgServiceTime, 1),
+                    'total_served' => $totalServed,
+                    'today_served' => $todayServed,
+                    'fast_services' => $fastServices,
+                    'medium_services' => $mediumServices,
+                    'slow_services' => $slowServices,
+                ];
+            }
         }
 
-        return $performance;
+        return collect($performance)->sortByDesc('today_served')->values()->all();
     }
 
     /**
@@ -159,7 +164,7 @@ class SuperVisorController extends Controller
     {
         $counters = ServiceCounter::where('instance_id', $instanceId)
             ->where('is_active', true)
-            ->with(['user'])
+            ->with(['currentSession.user'])
             ->get();
 
         $statuses = [];
@@ -178,11 +183,13 @@ class SuperVisorController extends Controller
             if ($activeQueue) {
                 $status = $activeQueue->queue_status === 'serving' ? 'serving' : 'calling';
                 $currentQueue = $activeQueue->queue_number;
+            } elseif (!$counter->currentSession) {
+                $status = 'offline';
             }
 
             $statuses[] = (object) [
                 'name' => 'Loket ' . $counter->counter_number,
-                'operatorName' => $counter->user->name ?? null,
+                'operatorName' => $counter->currentSession->user->name ?? null,
                 'status' => $status,
                 'current_queue' => $currentQueue,
             ];
@@ -424,7 +431,7 @@ class SuperVisorController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $queue->load(['service', 'counter.user', 'customer', 'photos']);
+        $queue->load(['service', 'counter', 'user', 'customer', 'photos']);
 
         return response()->json([
             'id' => $queue->id,
@@ -445,7 +452,7 @@ class SuperVisorController extends Controller
             'counter_name' => $queue->counter
                 ? 'Loket ' . $queue->counter->counter_number
                 : '-',
-            'operator_name' => $queue->counter?->user?->name ?? '-',
+            'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {
                 $path = $photo->photo_path;
                 return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);

@@ -79,6 +79,27 @@
             </div>
 
         </div>
+
+        {{-- ====== MODAL PILIH LOKET ====== --}}
+        <div x-show="!counterId" x-cloak class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Pilih Loket / Buka Sesi</h2>
+                <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                    @foreach($availableCounters as $c)
+                    <button @click="openSession({{ $c->id }})" class="w-full text-left px-5 py-4 rounded-xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex justify-between items-center group">
+                        <div>
+                            <span class="block font-bold text-slate-800">{{ $c->counter_number }}</span>
+                            <span class="block text-sm text-slate-500">{{ $c->service->service_name }}</span>
+                        </div>
+                        <span class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
+                    </button>
+                    @endforeach
+                    @if($availableCounters->isEmpty())
+                        <div class="text-center text-slate-500">Tidak ada loket aktif yang tersedia.</div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
@@ -109,6 +130,19 @@
                 instanceSlug: '{{ auth()->user()->instance->instance_slug ?? '' }}',
 
                 init() {
+                    // Coba auto-select counter dari localStorage jika ada tapi belum buka sesi
+                    if (!this.counterId) {
+                        const lastCounterId = localStorage.getItem('last_counter_id');
+                        if (lastCounterId) {
+                            // Validasi apakah counterId masih ada di availableCounters
+                            const availableIds = @json($availableCounters->pluck('id'));
+                            if (availableIds.includes(parseInt(lastCounterId))) {
+                                this.openSession(lastCounterId);
+                                return;
+                            }
+                        }
+                    }
+
                     // Jika halaman direfresh dan sedang melayani, lanjutkan timer
                     if (this.state === 'serving') {
                         this.startTimer();
@@ -118,7 +152,9 @@
                     }
 
                     // Ambil data pertama kali saat halaman dimuat
-                    this.fetchQueues();
+                    if (this.counterId) {
+                        this.fetchQueues();
+                    }
 
                     // INISIALISASI WEBSOCKET (LARAVEL ECHO + REVERB)
                     // Menggantikan sistem polling AJAX setInterval
@@ -136,12 +172,55 @@
                     window.Echo.channel('queues.{{ auth()->user()->instance_id }}')
                         .listen('QueueUpdated', (e) => {
                             console.log('[WebSocket] Antrean terupdate:', e);
-                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            if(this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         })
                         .listen('QueueCheckedIn', (e) => {
                             console.log('[WebSocket] Ada antrean baru datang:', e);
-                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            if(this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         });
+                },
+
+                openSession(counterId) {
+                    fetch(`/${this.instanceSlug}/staff/operator/open-session`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ counter_id: counterId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            localStorage.setItem('last_counter_id', counterId);
+                            window.location.reload();
+                        } else {
+                            alert(data.message || 'Gagal membuka sesi');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error opening session:', err);
+                        alert('Gagal membuka sesi. Silakan coba lagi.');
+                    });
+                },
+
+                closeSession() {
+                    if (!confirm('Apakah Anda yakin ingin menutup sesi loket ini?')) return;
+                    
+                    fetch(`/${this.instanceSlug}/staff/operator/close-session`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            localStorage.removeItem('last_counter_id');
+                            window.location.reload();
+                        }
+                    });
                 },
 
                 fetchQueues() {

@@ -13,6 +13,7 @@ class Queue extends Model
     protected $fillable = [
         'instance_id',
         'service_counter_id',
+        'user_id',
         'customer_id',
         'service_id',
         'queue_number',
@@ -41,6 +42,11 @@ class Queue extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function category()

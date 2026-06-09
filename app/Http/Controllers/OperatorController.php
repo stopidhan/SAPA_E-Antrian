@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Queue;
 use App\Models\ServiceCounter;
 use App\Models\Service;
+use App\Models\CounterSession;
 
 class OperatorController extends Controller
 {
@@ -18,11 +19,19 @@ class OperatorController extends Controller
             abort(403, 'Unauthorized access to this instance.');
         }
 
-        // Cari loket yang ditugaskan untuk user ini
-        $counter = ServiceCounter::where('user_id', auth()->id())->first();
-        $namaLoket = $counter ? $counter->counter_number : 'Loket Default';
+        // Cari sesi loket yang aktif untuk user ini
+        $session = auth()->user()->activeCounterSession;
+        $counter = $session ? $session->counter : null;
+        
+        $namaLoket = $counter ? $counter->counter_number : null;
         $idLoket   = $counter ? $counter->id : null;
         $serviceId = $counter ? $counter->service_id : null;
+
+        // Ambil daftar counter yang tersedia
+        $availableCounters = ServiceCounter::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
+            ->where('is_active', true)
+            ->with('service')
+            ->get();
 
         // Ambil daftar layanan yang aktif sesuai instance user
         $services = Service::where('is_active', true)
@@ -51,22 +60,25 @@ class OperatorController extends Controller
             });
 
         // Get history for today (completed, skipped, cancelled) handled by this user's counter
-        $historyData = Queue::with('service')
-            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
-            ->whereDate('queue_date', today())
-            ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
-            ->where('service_counter_id', $idLoket)
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($q) {
-                return [
-                    'id'      => $q->id,
-                    'nomor'   => $q->queue_number,
-                    'status'  => $q->queue_status,
-                    'waktu'   => $q->updated_at->format('H:i')
-                ];
-            });
+        $historyData = collect();
+        if ($idLoket) {
+            $historyData = Queue::with('service')
+                ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
+                ->whereDate('queue_date', today())
+                ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
+                ->where('service_counter_id', $idLoket)
+                ->orderBy('updated_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($q) {
+                    return [
+                        'id'      => $q->id,
+                        'nomor'   => $q->queue_number,
+                        'status'  => $q->queue_status,
+                        'waktu'   => $q->updated_at->format('H:i')
+                    ];
+                });
+        }
 
         // Cek apakah ada antrean yang sedang dipanggil atau dilayani agar tidak hilang saat refresh/reload
         $activeQueue = null;
@@ -96,12 +108,71 @@ class OperatorController extends Controller
             }
         }
 
-        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds'));
+        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds', 'availableCounters'));
+    }
+
+    public function openSession(Request $request, $instance_slug)
+    {
+        $request->validate(['counter_id' => 'required|exists:service_counters,id']);
+        
+        $counterId = $request->counter_id;
+        $userId = auth()->id();
+
+        // Close any existing open sessions for this user
+        CounterSession::where('user_id', $userId)
+            ->where('status', 'open')
+            ->update([
+                'status' => 'closed',
+                'ended_at' => now(),
+            ]);
+
+        // Close any existing open sessions for this counter (by other users)
+        CounterSession::where('service_counter_id', $counterId)
+            ->where('status', 'open')
+            ->update([
+                'status' => 'closed',
+                'ended_at' => now(),
+            ]);
+
+        // Create new session
+        CounterSession::create([
+            'instance_id' => app(\App\Services\TenantManager::class)->getInstanceId(),
+            'service_counter_id' => $counterId,
+            'user_id' => $userId,
+            'status' => 'open',
+            'started_at' => now(),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Sesi berhasil dibuka.']);
+    }
+
+    public function closeSession(Request $request, $instance_slug)
+    {
+        CounterSession::where('user_id', auth()->id())
+            ->where('status', 'open')
+            ->update([
+                'status' => 'closed',
+                'ended_at' => now(),
+            ]);
+
+        return response()->json(['success' => true, 'message' => 'Sesi berhasil ditutup.']);
+    }
+
+    public function currentStatus(Request $request, $instance_slug)
+    {
+        $session = auth()->user()->activeCounterSession;
+        
+        return response()->json([
+            'success' => true,
+            'has_session' => $session ? true : false,
+            'counter' => $session ? $session->counter : null
+        ]);
     }
 
     public function getQueuesApi(Request $request, $instance_slug)
     {
-        $counter = ServiceCounter::where('user_id', auth()->id())->first();
+        $session = auth()->user()->activeCounterSession;
+        $counter = $session ? $session->counter : null;
         $serviceId = $counter ? $counter->service_id : null;
 
         // Get today's waiting queues in JSON format for polling (filtered by instance and service if any)
@@ -125,22 +196,25 @@ class OperatorController extends Controller
                 ];
             });
 
-        $historyData = Queue::with('service')
-            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
-            ->whereDate('queue_date', today())
-            ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
-            ->where('service_counter_id', $counter ? $counter->id : null)
-            ->orderBy('updated_at', 'desc')
-            ->limit(10)
-            ->get()
-            ->map(function ($q) {
-                return [
-                    'id'      => $q->id,
-                    'nomor'   => $q->queue_number,
-                    'status'  => $q->queue_status,
-                    'waktu'   => $q->updated_at->format('H:i')
-                ];
-            });
+        $historyData = collect();
+        if ($counter) {
+            $historyData = Queue::with('service')
+                ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
+                ->whereDate('queue_date', today())
+                ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
+                ->where('service_counter_id', $counter->id)
+                ->orderBy('updated_at', 'desc')
+                ->limit(10)
+                ->get()
+                ->map(function ($q) {
+                    return [
+                        'id'      => $q->id,
+                        'nomor'   => $q->queue_number,
+                        'status'  => $q->queue_status,
+                        'waktu'   => $q->updated_at->format('H:i')
+                    ];
+                });
+        }
 
         return response()->json([
             'waiting' => $queuesData,
@@ -152,6 +226,7 @@ class OperatorController extends Controller
     {
         $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
         $counterId = $request->input('counter_id');
+        $userId = auth()->id();
 
         // Mencegah Race Condition dengan Atomic Update
         if ($queue->queue_status !== 'waiting') {
@@ -172,6 +247,7 @@ class OperatorController extends Controller
                     'queue_status'       => 'called',
                     'call_time'          => now(),
                     'service_counter_id' => $counterId,
+                    'user_id'            => $userId,
                 ]);
 
             if ($berhasilUpdate === 0) {
@@ -209,6 +285,7 @@ class OperatorController extends Controller
             'queue_status'       => 'serving', // dilayani
             'service_start_time' => now(),
             'service_counter_id' => $counterId,
+            'user_id'            => auth()->id(),
         ]);
 
         event(new \App\Events\QueueUpdated('serving', null, app(\App\Services\TenantManager::class)->getInstanceId()));
@@ -222,6 +299,7 @@ class OperatorController extends Controller
 
         $queue->update([
             'queue_status' => 'skipped', // dilewati
+            'user_id'      => auth()->id(),
         ]);
 
         event(new \App\Events\QueueUpdated('skipped', null, app(\App\Services\TenantManager::class)->getInstanceId()));
@@ -237,6 +315,7 @@ class OperatorController extends Controller
         $queue->update([
             'queue_status'       => 'cancelled', // dibatalkan karena salah antrean/alasan lain
             'service_counter_id' => $counterId,
+            'user_id'            => auth()->id(),
             'service_end_time'   => now(),
             'service_description' => 'Dibatalkan oleh operator',
         ]);
@@ -271,7 +350,8 @@ class OperatorController extends Controller
             'queue_status'        => 'completed', // selesai
             'service_end_time'    => $endTime,
             'service_duration'    => $startTime->diffInMinutes($endTime), // Durasi dalam menit
-            'service_description' => $deskripsiFinal
+            'service_description' => $deskripsiFinal,
+            'user_id'             => auth()->id(),
         ]);
 
         if ($request->has('photo') && !empty($request->input('photo'))) {

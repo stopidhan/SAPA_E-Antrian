@@ -79,4 +79,14 @@ class User extends Authenticatable
     {
         return $this->role === 'staff_konten';
     }
+
+    public function counterSessions()
+    {
+        return $this->hasMany(CounterSession::class);
+    }
+
+    public function activeCounterSession()
+    {
+        return $this->hasOne(CounterSession::class)->where('status', 'open')->latestOfMany('started_at');
+    }
 }

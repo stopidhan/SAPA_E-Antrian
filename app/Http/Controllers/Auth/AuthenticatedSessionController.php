@@ -38,11 +38,22 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Redirect berdasarkan role user yang baru login
-        if ($user->role === 'staff_operator') {
-            $instanceCode = $user->instance?->instance_code;
-            if ($instanceCode) {
-                return redirect()->route('operator.dashboard', ['instance_code' => $instanceCode]);
-            }
+        $instanceSlug = $user->instance?->instance_slug;
+
+        if ($user->role === 'staff_operator' && $instanceSlug) {
+            return redirect()->route('operator.dashboard', ['instance_slug' => $instanceSlug]);
+        }
+
+        if ($user->role === 'admin_instansi' && $instanceSlug) {
+            return redirect()->route('admininstance.dashboard', ['instance_slug' => $instanceSlug]);
+        }
+
+        if ($user->role === 'staff_konten' && $instanceSlug) {
+            return redirect()->route('content.index', ['instance_slug' => $instanceSlug]);
+        }
+
+        if ($user->role === 'kepala_layanan' && $instanceSlug) {
+            return redirect()->route('supervisor.dashboard', ['instance_slug' => $instanceSlug]);
         }
 
         // Untuk role lain (admin, kepala layanan, dll)

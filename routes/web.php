@@ -132,6 +132,10 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             // Operator Dashboard
             Route::middleware(['role:staff_operator'])->prefix('operator')->group(function () {
                 Route::get('/', [OperatorController::class, 'index'])->name('operator.dashboard');
+                Route::post('/open-session', [OperatorController::class, 'openSession'])->name('operator.session.open');
+                Route::post('/close-session', [OperatorController::class, 'closeSession'])->name('operator.session.close');
+                Route::get('/current-status', [OperatorController::class, 'currentStatus'])->name('operator.session.status');
+                
                 Route::post('/panggil/{id}', [OperatorController::class, 'panggilAntrean'])->name('operator.panggil');
                 Route::post('/layani/{id}', [OperatorController::class, 'layaniAntrean'])->name('operator.layani');
                 Route::post('/lewati/{id}', [OperatorController::class, 'lewatiAntrean'])->name('operator.lewati');
