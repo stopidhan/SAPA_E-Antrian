@@ -13,7 +13,7 @@ class ProfileInstanceController extends Controller
      */
     public function edit(Request $request, string $instanceSlug)
     {
-        $instance = auth()->user()->instance ?? new Instance();
+        $instance = app(\App\Services\TenantManager::class)->getInstance() ?? new Instance();
 
         return view('Pages.AdminInstansi.profileInstance', [
             'instance' => $instance,
@@ -25,7 +25,7 @@ class ProfileInstanceController extends Controller
      */
     public function update(Request $request, string $instanceSlug)
     {
-        $instance = auth()->user()->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         // Jika tidak ada instance, return error
         if (!$instance) {

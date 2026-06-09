@@ -10,7 +10,7 @@
     @endif
 
     <div class="mt-4 flex items-center justify-between">
-        <form method="POST" action="{{ route('verification.send') }}">
+        <form method="POST" action="{{ route('verification.send', ['instance_slug' => request()->route('instance_slug') ?? optional(auth()->user()->instance)->instance_slug ?? 'admin']) }}">
             @csrf
 
             <div>
@@ -20,7 +20,7 @@
             </div>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout', ['instance_slug' => request()->route('instance_slug') ?? optional(auth()->user()->instance)->instance_slug ?? 'admin']) }}">
             @csrf
 
             <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

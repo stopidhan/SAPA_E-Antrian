@@ -34,7 +34,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit', ['instance_slug' => $request->route('instance_slug') ?? optional($request->user()->instance)->instance_slug ?? 'admin'])->with('status', 'profile-updated');
     }
 
     /**

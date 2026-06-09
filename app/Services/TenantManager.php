@@ -31,7 +31,7 @@ class TenantManager
      */
     public function getInstanceId(): ?int
     {
-        if (Session::has('impersonate_instance_id') && auth()->check() && auth()->user()->hasRole('super_admin')) {
+        if (Session::has('impersonate_instance_id') && auth()->check() && auth()->user()->isSuperAdmin()) {
             return Session::get('impersonate_instance_id');
         }
 

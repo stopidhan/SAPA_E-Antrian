@@ -16,7 +16,7 @@ class MediaContentController extends Controller
     {
         $contents = MediaContent::where(
             "instance_id",
-            auth()->user()->instance_id,
+            app(\App\Services\TenantManager::class)->getInstanceId(),
         )
             ->orderBy("created_at", "desc")
             ->get();
@@ -93,7 +93,7 @@ class MediaContentController extends Controller
 
             // Create media content record
             MediaContent::create([
-                "instance_id" => auth()->user()->instance_id,
+                "instance_id" => app(\App\Services\TenantManager::class)->getInstanceId(),
                 "title" => $request->title,
                 "media_type" => $mediaType,
                 "file_path" => $filePath,
@@ -119,7 +119,7 @@ class MediaContentController extends Controller
     public function update(Request $request, string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only update their own instance's content
-        if ($content->instance_id !== auth()->user()->instance_id) {
+        if ($content->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return back()->with(
                 "error",
                 "Anda tidak memiliki akses untuk mengedit konten ini.",
@@ -215,7 +215,7 @@ class MediaContentController extends Controller
     public function toggle(string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only toggle their own instance's content
-        if ($content->instance_id !== auth()->user()->instance_id) {
+        if ($content->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return response()->json(["error" => "Unauthorized"], 403);
         }
 
@@ -240,7 +240,7 @@ class MediaContentController extends Controller
     public function destroy(string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only delete their own instance's content
-        if ($content->instance_id !== auth()->user()->instance_id) {
+        if ($content->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return back()->with(
                 "error",
                 "Anda tidak memiliki akses untuk menghapus konten ini.",

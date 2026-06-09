@@ -19,7 +19,7 @@ class SuperVisorController extends Controller
     private function getInstance()
     {
         $user = Auth::user();
-        $instance = $user->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         if (!$instance) {
             abort(403, 'Anda tidak terdaftar di instansi manapun.');

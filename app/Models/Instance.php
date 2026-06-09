@@ -20,11 +20,17 @@ class Instance extends Model
         'logo',
         'tts_enabled',
         'max_bookings_per_day',
+        'is_active',
+        'brand_color',
+        'timezone',
+        'settings',
     ];
 
     protected $casts = [
         'tts_enabled' => 'boolean',
         'max_bookings_per_day' => 'integer',
+        'is_active' => 'boolean',
+        'settings' => 'array',
     ];
 
     public function users()

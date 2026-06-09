@@ -16,7 +16,7 @@ class AdminInstanceController extends Controller
      */
     public function index()
     {
-        $instance = auth()->user()->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         
         $config = [
             'tts_enabled' => (bool) $instance->tts_enabled,
@@ -34,7 +34,7 @@ class AdminInstanceController extends Controller
 
     public function getConfig(): JsonResponse
     {
-        $instance = auth()->user()->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         return response()->json([
             'success' => true,
@@ -53,7 +53,7 @@ class AdminInstanceController extends Controller
         ]);
 
         try {
-            $instance = auth()->user()->instance;
+            $instance = app(\App\Services\TenantManager::class)->getInstance();
             $instance->update($validated);
 
             return response()->json([
@@ -78,7 +78,7 @@ class AdminInstanceController extends Controller
 
     public function getServices(): JsonResponse
     {
-        $services = auth()->user()->instance
+        $services = app(\App\Services\TenantManager::class)->getInstance()
             ->services()
             ->with('counters')
             ->latest()
@@ -92,7 +92,7 @@ class AdminInstanceController extends Controller
 
     public function storeService(Request $request): JsonResponse|RedirectResponse
     {
-        $instanceId = auth()->user()->instance_id;
+        $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
 
         $validated = $request->validate([
             'service_name' => ['required', 'string', 'max:255'],
@@ -157,14 +157,14 @@ class AdminInstanceController extends Controller
     public function updateService(Request $request, string $instanceSlug, Service $service): JsonResponse|RedirectResponse
     {
         // Instance ownership check
-        if ($service->instance_id !== auth()->user()->instance_id) {
+        if ($service->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
             return back()->withErrors(['error' => 'Unauthorized']);
         }
 
-        $instanceId = auth()->user()->instance_id;
+        $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
 
         $validated = $request->validate([
             'service_name' => ['required', 'string', 'max:255'],
@@ -248,7 +248,7 @@ class AdminInstanceController extends Controller
     public function destroyService(string $instanceSlug, Service $service): JsonResponse|RedirectResponse
     {
         // Instance ownership check
-        if ($service->instance_id !== auth()->user()->instance_id) {
+        if ($service->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             if (request()->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
@@ -281,7 +281,7 @@ class AdminInstanceController extends Controller
     public function toggleService(string $instanceSlug, Service $service): JsonResponse
     {
         // Instance ownership check
-        if ($service->instance_id !== auth()->user()->instance_id) {
+        if ($service->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
@@ -306,7 +306,7 @@ class AdminInstanceController extends Controller
     public function deleteCounter(string $instanceSlug, ServiceCounter $counter): JsonResponse
     {
         // Instance ownership check
-        if ($counter->instance_id !== auth()->user()->instance_id) {
+        if ($counter->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 

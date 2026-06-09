@@ -14,6 +14,8 @@ use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\SuperVisorController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\DeveloperController;
+
 // ==========================================
 // Organization Selection (Root)
 // ==========================================
@@ -21,6 +23,19 @@ Route::get('/', function () {
     $instances = \App\Models\Instance::all();
     return view('Pages.SelectInstance', compact('instances'));
 })->name('select.instance');
+
+// ==========================================
+// Developer Dashboard (Superadmin)
+// ==========================================
+Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('developer')->group(function () {
+    Route::get('/instances', [DeveloperController::class, 'index'])->name('developer.instances.index');
+    Route::get('/instances/create', [DeveloperController::class, 'create'])->name('developer.instances.create');
+    Route::post('/instances', [DeveloperController::class, 'store'])->name('developer.instances.store');
+    Route::get('/instances/{instance}/edit', [DeveloperController::class, 'edit'])->name('developer.instances.edit');
+    Route::patch('/instances/{instance}', [DeveloperController::class, 'update'])->name('developer.instances.update');
+    Route::post('/instances/{instance}/impersonate', [DeveloperController::class, 'impersonate'])->name('developer.instances.impersonate');
+    Route::post('/stop-impersonating', [DeveloperController::class, 'stopImpersonating'])->name('developer.stop-impersonating');
+});
 
 // Fallback redirects
 Route::prefix('booking')->group(function () {
@@ -39,7 +54,7 @@ Route::prefix('staff')->group(function () {
 // ==========================================
 // Tenant Specific Routes
 // ==========================================
-Route::middleware(['identify.tenant'])->prefix('{instance_slug}')->group(function () {
+Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middleware\CheckInstanceStatus::class])->prefix('{instance_slug}')->group(function () {
 
     Route::get('/', function (string $instanceSlug) {
         return redirect()->route('booking.register', ['instance_slug' => $instanceSlug]);

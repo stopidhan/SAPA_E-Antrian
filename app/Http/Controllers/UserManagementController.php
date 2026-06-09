@@ -15,7 +15,7 @@ class UserManagementController extends Controller
      */
     public function index(Request $request)
     {
-        $instanceId = auth()->user()->instance_id;
+        $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
 
         $query = User::where('instance_id', $instanceId)
             ->where('role', '!=', 'super_admin');
@@ -74,7 +74,7 @@ class UserManagementController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
-                'instance_id' => auth()->user()->instance_id,
+                'instance_id' => app(\App\Services\TenantManager::class)->getInstanceId(),
                 'is_active' => true,
             ]);
 
@@ -94,7 +94,7 @@ class UserManagementController extends Controller
 
     public function update(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
-        if ($user->instance_id !== auth()->user()->instance_id) {
+        if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return $request->wantsJson() 
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
@@ -147,7 +147,7 @@ class UserManagementController extends Controller
 
     public function toggleStatus(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
-        if ($user->instance_id !== auth()->user()->instance_id) {
+        if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return $request->wantsJson() 
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
@@ -188,7 +188,7 @@ class UserManagementController extends Controller
 
     public function destroy(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
-        if ($user->instance_id !== auth()->user()->instance_id) {
+        if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return $request->wantsJson() 
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
@@ -223,7 +223,7 @@ class UserManagementController extends Controller
 
     public function resetPassword(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
-        if ($user->instance_id !== auth()->user()->instance_id) {
+        if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
             return $request->wantsJson() 
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');

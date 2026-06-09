@@ -135,7 +135,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $auth = Auth::user();
-        $instance = $auth->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         // Get filters for growth calculation
         $startDate = $request->input('start_date', date('Y-m-d'));
@@ -264,7 +264,7 @@ class ReportController extends Controller
     public function queueDetail(string $instance_slug, Queue $queue)
     {
         $auth = Auth::user();
-        $instance = $auth->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         // Ensure the queue belongs to this instance
         if ($queue->instance_id !== $instance->id) {
@@ -303,7 +303,7 @@ class ReportController extends Controller
     public function exportPdf(Request $request)
     {
         $auth = Auth::user();
-        $instance = $auth->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         $queryBase = $this->getFilteredQueues($request, $instance);
         $queues = $queryBase->orderBy('created_at', 'asc')->get();
@@ -319,7 +319,7 @@ class ReportController extends Controller
     public function exportExcel(Request $request)
     {
         $auth = Auth::user();
-        $instance = $auth->instance;
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         $queryBase = $this->getFilteredQueues($request, $instance);
         $queues = $queryBase->orderBy('created_at', 'asc')->get();

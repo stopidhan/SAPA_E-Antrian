@@ -176,7 +176,7 @@
                     <x-button type="button" variant="secondary" @click="closeModal()">
                         Batal
                     </x-button>
-                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    <form method="POST" action="{{ route('logout', ['instance_slug' => request()->route('instance_slug') ?? optional(auth()->user()->instance)->instance_slug ?? 'admin']) }}" class="m-0">
                         @csrf
                         <x-button type="submit" variant="danger">
                             Ya, Logout

@@ -11,7 +11,7 @@ class OperatorController extends Controller
 {
     public function index(Request $request, $instance_slug)
     {
-        $userInstance = auth()->user()->instance;
+        $userInstance = app(\App\Services\TenantManager::class)->getInstance();
 
         // Pastikan user mengakses instance-nya sendiri
         if (!$userInstance || $userInstance->instance_slug !== $instance_slug) {
@@ -26,12 +26,12 @@ class OperatorController extends Controller
 
         // Ambil daftar layanan yang aktif sesuai instance user
         $services = Service::where('is_active', true)
-            ->where('instance_id', auth()->user()->instance_id)
+            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->get();
 
         // Get today's waiting queues for the user's instance and specific service if assigned
         $queuesQuery = Queue::with('service')
-            ->where('instance_id', auth()->user()->instance_id)
+            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
             ->where('queue_status', 'waiting');
 
@@ -52,7 +52,7 @@ class OperatorController extends Controller
 
         // Get history for today (completed, skipped, cancelled) handled by this user's counter
         $historyData = Queue::with('service')
-            ->where('instance_id', auth()->user()->instance_id)
+            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
             ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
             ->where('service_counter_id', $idLoket)
@@ -74,7 +74,7 @@ class OperatorController extends Controller
 
         if ($idLoket) {
             $activeQueueRaw = Queue::with('service')
-                ->where('instance_id', auth()->user()->instance_id)
+                ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
                 ->whereDate('queue_date', today())
                 ->whereIn('queue_status', ['called', 'serving'])
                 ->where('service_counter_id', $idLoket)
@@ -106,7 +106,7 @@ class OperatorController extends Controller
 
         // Get today's waiting queues in JSON format for polling (filtered by instance and service if any)
         $queuesQuery = Queue::with('service')
-            ->where('instance_id', auth()->user()->instance_id)
+            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
             ->where('queue_status', 'waiting');
 
@@ -126,7 +126,7 @@ class OperatorController extends Controller
             });
 
         $historyData = Queue::with('service')
-            ->where('instance_id', auth()->user()->instance_id)
+            ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
             ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
             ->where('service_counter_id', $counter ? $counter->id : null)
@@ -150,7 +150,7 @@ class OperatorController extends Controller
 
     public function panggilAntrean(Request $request, $instance_slug, $id)
     {
-        $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
+        $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
         $counterId = $request->input('counter_id');
 
         // Mencegah Race Condition dengan Atomic Update
@@ -192,7 +192,7 @@ class OperatorController extends Controller
             'queue_number' => $queue->queue_number,
             'counter_number' => $queue->counter ? $queue->counter->counter_number : '-',
             'service_name' => $queue->service ? $queue->service->service_name : 'Layanan'
-        ], auth()->user()->instance_id));
+        ], app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json([
             'success' => true,
@@ -202,7 +202,7 @@ class OperatorController extends Controller
 
     public function layaniAntrean(Request $request, $instance_slug, $id)
     {
-        $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
+        $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
         $counterId = $request->input('counter_id');
 
         $queue->update([
@@ -211,27 +211,27 @@ class OperatorController extends Controller
             'service_counter_id' => $counterId,
         ]);
 
-        event(new \App\Events\QueueUpdated('serving', null, auth()->user()->instance_id));
+        event(new \App\Events\QueueUpdated('serving', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Status: Dilayani']);
     }
 
     public function lewatiAntrean(Request $request, $instance_slug, $id)
     {
-        $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
+        $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
 
         $queue->update([
             'queue_status' => 'skipped', // dilewati
         ]);
 
-        event(new \App\Events\QueueUpdated('skipped', null, auth()->user()->instance_id));
+        event(new \App\Events\QueueUpdated('skipped', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Status: Dilewati']);
     }
 
     public function batalkanAntrean(Request $request, $instance_slug, $id)
     {
-        $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
+        $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
         $counterId = $request->input('counter_id');
 
         $queue->update([
@@ -241,14 +241,14 @@ class OperatorController extends Controller
             'service_description' => 'Dibatalkan oleh operator',
         ]);
 
-        event(new \App\Events\QueueUpdated('cancelled', null, auth()->user()->instance_id));
+        event(new \App\Events\QueueUpdated('cancelled', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Antrean dibatalkan']);
     }
 
     public function selesaiAntrean(Request $request, $instance_slug, $id)
     {
-        $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
+        $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
 
         $startTime = $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time) : now();
         $endTime = now();
@@ -297,7 +297,7 @@ class OperatorController extends Controller
                 ]);
             }
         }
-        event(new \App\Events\QueueUpdated('completed', null, auth()->user()->instance_id));
+        event(new \App\Events\QueueUpdated('completed', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Status: Selesai']);
     }

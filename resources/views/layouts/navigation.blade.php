@@ -1,20 +1,41 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+    @php
+        $currentSlug = request()->route('instance_slug') 
+            ?? session('impersonate_instance_slug') 
+            ?? optional(Auth::user()->instance)->instance_slug 
+            ?? (\App\Models\Instance::first()->instance_slug ?? 'admin');
+    @endphp
+    @if(Session::has('impersonate_instance_id'))
+        <div class="bg-yellow-100 border-b border-yellow-200 px-4 py-2 text-center text-sm font-medium text-yellow-800">
+            You are currently impersonating <strong>{{ Session::get('impersonate_instance_slug') }}</strong>. 
+            <form action="{{ route('developer.stop-impersonating') }}" method="POST" class="inline ml-2">
+                @csrf
+                <button type="submit" class="underline hover:text-yellow-900">Exit Impersonation</button>
+            </form>
+        </div>
+    @endif
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('dashboard', ['instance_slug' => $currentSlug]) }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    <x-nav-link :href="route('dashboard', ['instance_slug' => $currentSlug])" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    
+                    @if(Auth::user()->isSuperAdmin())
+                        <x-nav-link :href="route('developer.instances.index')" :active="request()->routeIs('developer.*')">
+                            {{ __('Developer Dashboard') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -34,15 +55,15 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
+                        <x-dropdown-link :href="route('profile.edit', ['instance_slug' => $currentSlug])">
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout', ['instance_slug' => $currentSlug]) }}">
                             @csrf
 
-                            <x-dropdown-link :href="route('logout')"
+                            <x-dropdown-link :href="route('logout', ['instance_slug' => $currentSlug])"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
@@ -67,9 +88,15 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            <x-responsive-nav-link :href="route('dashboard', ['instance_slug' => $currentSlug])" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(Auth::user()->isSuperAdmin())
+                <x-responsive-nav-link :href="route('developer.instances.index')" :active="request()->routeIs('developer.*')">
+                    {{ __('Developer Dashboard') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -80,15 +107,15 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
+                <x-responsive-nav-link :href="route('profile.edit', ['instance_slug' => $currentSlug])">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout', ['instance_slug' => $currentSlug]) }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')"
+                    <x-responsive-nav-link :href="route('logout', ['instance_slug' => $currentSlug])"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
