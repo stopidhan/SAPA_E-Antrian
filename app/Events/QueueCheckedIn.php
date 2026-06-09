@@ -32,9 +32,9 @@ class QueueCheckedIn implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        $channels = [
-            new Channel('queues'), // global channel for backward compatibility
-        ];
+        // [SECURITY PATCH] Hanya broadcast ke channel instansi spesifik
+        // untuk mencegah kebocoran data antar instansi (Multi-Tenant)
+        $channels = [];
 
         // Specific instance channel
         if ($this->queue->instance_id) {

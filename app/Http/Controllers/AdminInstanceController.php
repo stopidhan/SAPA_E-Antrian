@@ -17,14 +17,14 @@ class AdminInstanceController extends Controller
     public function index()
     {
         $instance = app(\App\Services\TenantManager::class)->getInstance();
-        
+
         $config = [
             'tts_enabled' => (bool) $instance->tts_enabled,
             'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
         ];
-        
+
         $services = $instance->services()->with('counters')->latest()->get();
-        
+
         return view('Pages.AdminInstansi.adminInstance', compact('config', 'services'));
     }
 

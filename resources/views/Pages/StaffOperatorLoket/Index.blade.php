@@ -81,6 +81,8 @@
         </div>
     </div>
 
+    <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         function operatorDashboard() {
@@ -115,16 +117,48 @@
                         this.timerSeconds = 0;
                     }
 
-                    // Memulai polling otomatis setiap 5 detik
-                    setInterval(() => {
-                        this.fetchQueues();
-                    }, 5000);
+                    // Ambil data pertama kali saat halaman dimuat
+                    this.fetchQueues();
+
+                    // INISIALISASI WEBSOCKET (LARAVEL ECHO + REVERB)
+                    // Menggantikan sistem polling AJAX setInterval
+                    window.Echo = new Echo({
+                        broadcaster: 'reverb',
+                        key: '{{ config('broadcasting.connections.reverb.key') }}',
+                        wsHost: window.location.hostname,
+                        wsPort: {{ config('broadcasting.connections.reverb.options.port') }},
+                        wssPort: {{ config('broadcasting.connections.reverb.options.port') }},
+                        forceTLS: false,
+                        enabledTransports: ['ws', 'wss'],
+                    });
+
+                    // Listen event dari channel instansi ini via WebSocket
+                    window.Echo.channel('queues.{{ auth()->user()->instance_id }}')
+                        .listen('QueueUpdated', (e) => {
+                            console.log('[WebSocket] Antrean terupdate:', e);
+                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                        })
+                        .listen('QueueCheckedIn', (e) => {
+                            console.log('[WebSocket] Ada antrean baru datang:', e);
+                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                        });
                 },
 
                 fetchQueues() {
                     fetch(`/${this.instanceSlug}/staff/operator/api/queues`)
-                        .then(res => res.json())
+                        .then(res => {
+                            // [BUG FIX] Cek apakah response adalah JSON yang valid
+                            // Jika sesi berakhir, server mungkin mengembalikan redirect (HTML),
+                            // bukan JSON. Tangani ini dengan elegan tanpa melempar error.
+                            const contentType = res.headers.get('content-type');
+                            if (!contentType || !contentType.includes('application/json')) {
+                                console.warn('[SAPA] Sesi habis atau tidak valid. Melewati update antrean.');
+                                return null;
+                            }
+                            return res.json();
+                        })
                         .then(data => {
+                            if (!data) return; // Skip jika response tidak valid
                             this.queue = data.waiting;
                             this.history = data.history;
                         })

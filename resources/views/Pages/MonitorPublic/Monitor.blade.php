@@ -328,76 +328,202 @@
                         setInterval(update, 1000);
                     }
                 }
-            }
 
-            function monitorRealtime() {
-                return {
-                    currentCall: null,
-                    counters: [],
-                    stats: {
-                        active: '-',
-                        total: '-'
-                    },
+                function monitorRealtime() {
+                    return {
+                        currentCall: null,
+                        counters: [],
+                        stats: {
+                            active: '-',
+                            total: '-'
+                        },
 
-                    audioQueue: [],
-                    isPlaying: false,
+                        audioQueue: [],
+                        isPlaying: false,
 
-                    initMonitor() {
-                        this.fetchData();
-
-                        // Set up event listener for websocket trigger
-                        window.addEventListener('fetch-monitor-data', () => {
+                        initMonitor() {
                             this.fetchData();
-                        });
 
-                        window.addEventListener('add-call-queue', (e) => {
-                            this.audioQueue.push(e.detail);
-                            this.processAudioQueue();
-                        });
-                    },
+                            // Pre-load Web Speech API Voices
+                            if ('speechSynthesis' in window) {
+                                window.speechSynthesis.getVoices();
+                                window.speechSynthesis.onvoiceschanged = () => {
+                                    window.speechSynthesis.getVoices();
+                                };
+                            }
 
-                    processAudioQueue() {
-                        if (this.isPlaying || this.audioQueue.length === 0) return;
+                            // [BUG FIX] Hapus listener lama sebelum mendaftar yang baru
+                            // Mencegah bug "double call" akibat initMonitor() terpanggil lebih dari sekali
+                            // oleh Alpine.js (misal saat hot-reload atau reactive update)
+                            if (this._fetchHandler) window.removeEventListener('fetch-monitor-data', this._fetchHandler);
+                            if (this._callHandler) window.removeEventListener('add-call-queue', this._callHandler);
 
-                        this.isPlaying = true;
-                        const callInfo = this.audioQueue.shift();
-
-                        // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
-                        this.currentCall = callInfo;
-
-                        // Mainkan bunyi panggilan
-                        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
-                        audio.play().then(() => {
-                            // Beri waktu 4 detik menampilkan nomor ini sebelum memproses nomor loket berikutnya
-                            setTimeout(() => {
-                                this.isPlaying = false;
+                            // Simpan referensi handler agar bisa di-remove nanti
+                            this._fetchHandler = () => {
+                                this.fetchData();
+                            };
+                            this._callHandler = (e) => {
+                                this.audioQueue.push(e.detail);
                                 this.processAudioQueue();
-                            }, 4000);
-                        }).catch(e => {
-                            console.log('Audio error:', e);
-                            setTimeout(() => {
-                                this.isPlaying = false;
-                                this.processAudioQueue();
-                            }, 2000);
-                        });
-                    },
+                            };
 
-                    fetchData() {
-                        fetch('{{ route('monitor.api') }}')
-                            .then(response => response.json())
-                            .then(data => {
-                                // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
-                                if (!this.isPlaying && this.audioQueue.length === 0) {
-                                    this.currentCall = data.current_call;
+                            window.addEventListener('fetch-monitor-data', this._fetchHandler);
+                            window.addEventListener('add-call-queue', this._callHandler);
+                        },
+
+                        playTTS(queueNumber, counterNumber, callback) {
+                            if (!('speechSynthesis' in window)) {
+                                callback();
+                                return;
+                            }
+
+                            // Pecah nomor antrean agar dibaca per huruf/angka (Contoh: A 0 0 1)
+                            let spelledNumber = queueNumber.split('').join(' ');
+
+                            // Teks yang akan dibacakan
+                            let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju loket, ${counterNumber}.`;
+
+                            let utterance = new SpeechSynthesisUtterance(textToSpeak);
+                            utterance.lang = 'id-ID';
+                            utterance.rate = 0.85; // Diperlambat sedikit agar lebih jelas
+
+                            // Mencari suara Microsoft Edge TTS (Gadis / Ardi)
+                            let voices = window.speechSynthesis.getVoices();
+                            let edgeVoice = voices.find(v => v.name.includes('Gadis') || v.name.includes('Ardi') || (v.name
+                                .includes('Microsoft') && v.lang.includes('id')));
+
+                            if (edgeVoice) {
+                                utterance.voice = edgeVoice;
+                            }
+
+                            utterance.onend = () => {
+                                callback();
+                            };
+                            utterance.onerror = (e) => {
+                                console.error('TTS Error:', e);
+                                callback();
+                            };
+
+                            window.speechSynthesis.speak(utterance);
+                        },
+
+                        processAudioQueue() {
+                            if (this.isPlaying || this.audioQueue.length === 0) return;
+
+                            this.isPlaying = true;
+                            const callInfo = this.audioQueue.shift();
+
+                            // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
+                            this.currentCall = callInfo;
+
+                            // Mainkan bunyi bel (Chime) terlebih dahulu
+                            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+                            audio.play().then(() => {
+                                // Setelah bel bunyi (jeda 2 detik), baru bicara menggunakan Edge TTS
+                                setTimeout(() => {
+                                    this.playTTS(callInfo.queue_number, callInfo.counter_number, () => {
+                                        // Setelah selesai bicara, tunggu 1 detik sebelum lanjut antrean lain
+                                        setTimeout(() => {
+                                            this.isPlaying = false;
+                                            this.processAudioQueue();
+                                        }, 1000);
+                                    });
+                                }, 2000);
+                            }).catch(e => {
+                                console.log('Audio error:', e);
+                                // Kalau bel diblokir browser, paksa langsung baca TTS
+                                this.playTTS(callInfo.queue_number, callInfo.counter_number, () => {
+                                    this.isPlaying = false;
+                                    this.processAudioQueue();
+                                });
+                            });
+                        },
+
+                        fetchData() {
+                            const instanceCode = '{{ $instance->instance_code }}';
+                            fetch(`/${instanceCode}/monitor/api`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
+                                    if (!this.isPlaying && this.audioQueue.length === 0) {
+                                        this.currentCall = data.current_call;
+                                    }
+
+                                    this.counters = data.counters;
+                                    this.stats = data.counters_stats;
+                                })
+                                .catch(error => console.error('Error fetching monitor data:', error));
+                        }
+
+                        function monitorRealtime() {
+                            return {
+                                currentCall: null,
+                                counters: [],
+                                stats: {
+                                    active: '-',
+                                    total: '-'
+                                },
+
+                                audioQueue: [],
+                                isPlaying: false,
+
+                                initMonitor() {
+                                    this.fetchData();
+
+                                    // Set up event listener for websocket trigger
+                                    window.addEventListener('fetch-monitor-data', () => {
+                                        this.fetchData();
+                                    });
+
+                                    window.addEventListener('add-call-queue', (e) => {
+                                        this.audioQueue.push(e.detail);
+                                        this.processAudioQueue();
+                                    });
+                                },
+
+                                processAudioQueue() {
+                                    if (this.isPlaying || this.audioQueue.length === 0) return;
+
+                                    this.isPlaying = true;
+                                    const callInfo = this.audioQueue.shift();
+
+                                    // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
+                                    this.currentCall = callInfo;
+
+                                    // Mainkan bunyi panggilan
+                                    const audio = new Audio(
+                                    'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+                                    audio.play().then(() => {
+                                        // Beri waktu 4 detik menampilkan nomor ini sebelum memproses nomor loket berikutnya
+                                        setTimeout(() => {
+                                            this.isPlaying = false;
+                                            this.processAudioQueue();
+                                        }, 4000);
+                                    }).catch(e => {
+                                        console.log('Audio error:', e);
+                                        setTimeout(() => {
+                                            this.isPlaying = false;
+                                            this.processAudioQueue();
+                                        }, 2000);
+                                    });
+                                },
+
+                                fetchData() {
+                                    fetch('{{ route('monitor.api') }}')
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
+                                            if (!this.isPlaying && this.audioQueue.length === 0) {
+                                                this.currentCall = data.current_call;
+                                            }
+
+                                            this.counters = data.counters;
+                                            this.stats = data.counters_stats;
+                                        })
+                                        .catch(error => console.error('Error fetching monitor data:', error));
                                 }
-
-                                this.counters = data.counters;
-                                this.stats = data.counters_stats;
-                            })
-                            .catch(error => console.error('Error fetching monitor data:', error));
-                    }
-                }
-            }
+                            }
+                        }
         </script>
 </body>
 

@@ -13,7 +13,6 @@ use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\SuperVisorController;
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\DeveloperController;
 
 // ==========================================
