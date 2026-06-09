@@ -9,18 +9,18 @@ use App\Models\Service;
 
 class OperatorController extends Controller
 {
-    public function index(Request $request, $instance_code)
+    public function index(Request $request, $instance_slug)
     {
         $userInstance = auth()->user()->instance;
 
         // Pastikan user mengakses instance-nya sendiri
-        if (!$userInstance || $userInstance->instance_code !== $instance_code) {
+        if (!$userInstance || $userInstance->instance_slug !== $instance_slug) {
             abort(403, 'Unauthorized access to this instance.');
         }
 
         // Cari loket yang ditugaskan untuk user ini
-        $counter = ServiceCounter::where('user_id', auth()->id())->first();     
-        $namaLoket = $counter ? $counter->counter_number : 'Loket Default';     
+        $counter = ServiceCounter::where('user_id', auth()->id())->first();
+        $namaLoket = $counter ? $counter->counter_number : 'Loket Default';
         $idLoket   = $counter ? $counter->id : null;
         $serviceId = $counter ? $counter->service_id : null;
 
@@ -71,7 +71,7 @@ class OperatorController extends Controller
         // Cek apakah ada antrean yang sedang dipanggil atau dilayani agar tidak hilang saat refresh/reload
         $activeQueue = null;
         $timerSeconds = 0;
-        
+
         if ($idLoket) {
             $activeQueueRaw = Queue::with('service')
                 ->where('instance_id', auth()->user()->instance_id)
@@ -99,7 +99,7 @@ class OperatorController extends Controller
         return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds'));
     }
 
-    public function getQueuesApi(Request $request, $instance_code)
+    public function getQueuesApi(Request $request, $instance_slug)
     {
         $counter = ServiceCounter::where('user_id', auth()->id())->first();
         $serviceId = $counter ? $counter->service_id : null;
@@ -148,7 +148,7 @@ class OperatorController extends Controller
         ]);
     }
 
-    public function panggilAntrean(Request $request, $instance_code, $id)
+    public function panggilAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
         $counterId = $request->input('counter_id');
@@ -180,7 +180,7 @@ class OperatorController extends Controller
                     'message' => 'Oops! Antrean ini baru saja direbut oleh loket lain.'
                 ], 409);
             }
-            
+
             // Refresh model dengan data yang baru diupdate
             $queue->refresh();
         }
@@ -200,7 +200,7 @@ class OperatorController extends Controller
         ]);
     }
 
-    public function layaniAntrean(Request $request, $instance_code, $id)
+    public function layaniAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
         $counterId = $request->input('counter_id');
@@ -216,7 +216,7 @@ class OperatorController extends Controller
         return response()->json(['success' => true, 'message' => 'Status: Dilayani']);
     }
 
-    public function lewatiAntrean(Request $request, $instance_code, $id)
+    public function lewatiAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
 
@@ -229,7 +229,7 @@ class OperatorController extends Controller
         return response()->json(['success' => true, 'message' => 'Status: Dilewati']);
     }
 
-    public function batalkanAntrean(Request $request, $instance_code, $id)
+    public function batalkanAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
         $counterId = $request->input('counter_id');
@@ -246,7 +246,7 @@ class OperatorController extends Controller
         return response()->json(['success' => true, 'message' => 'Antrean dibatalkan']);
     }
 
-    public function selesaiAntrean(Request $request, $instance_code, $id)
+    public function selesaiAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', auth()->user()->instance_id)->findOrFail($id);
 
@@ -260,7 +260,7 @@ class OperatorController extends Controller
 
         $kategoriLayanan = $request->input('category');
         $catatan = $request->input('description');
-        
+
         // Menggabungkan kategori dan catatan jika keduanya ada
         $deskripsiFinal = null;
         if ($kategoriLayanan || $catatan) {
@@ -281,13 +281,13 @@ class OperatorController extends Controller
                 $data = base64_decode($data);
                 $extension = strtolower($type[1]);
                 $fileName = 'queue_photos/' . $queue->id . '_' . time() . '.' . $extension;
-                
+
                 // Menyimpan ke public/uploads/queue_photos agar gampang diakses tanpa symlink storage
                 $destinationPath = public_path('uploads/queue_photos');
                 if (!file_exists($destinationPath)) {
                     mkdir($destinationPath, 0755, true);
                 }
-                
+
                 file_put_contents(public_path('uploads/' . $fileName), $data);
 
                 // Simpan ke database

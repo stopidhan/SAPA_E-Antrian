@@ -129,7 +129,7 @@
         showStatus('loading', 'Memverivikasi...', decodedText);
 
         // Kirim hasil scan ke Backend via AJAX (Jalur Relatif agar tidak 404)
-        fetch("{{ route('kiosk.verify-scan', ['instance_code' => $instance->instance_code]) }}", {
+        fetch("{{ route('kiosk.verify-scan') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

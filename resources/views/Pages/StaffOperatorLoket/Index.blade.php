@@ -104,7 +104,7 @@
 
                 queue: @json($queuesData),
                 history: @json($historyData),
-                instanceCode: '{{ auth()->user()->instance->instance_code ?? '' }}',
+                instanceSlug: '{{ auth()->user()->instance->instance_slug ?? '' }}',
 
                 init() {
                     // Jika halaman direfresh dan sedang melayani, lanjutkan timer
@@ -122,7 +122,7 @@
                 },
 
                 fetchQueues() {
-                    fetch(`/${this.instanceCode}/staff-operator-loket/api/queues`)
+                    fetch(`/${this.instanceSlug}/staff/operator/api/queues`)
                         .then(res => res.json())
                         .then(data => {
                             this.queue = data.waiting;
@@ -152,7 +152,7 @@
                     this.currentQueue = this.queue.shift();
 
                     // Request ke server untuk mengubah status di database menjadi 'called'
-                    fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/panggil/${this.currentQueue.id}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -184,7 +184,7 @@
                     if (!this.currentQueue) return;
 
                     // Request kembali ke server untuk memperbarui waktu panggil (called_time)
-                    fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/panggil/${this.currentQueue.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -204,7 +204,7 @@
                     const skipped = this.currentQueue;
 
                     // POST API ke db (dilewati -> skipped)
-                    fetch(`/${this.instanceCode}/staff-operator-loket/lewati/${skipped.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/lewati/${skipped.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -220,7 +220,7 @@
                         this.currentQueue = this.queue.shift();
 
                         // Otomatis panggil antrean berikutnya
-                        fetch(`/${this.instanceCode}/staff-operator-loket/panggil/${this.currentQueue.id}`, {
+                        fetch(`/${this.instanceSlug}/staff/operator/panggil/${this.currentQueue.id}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -255,7 +255,7 @@
                     if (!this.currentQueue) return;
                     const cancelled = this.currentQueue;
 
-                    fetch(`/${this.instanceCode}/staff-operator-loket/batal/${cancelled.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/batal/${cancelled.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -302,7 +302,7 @@
                 startServing() {
                     if (!this.currentQueue) return;
 
-                    fetch(`/${this.instanceCode}/staff-operator-loket/layani/${this.currentQueue.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/layani/${this.currentQueue.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -332,7 +332,7 @@
                         return;
                     }
 
-                    fetch(`/${this.instanceCode}/staff-operator-loket/selesai/${this.currentQueue.id}`, {
+                    fetch(`/${this.instanceSlug}/staff/operator/selesai/${this.currentQueue.id}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

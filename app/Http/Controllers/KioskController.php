@@ -15,9 +15,9 @@ class KioskController extends Controller
     /**
      * Menampilkan halaman utama Kiosk.
      */
-    public function halamanHome($instance_code)
+    public function halamanHome(string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         $services = Service::where('instance_id', $instance->id)->where('is_active', true)->get();
         return view('Pages.On-siteUser.KioskHome', compact('services', 'instance'));
     }
@@ -25,9 +25,9 @@ class KioskController extends Controller
     /**
      * Menampilkan halaman input data (Offline).
      */
-    public function halamanInput(Request $request, $instance_code)
+    public function halamanInput(Request $request, string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         $slug = $request->query('layanan');
         
         $service = Service::where('instance_id', $instance->id)->where('is_active', true)->get()
@@ -36,7 +36,7 @@ class KioskController extends Controller
             });
 
         if (!$service) {
-            return redirect()->route('kiosk.home', ['instance_code' => $instance_code])->withErrors(['layanan' => 'Layanan tidak ditemukan']);
+            return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug])->withErrors(['layanan' => 'Layanan tidak ditemukan']);
         }
 
         return view('Pages.On-siteUser.KioskInput', compact('slug', 'service', 'instance'));
@@ -45,9 +45,9 @@ class KioskController extends Controller
     /**
      * Menyimpan data antrean baru dari Kiosk.
      */
-    public function simpanAntreanOffline(Request $request, $instance_code)
+    public function simpanAntreanOffline(Request $request, string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         $validated = $request->validate([
             'layanan' => 'required|string',
@@ -125,25 +125,25 @@ class KioskController extends Controller
         // Set session
         session(['kiosk_last_queue_id' => $queue->id]);
 
-        return redirect()->route('kiosk.cetak', ['instance_code' => $instance_code]);
+        return redirect()->route('kiosk.cetak', ['instance_slug' => $instanceSlug]);
     }
 
     /**
      * Menampilkan halaman cetak struk.
      */
-    public function halamanCetak($instance_code)
+    public function halamanCetak(string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         $queueId = session('kiosk_last_queue_id');
         
         if (!$queueId) {
-            return redirect()->route('kiosk.home', ['instance_code' => $instance_code]); // Jika dicoba akses sembarangan
+            return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]); // Jika dicoba akses sembarangan
         }
 
         $queue = Queue::where('instance_id', $instance->id)->with(['service', 'customer'])->find($queueId);
         
         if (!$queue) {
-            return redirect()->route('kiosk.home', ['instance_code' => $instance_code]);
+            return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]);
         }
 
         return view('Pages.On-siteUser.KioskCetak', [
@@ -160,18 +160,18 @@ class KioskController extends Controller
     /**
      * Menampilkan halaman Scanner QR Code.
      */
-    public function halamanScan($instance_code)
+    public function halamanScan(string $instanceSlug)
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         return view('Pages.On-siteUser.KioskScan', compact('instance'));
     }
 
     /**
      * Memverifikasi data QR Code yang di-scan.
      */
-    public function verifyScan(Request $request, $instance_code): JsonResponse
+    public function verifyScan(Request $request, string $instanceSlug): JsonResponse
     {
-        $instance = \App\Models\Instance::where('instance_code', $instance_code)->firstOrFail();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
         $validated = $request->validate([
             'qr_data' => ['required', 'string'],
         ]);

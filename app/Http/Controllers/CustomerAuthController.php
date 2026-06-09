@@ -38,7 +38,7 @@ class CustomerAuthController extends Controller
         return view('Pages.Remoteuser.Register');
     }
 
-    public function register(SendCustomerOtpRequest $request): RedirectResponse
+    public function register(SendCustomerOtpRequest $request, string $instanceSlug): RedirectResponse
     {
         $validated = $request->validated();
         $inputName = trim((string) $validated['nama']);
@@ -46,8 +46,7 @@ class CustomerAuthController extends Controller
         $plainOtpCode = (string) random_int(100000, 999999);
 
         try {
-            $instanceCode = $request->route('instance_code');
-            $instance = Instance::where('instance_code', $instanceCode)->first();
+            $instance = app(\App\Services\TenantManager::class)->getInstance();
 
             if (!$instance) {
                 throw ValidationException::withMessages([
@@ -89,16 +88,16 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-        return redirect()->route('booking.otp.form')
+        return redirect()->route('booking.otp.form', ['instance_slug' => $instanceSlug])
             ->with('status', 'Kode OTP berhasil dikirim ke WhatsApp Anda.');
     }
 
-    public function showOtpForm(Request $request): View|RedirectResponse
+    public function showOtpForm(Request $request, string $instanceSlug): View|RedirectResponse
     {
         $pendingPhone = (string) Session::get('customer_auth.pending_whatsapp', '');
 
         if ($pendingPhone === '') {
-            return redirect()->route('booking.register')
+            return redirect()->route('booking.register', ['instance_slug' => $instanceSlug])
                 ->withErrors(['booking_register' => 'Sesi verifikasi tidak ditemukan. Silakan login kembali.']);
         }
 
@@ -107,7 +106,7 @@ class CustomerAuthController extends Controller
         ]);
     }
 
-    public function verifyOtp(VerifyCustomerOtpRequest $request): RedirectResponse
+    public function verifyOtp(VerifyCustomerOtpRequest $request, string $instanceSlug): RedirectResponse
     {
         $validated = $request->validated();
         
@@ -142,8 +141,7 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-            $instanceCode = $request->route('instance_code');
-            $instance = Instance::where('instance_code', $instanceCode)->first();
+            $instance = app(\App\Services\TenantManager::class)->getInstance();
             $instanceId = $instance ? $instance->id : null;
             
             if (!$instanceId) {
@@ -183,10 +181,10 @@ class CustomerAuthController extends Controller
             'url.intended'
         ]);
 
-        return redirect()->route('booking.dashboard');
+        return redirect()->route('booking.dashboard', ['instance_slug' => $instanceSlug]);
     }
 
-    public function login(Request $request): RedirectResponse
+    public function login(Request $request, string $instanceSlug): RedirectResponse
     {
         $validated = $request->validate([
             'whatsapp' => ['required', 'string', 'min:9', 'max:15', 'regex:/^[0-9+\-\s]+$/'],
@@ -200,8 +198,7 @@ class CustomerAuthController extends Controller
 
         $phone = $this->normalizePhoneDigits((string) $validated['whatsapp']);
 
-        $instanceCode = $request->route('instance_code');
-        $instance = Instance::where('instance_code', $instanceCode)->first();
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
 
         if (!$instance) {
             throw ValidationException::withMessages([
@@ -224,17 +221,17 @@ class CustomerAuthController extends Controller
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('booking.dashboard'));
+        return redirect()->intended(route('booking.dashboard', ['instance_slug' => $instanceSlug]));
     }
 
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request, string $instanceSlug): RedirectResponse
     {
         Auth::guard('customer')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('booking.register');
+        return redirect()->route('booking.register', ['instance_slug' => $instanceSlug]);
     }
 
     private function normalizePhoneDigits(string $phone): string
