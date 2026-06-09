@@ -92,7 +92,10 @@ class ServiceController extends Controller
      */
     public function update(Request $request, Service $service): JsonResponse|RedirectResponse
     {
-        $this->authorize('update', $service);
+        // [SECURITY] Pastikan service ini milik instansi yang sedang login
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            abort(403, 'Anda tidak memiliki akses ke layanan ini.');
+        }
 
         $validated = $request->validate([
             'service_name' => ['required', 'string', 'max:255'],
@@ -171,7 +174,10 @@ class ServiceController extends Controller
      */
     public function destroy(Service $service): JsonResponse|RedirectResponse
     {
-        $this->authorize('delete', $service);
+        // [SECURITY] Pastikan service ini milik instansi yang sedang login
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            abort(403, 'Anda tidak memiliki akses ke layanan ini.');
+        }
 
         try {
             $service->delete();
@@ -201,7 +207,10 @@ class ServiceController extends Controller
      */
     public function toggle(Service $service): JsonResponse
     {
-        $this->authorize('update', $service);
+        // [SECURITY] Pastikan service ini milik instansi yang sedang login
+        if ($service->instance_id !== auth()->user()->instance_id) {
+            abort(403, 'Anda tidak memiliki akses ke layanan ini.');
+        }
 
         try {
             $service->update([
@@ -226,6 +235,14 @@ class ServiceController extends Controller
      */
     public function deleteCounter(ServiceCounter $counter): JsonResponse
     {
+        // [SECURITY PATCH] Cegah IDOR: pastikan counter ini milik instansi yang sedang login
+        if ($counter->instance_id !== auth()->user()->instance_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Loket ini tidak milik instansi Anda.',
+            ], 403);
+        }
+
         try {
             $counter->delete();
 

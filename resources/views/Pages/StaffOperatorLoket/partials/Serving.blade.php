@@ -66,7 +66,7 @@
                             Batal
                         </button>
                         <button @click="takePhoto()" class="flex-1 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 text-sm flex items-center justify-center gap-1">
-                            <span>📸</span> Jepret
+                            <span></span> Foto
                         </button>
                     </div>
                 </div>

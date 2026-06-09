@@ -279,22 +279,59 @@ class OperatorController extends Controller
             if (preg_match('/^data:image\/(\w+);base64,/', $photoData, $type)) {
                 $data = substr($photoData, strpos($photoData, ',') + 1);
                 $data = base64_decode($data);
-                $extension = strtolower($type[1]);
-                $fileName = 'queue_photos/' . $queue->id . '_' . time() . '.' . $extension;
-                
-                // Menyimpan ke public/uploads/queue_photos agar gampang diakses tanpa symlink storage
-                $destinationPath = public_path('uploads/queue_photos');
-                if (!file_exists($destinationPath)) {
-                    mkdir($destinationPath, 0755, true);
-                }
-                
-                file_put_contents(public_path('uploads/' . $fileName), $data);
 
-                // Simpan ke database
-                \App\Models\QueuePhoto::create([
-                    'queue_id' => $queue->id,
-                    'photo_path' => 'uploads/' . $fileName
-                ]);
+                // [SECURITY PATCH] Lapis 1: Whitelist ekstensi yang diizinkan
+                // Mencegah upload file berbahaya seperti .php, .exe, .sh, dll.
+                $extensionRaw = strtolower($type[1]);
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                
+                // Normalisasi 'jpeg' → 'jpg'
+                $extension = ($extensionRaw === 'jpeg') ? 'jpg' : $extensionRaw;
+
+                if (!in_array($extension, $allowedExtensions)) {
+                    // Diam-diam abaikan file berbahaya tanpa error ke user
+                    \Illuminate\Support\Facades\Log::warning('[SECURITY] Upload foto ditolak. Ekstensi tidak diizinkan: ' . $extensionRaw . ' | Queue ID: ' . $queue->id . ' | User: ' . auth()->id());
+                } else {
+                    // [SECURITY PATCH] Lapis 2: Verifikasi MIME type asli dari binary data
+                    // Mencegah file .php yang disamarkan sebagai .jpg
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->buffer($data);
+                    $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+
+                    if (!in_array($mimeType, $allowedMimes)) {
+                        \Illuminate\Support\Facades\Log::warning('[SECURITY] Upload foto ditolak. MIME type tidak valid: ' . $mimeType . ' | Queue ID: ' . $queue->id . ' | User: ' . auth()->id());
+                    } else {
+                        // [SECURITY PATCH] Lapis 3: Nama file berdasarkan Nama Customer + Nomor Antrean
+                        // Contoh hasil: Fadil_AMD-001.jpg
+                        $queue->loadMissing('customer');
+                        $rawCustomerName = $queue->customer ? $queue->customer->name : 'Customer';
+
+                        // Bersihkan suffix "(On-Site)" untuk customer via kiosk
+                        $rawCustomerName = str_replace(' (On-Site)', '', $rawCustomerName);
+
+                        // Sanitasi nama: hanya izinkan huruf, angka, dan spasi (cegah path traversal)
+                        $cleanName = preg_replace('/[^a-zA-Z0-9 ]/', '', $rawCustomerName);
+                        $cleanName = trim(preg_replace('/\s+/', '_', $cleanName));
+                        if (empty($cleanName)) $cleanName = 'Customer';
+
+                        // Format: NamaCustomer_NomorAntrean.ekstensi (contoh: Fadil_AMD-001.jpg)
+                        $safeFileName = 'queue_photos/' . $cleanName . '_' . $queue->queue_number . '.' . $extension;
+
+                        // Simpan ke public/uploads/queue_photos
+                        $destinationPath = public_path('uploads/queue_photos');
+                        if (!file_exists($destinationPath)) {
+                            mkdir($destinationPath, 0755, true);
+                        }
+
+                        file_put_contents(public_path('uploads/' . $safeFileName), $data);
+
+                        // Simpan ke database
+                        \App\Models\QueuePhoto::create([
+                            'queue_id'   => $queue->id,
+                            'photo_path' => 'uploads/' . $safeFileName
+                        ]);
+                    }
+                }
             }
         }
         event(new \App\Events\QueueUpdated('completed', null, auth()->user()->instance_id));

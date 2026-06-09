@@ -131,15 +131,18 @@ Route::get('/content', function () {
     return view('Pages.StaffKonten.staffContent');
 })->name('content.dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// Rute khusus Admin Instansi (dilindungi role:admin_instansi)
+Route::middleware(['auth', 'verified', 'role:admin_instansi'])->group(function () {
     Route::get('/superadmin', function () {
         return view('Pages.AdminInstansi.superAdmin');
     })->name('superadmin.dashboard');
 
+    // Manajemen Layanan & Loket
     Route::resource('services', ServiceController::class);
     Route::delete('counters/{counter}', [ServiceController::class, 'deleteCounter'])->name('counters.destroy');
     Route::patch('services/{service}/toggle', [ServiceController::class, 'toggle'])->name('services.toggle');
 
+    // Manajemen Pengguna (User Management)
     Route::get('/management-user', [UserManagementController::class, 'index'])->name('management.user');
     Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
     Route::patch('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
@@ -147,12 +150,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
     Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
 
+    // Profil & Laporan
     Route::get('/profile-instance', [ProfileInstanceController::class, 'edit'])->name('profile.instance');
     Route::patch('/profile-instance', [ProfileInstanceController::class, 'update'])->name('profile.instance.update');
-
     Route::get('/report', [ReportController::class, 'index'])->name('superadmin.report');
-
-
 });
 
 // --- TESTES ---

@@ -35,11 +35,10 @@ class QueueUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        $channels = [
-            new Channel('queues'), // Backward kompatibel jika rekan Monitor masih pakai channel global
-        ];
+        // [SECURITY PATCH] Hanya broadcast ke channel instansi spesifik
+        // untuk mencegah kebocoran data antar instansi (Multi-Tenant)
+        $channels = [];
 
-        // Broadcast to a specific instance channel if provided
         if ($this->instance_id) {
             $channels[] = new Channel('queues.' . $this->instance_id);
         }
