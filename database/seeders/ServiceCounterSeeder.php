@@ -26,20 +26,30 @@ class ServiceCounterSeeder extends Seeder
                 $users = User::where('instance_id', $instance->id)->get();
             }
 
-            // Buat 3 counter per instance
-            for ($i = 1; $i <= 3; $i++) {
-                $service = $services->random();
+            $i = 1;
+            foreach ($services as $service) {
+                // Ambil operator secara berurutan, jika habis gunakan modulus
+                $assignedUser = $users->count() > 0 ? $users->get(($i - 1) % $users->count()) : null;
 
-                // Ambil operator secara berurutan, bukan random.
-                // Jika loket ke-3 (karena cuma ada 2 operator), assign ke null atau user pertama lagi
-                $assignedUser = $users->get($i - 1);
-
-                ServiceCounter::create([
+                $counter = ServiceCounter::create([
                     'instance_id' => $service->instance_id,
                     'service_id' => $service->id,
                     'counter_number' => 'Loket ' . $i,
                     'is_active' => true,
                 ]);
+
+                if ($assignedUser) {
+                    \App\Models\CounterSession::create([
+                        'instance_id' => $service->instance_id,
+                        'service_counter_id' => $counter->id,
+                        'user_id' => $assignedUser->id,
+                        'status' => 'closed',
+                        'started_at' => null,
+                        'ended_at' => now(),
+                    ]);
+                }
+
+                $i++;
             }
         }
     }

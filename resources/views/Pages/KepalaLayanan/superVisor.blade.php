@@ -179,7 +179,8 @@
                     this.$dispatch('open-modal', 'queue-detail-modal');
 
                     try {
-                        const response = await fetch(`{{ route('supervisor.api.queue-detail', ':id') }}`.replace(':id', queueId), {
+                        const response = await fetch(`{{ route('supervisor.api.queue-detail', ':id') }}`.replace(':id',
+                            queueId), {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',

@@ -210,7 +210,7 @@ class ReportController extends Controller
                 'counter_name' => $queue->counter
                     ? 'Loket ' . $queue->counter->counter_number
                     : '-',
-                'operator_name' => $queue->counter?->user?->name ?? '-',
+                'operator_name' => $queue->user?->name ?? '-',
                 'photo_path' => $queue->photos->isNotEmpty()
                     ? $queue->photos->first()->photo_path
                     : null,
@@ -267,7 +267,7 @@ class ReportController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $queue->load(['service', 'counter.user', 'customer', 'photos']);
+        $queue->load(['service', 'counter', 'user', 'customer', 'photos']);
 
         return response()->json([
             'id' => $queue->id,
@@ -288,7 +288,7 @@ class ReportController extends Controller
             'counter_name' => $queue->counter
                 ? 'Loket ' . $queue->counter->counter_number
                 : '-',
-            'operator_name' => $queue->counter?->user?->name ?? '-',
+            'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {
                 $path = $photo->photo_path;
                 return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
@@ -322,8 +322,5 @@ class ReportController extends Controller
 
         $stats = $this->getStatistics($queues, $request, $instance);
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\QueueExport($queues, $stats), 'laporan-antrean-' . date('Y-m-d-His') . '.xlsx');
-    }
-}
-$queues, $stats), 'laporan-antrean-' . date('Y-m-d-His') . '.xlsx');
     }
 }

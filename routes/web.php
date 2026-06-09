@@ -130,12 +130,12 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
             // Operator Dashboard
-            Route::middleware(['role:staff_operator'])->prefix('operator')->group(function () {
+            Route::middleware(['role:staff_operator,admin_instansi'])->prefix('operator')->group(function () {
                 Route::get('/', [OperatorController::class, 'index'])->name('operator.dashboard');
                 Route::post('/open-session', [OperatorController::class, 'openSession'])->name('operator.session.open');
                 Route::post('/close-session', [OperatorController::class, 'closeSession'])->name('operator.session.close');
                 Route::get('/current-status', [OperatorController::class, 'currentStatus'])->name('operator.session.status');
-                
+
                 Route::post('/panggil/{id}', [OperatorController::class, 'panggilAntrean'])->name('operator.panggil');
                 Route::post('/layani/{id}', [OperatorController::class, 'layaniAntrean'])->name('operator.layani');
                 Route::post('/lewati/{id}', [OperatorController::class, 'lewatiAntrean'])->name('operator.lewati');
@@ -145,7 +145,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             });
 
             // Supervisor Dashboard
-            Route::prefix('supervisor')->group(function () {
+            Route::middleware(['role:kepala_layanan,admin_instansi'])->prefix('supervisor')->group(function () {
                 Route::get('/', [SuperVisorController::class, 'index'])->name('supervisor.dashboard');
                 Route::get('/api/live', [SuperVisorController::class, 'liveApi'])->name('supervisor.api.live');
                 Route::get('/api/queue/{queue}', [SuperVisorController::class, 'queueDetail'])->name('supervisor.api.queue-detail');
@@ -156,7 +156,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             });
 
             // Media Content Dashboard
-            Route::prefix('content')->group(function () {
+            Route::middleware(['role:staff_konten,admin_instansi'])->prefix('content')->group(function () {
                 Route::get('/', [MediaContentController::class, "index"])->name("content.index");
                 Route::post('/', [MediaContentController::class, "store"])->name("content.store");
                 Route::patch('/{content}', [MediaContentController::class, "update"])->name("content.update");
@@ -165,7 +165,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             });
 
             // Admin Dashboard
-            Route::prefix('admin')->group(function () {
+            Route::middleware(['role:admin_instansi'])->prefix('admin')->group(function () {
                 Route::get('/', [AdminInstanceController::class, "index"])->name("admininstance.dashboard");
 
                 // Services

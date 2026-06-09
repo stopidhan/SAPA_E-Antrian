@@ -268,7 +268,7 @@ class SuperVisorController extends Controller
     {
         return Queue::where('instance_id', $instanceId)
             ->where('queue_status', 'completed')
-            ->with(['service', 'counter.user', 'photos', 'customer'])
+            ->with(['service', 'counter', 'user', 'photos', 'customer'])
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('queue_number', 'like', "%{$search}%")
@@ -378,7 +378,7 @@ class SuperVisorController extends Controller
                 'counter_name' => $queue->counter
                     ? 'Loket ' . $queue->counter->counter_number
                     : '-',
-                'operator_name' => $queue->counter?->user?->name ?? '-',
+                'operator_name' => $queue->user?->name ?? '-',
                 'photo_path' => $queue->photos->isNotEmpty()
                     ? $queue->photos->first()->photo_path
                     : null,

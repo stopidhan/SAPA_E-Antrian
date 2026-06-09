@@ -30,6 +30,14 @@ class QueueSeeder extends Seeder
                 $service = $services->random();
                 $source = $faker->randomElement($sources);
 
+                // Ensure the counter belongs to the selected service
+                $serviceCounters = $counters->where('service_id', $service->id);
+                $counter = $serviceCounters->isEmpty() ? $counters->random() : $serviceCounters->random();
+                
+                // Get user from the counter's session
+                $session = \App\Models\CounterSession::where('service_counter_id', $counter->id)->first();
+                $user_id = $session ? $session->user_id : null;
+
                 $queueDate = Carbon::parse($faker->dateTimeBetween('-7 days')->format('Y-m-d'));
                 $takenTime = (clone $queueDate)->setTime(rand(8, 15), rand(0, 59));
 
@@ -47,7 +55,8 @@ class QueueSeeder extends Seeder
 
                 Queue::create([
                     'instance_id' => $instance->id,
-                    'service_counter_id' => $counters->random()->id,
+                    'service_counter_id' => $counter->id,
+                    'user_id' => $user_id,
                     'customer_id' => $customers->random()->id,
                     'service_id' => $service->id,
                     'queue_number' => $service->queue_prefix . str_pad(rand(1, 999), 4, '0', STR_PAD_LEFT),
