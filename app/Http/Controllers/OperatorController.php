@@ -27,9 +27,16 @@ class OperatorController extends Controller
         $idLoket   = $counter ? $counter->id : null;
         $serviceId = $counter ? $counter->service_id : null;
 
-        // Ambil daftar counter yang tersedia
+        // Ambil daftar counter yang sedang digunakan
+        $usedCounters = CounterSession::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
+            ->where('status', 'open')
+            ->pluck('service_counter_id')
+            ->toArray();
+
+        // Ambil daftar counter yang tersedia (yang belum digunakan)
         $availableCounters = ServiceCounter::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->where('is_active', true)
+            ->whereNotIn('id', $usedCounters)
             ->with('service')
             ->get();
 
@@ -117,26 +124,39 @@ class OperatorController extends Controller
         
         $counterId = $request->counter_id;
         $userId = auth()->id();
+        $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
 
-        // Close any existing open sessions for this user
-        CounterSession::where('user_id', $userId)
+        // 1. Cek apakah user sudah memiliki sesi aktif
+        $userActiveSession = CounterSession::where('user_id', $userId)
             ->where('status', 'open')
-            ->update([
-                'status' => 'closed',
-                'ended_at' => now(),
-            ]);
+            ->first();
 
-        // Close any existing open sessions for this counter (by other users)
-        CounterSession::where('service_counter_id', $counterId)
+        if ($userActiveSession) {
+            // Jika user klik loket yang sama, izinkan (idempotent)
+            if ($userActiveSession->service_counter_id == $counterId) {
+                return response()->json(['success' => true, 'message' => 'Sesi sudah aktif.']);
+            }
+            return response()->json([
+                'success' => false, 
+                'message' => 'Anda sudah memiliki sesi loket yang aktif. Silakan tutup sesi sebelumnya terlebih dahulu.'
+            ], 400);
+        }
+
+        // 2. Cek apakah loket sudah digunakan oleh operator lain
+        $counterActiveSession = CounterSession::where('service_counter_id', $counterId)
             ->where('status', 'open')
-            ->update([
-                'status' => 'closed',
-                'ended_at' => now(),
-            ]);
+            ->first();
 
-        // Create new session
+        if ($counterActiveSession) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Loket ini sedang digunakan oleh operator lain.'
+            ], 400);
+        }
+
+        // 3. Buat sesi baru
         CounterSession::create([
-            'instance_id' => app(\App\Services\TenantManager::class)->getInstanceId(),
+            'instance_id' => $instanceId,
             'service_counter_id' => $counterId,
             'user_id' => $userId,
             'status' => 'open',
@@ -307,6 +327,8 @@ class OperatorController extends Controller
         return response()->json(['success' => true, 'message' => 'Status: Dilewati']);
     }
 
+    /*
+    // Fitur batalkan antrean (Disembunyikan sementara)
     public function batalkanAntrean(Request $request, $instance_slug, $id)
     {
         $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
@@ -324,6 +346,7 @@ class OperatorController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Antrean dibatalkan']);
     }
+    */
 
     public function selesaiAntrean(Request $request, $instance_slug, $id)
     {

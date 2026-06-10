@@ -103,18 +103,20 @@
                           class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition outline-none resize-none placeholder:text-gray-300"></textarea>
             </div>
 
-            {{-- Tombol Aksi Akhir --}}
-            <div class="grid grid-cols-3 gap-3">
-                {{-- Tombol Batalkan --}}
+            {{-- Tombol Aksi Akhir (Jika tombol Batal diaktifkan kembali, ubah class div menjadi: grid grid-cols-3 gap-3, dan button selesai menjadi col-span-2) --}}
+            <div class="flex">
+                {{-- Tombol Batalkan (Disembunyikan sementara) --}}
+                {{--
                 <button @click="batalkanAntrean()"
                         class="col-span-1 flex items-center justify-center gap-2 py-4 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-700 text-base font-bold rounded-xl shadow-sm transition border border-red-200">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     Batal
                 </button>
+                --}}
 
                 {{-- Tombol Selesai --}}
                 <button @click="stopServing()"
-                        class="col-span-2 flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-base font-bold rounded-xl shadow-sm transition">
+                        class="w-full flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-base font-bold rounded-xl shadow-sm transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                     Selesai
                 </button>

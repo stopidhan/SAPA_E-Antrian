@@ -196,6 +196,7 @@
                             window.location.reload();
                         } else {
                             alert(data.message || 'Gagal membuka sesi');
+                            window.location.reload();
                         }
                     })
                     .catch(err => {
@@ -364,6 +365,8 @@
                     }
                 },
 
+                /* 
+                // Fitur batalkan antrean (Disembunyikan sementara)
                 batalkanAntrean() {
                     if (!this.currentQueue) return;
                     const cancelled = this.currentQueue;
@@ -392,6 +395,7 @@
                     this.state = 'standby';
                     this.fetchQueues();
                 },
+                */
 
                 startTimer() {
                     if (this.timerInterval) clearInterval(this.timerInterval);

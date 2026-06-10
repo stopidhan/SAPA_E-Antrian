@@ -35,8 +35,8 @@
                   x-text="currentQueue?.tipe ?? 'onsite'"></span>
         </div>
 
-        {{-- Tombol Aksi (4 Kolom) --}}
-        <div class="px-6 pb-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {{-- Tombol Aksi (3 Kolom) - (Jika tombol batal diaktifkan kembali, ubah jadi grid-cols-2 lg:grid-cols-4) --}}
+        <div class="px-6 pb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
             {{-- Panggil Ulang --}}
             <button @click="panggilUlang()"
                     class="flex items-center justify-center gap-2 py-3.5 border-2 border-blue-300 text-blue-600 text-sm font-bold rounded-xl hover:bg-blue-50 active:bg-blue-100 transition">
@@ -44,12 +44,14 @@
                 Panggil Ulang
             </button>
 
-            {{-- Batal --}}
+            {{-- Batal (Disembunyikan sementara) --}}
+            {{--
             <button @click="batalkanAntrean()"
                     class="flex items-center justify-center gap-2 py-3.5 border-2 border-red-300 text-red-600 text-sm font-bold rounded-xl hover:bg-red-50 active:bg-red-100 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 Batal
             </button>
+            --}}
 
             {{-- Lewati --}}
             <button @click="lewatiAntrian()"

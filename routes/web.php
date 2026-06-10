@@ -139,7 +139,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
                 Route::post('/panggil/{id}', [OperatorController::class, 'panggilAntrean'])->name('operator.panggil');
                 Route::post('/layani/{id}', [OperatorController::class, 'layaniAntrean'])->name('operator.layani');
                 Route::post('/lewati/{id}', [OperatorController::class, 'lewatiAntrean'])->name('operator.lewati');
-                Route::post('/batal/{id}', [OperatorController::class, 'batalkanAntrean'])->name('operator.batal');
+                // Route::post('/batal/{id}', [OperatorController::class, 'batalkanAntrean'])->name('operator.batal'); // Disembunyikan sementara
                 Route::post('/selesai/{id}', [OperatorController::class, 'selesaiAntrean'])->name('operator.selesai');
                 Route::get('/api/queues', [OperatorController::class, 'getQueuesApi'])->name('operator.api.queues');
             });
