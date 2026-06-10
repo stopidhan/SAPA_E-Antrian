@@ -10,7 +10,7 @@
     'buttonClass' =>
         'px-5 py-2.5 rounded-lg border border-gray-300 cursor-pointer text-slate-900 text-sm font-medium outline-none bg-white hover:bg-gray-50 w-full text-left flex items-center justify-between',
     'menuClass' =>
-        'absolute left-0 rounded-lg [box-shadow:0_8_19px_-7px_rgba(215,215,215,1)] bg-white py-2 z-[1000] w-full divide-y divide-gray-200 max-h-96 overflow-auto',
+        'absolute left-0 rounded-lg shadow-xl border border-gray-200 bg-white py-2 z-[1000] w-full divide-y divide-gray-200 max-h-96 overflow-auto',
     'optionClass' => 'px-5 py-2.5 hover:bg-gray-50 text-slate-600 text-sm font-medium cursor-pointer',
 ])
 

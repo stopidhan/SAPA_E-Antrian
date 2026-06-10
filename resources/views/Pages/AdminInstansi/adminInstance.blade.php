@@ -48,6 +48,18 @@
                                     <x-toggle-switch name="config.ttsEnabled" />
                                 </div>
 
+                                {{-- Bahasa TTS --}}
+                                <div x-show="config.ttsEnabled">
+                                    @php
+                                        $ttsOptions = [
+                                            ['value' => 'id-ID', 'label' => 'Bahasa Indonesia (id-ID)'],
+                                            ['value' => 'en-US', 'label' => 'English (en-US)'],
+                                        ];
+                                    @endphp
+                                    <x-input-dropdown label="Bahasa TTS (Text-to-Speech)" :options="$ttsOptions"
+                                        x-model="config.ttsLanguage" />
+                                </div>
+
                                 {{-- Maksimal Booking per Hari --}}
                                 <div class="space-y-1.5">
                                     <label class="block text-sm font-medium text-gray-700">
@@ -56,6 +68,53 @@
                                     <input type="number" x-model.number="config.maxBookingsPerDay" placeholder="5"
                                         min="1" max="50"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                </div>
+
+                                {{-- Zona Waktu --}}
+                                <div>
+                                    @php
+                                        $timezoneOptions = [
+                                            ['value' => 'Asia/Jakarta', 'label' => 'Asia/Jakarta (WIB)'],
+                                            ['value' => 'Asia/Makassar', 'label' => 'Asia/Makassar (WITA)'],
+                                            ['value' => 'Asia/Jayapura', 'label' => 'Asia/Jayapura (WIT)'],
+                                        ];
+                                    @endphp
+                                    <x-input-dropdown label="Zona Waktu" :options="$timezoneOptions" x-model="config.timezone" />
+                                </div>
+
+                                <hr class="border-gray-200">
+
+                                {{-- Jam Operasional --}}
+                                <div>
+                                    <div class="mb-4">
+                                        <h3 class="text-md font-bold text-gray-900">Jam Operasional</h3>
+                                        <p class="text-sm text-gray-500">Atur jadwal buka dan tutup instansi Anda setiap
+                                            harinya.</p>
+                                    </div>
+                                    <div class="space-y-4 max-w-2xl bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                        <template x-for="(day, index) in config.operationalHours" :key="index">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-32 font-medium text-gray-700" x-text="day.name"></div>
+
+                                                <label class="flex items-center gap-2 cursor-pointer">
+                                                    <input type="checkbox" x-model="day.isOpen"
+                                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                    <span class="text-sm text-gray-600">Buka</span>
+                                                </label>
+
+                                                <div class="flex items-center gap-2 flex-1 ml-4" x-show="day.isOpen">
+                                                    <input type="time" x-model="day.openTime"
+                                                        class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                                    <span class="text-gray-500">-</span>
+                                                    <input type="time" x-model="day.closeTime"
+                                                        class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                                </div>
+                                                <div class="flex-1 ml-4 text-sm text-gray-400 italic" x-show="!day.isOpen">
+                                                    Tutup / Libur
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
 
                             </form>
@@ -96,7 +155,8 @@
                                             </svg>
                                         </div>
                                         <h3 class="text-lg font-bold text-gray-900 mb-1">Belum Ada Layanan</h3>
-                                        <p class="text-sm text-gray-500 max-w-sm mb-6">Mulai dengan menambahkan layanan baru
+                                        <p class="text-sm text-gray-500 max-w-sm mb-6">Mulai dengan menambahkan layanan
+                                            baru
                                             untuk mengelola antrean di instansi Anda.</p>
                                         <x-button type="button" variant="primary" @click="openServiceDialog()"
                                             icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
@@ -220,8 +280,18 @@
                             </div>
                             <hr class="border-gray-100">
                             <div>
+                                <p class="text-sm text-gray-500">Bahasa TTS</p>
+                                <p class="text-lg font-semibold text-gray-900" x-text="savedConfig.ttsLanguage"></p>
+                            </div>
+                            <hr class="border-gray-100">
+                            <div>
                                 <p class="text-sm text-gray-500">Maksimal Booking Online per Hari</p>
                                 <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxBookingsPerDay"></p>
+                            </div>
+                            <hr class="border-gray-100">
+                            <div>
+                                <p class="text-sm text-gray-500">Zona Waktu</p>
+                                <p class="text-lg font-semibold text-gray-900" x-text="savedConfig.timezone"></p>
                             </div>
                             <hr class="border-gray-100">
                             <div>
@@ -259,6 +329,52 @@
 @push('scripts')
     <script>
         function adminDashboard(initialConfig, initialServices) {
+            const defaultDays = [{
+                    name: 'Senin',
+                    isOpen: true,
+                    openTime: '08:00',
+                    closeTime: '16:00'
+                },
+                {
+                    name: 'Selasa',
+                    isOpen: true,
+                    openTime: '08:00',
+                    closeTime: '16:00'
+                },
+                {
+                    name: 'Rabu',
+                    isOpen: true,
+                    openTime: '08:00',
+                    closeTime: '16:00'
+                },
+                {
+                    name: 'Kamis',
+                    isOpen: true,
+                    openTime: '08:00',
+                    closeTime: '16:00'
+                },
+                {
+                    name: 'Jumat',
+                    isOpen: true,
+                    openTime: '08:00',
+                    closeTime: '16:00'
+                },
+                {
+                    name: 'Sabtu',
+                    isOpen: false,
+                    openTime: '08:00',
+                    closeTime: '14:00'
+                },
+                {
+                    name: 'Minggu',
+                    isOpen: false,
+                    openTime: '08:00',
+                    closeTime: '14:00'
+                },
+            ];
+
+            const initialOpHours = initialConfig.operational_hours;
+
             return {
                 services: initialServices,
                 isLoadingServices: false,
@@ -272,11 +388,17 @@
                 config: {
                     ttsEnabled: initialConfig.tts_enabled,
                     maxBookingsPerDay: initialConfig.max_bookings_per_day,
+                    operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
+                    ttsLanguage: initialConfig.tts_language || 'id-ID',
+                    timezone: initialConfig.timezone || 'Asia/Jakarta',
                 },
 
                 savedConfig: {
                     ttsEnabled: initialConfig.tts_enabled,
                     maxBookingsPerDay: initialConfig.max_bookings_per_day,
+                    operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
+                    ttsLanguage: initialConfig.tts_language || 'id-ID',
+                    timezone: initialConfig.timezone || 'Asia/Jakarta',
                 },
 
                 get activeServicesCount() {
@@ -303,9 +425,15 @@
                         if (result.success) {
                             this.config.ttsEnabled = result.data.tts_enabled;
                             this.config.maxBookingsPerDay = result.data.max_bookings_per_day;
+                            this.config.operationalHours = result.data.operational_hours || defaultDays;
+                            this.config.ttsLanguage = result.data.tts_language || 'id-ID';
+                            this.config.timezone = result.data.timezone || 'Asia/Jakarta';
 
                             this.savedConfig.ttsEnabled = result.data.tts_enabled;
                             this.savedConfig.maxBookingsPerDay = result.data.max_bookings_per_day;
+                            this.savedConfig.operationalHours = result.data.operational_hours || defaultDays;
+                            this.savedConfig.ttsLanguage = result.data.tts_language || 'id-ID';
+                            this.savedConfig.timezone = result.data.timezone || 'Asia/Jakarta';
                         }
                     } catch (error) {
                         console.error('Error fetching config:', error);
@@ -324,12 +452,18 @@
                             body: JSON.stringify({
                                 tts_enabled: this.config.ttsEnabled,
                                 max_bookings_per_day: this.config.maxBookingsPerDay,
+                                operational_hours: this.config.operationalHours,
+                                tts_language: this.config.ttsLanguage,
+                                timezone: this.config.timezone,
                             }),
                         });
                         const result = await response.json();
                         if (result.success) {
                             this.savedConfig.ttsEnabled = this.config.ttsEnabled;
                             this.savedConfig.maxBookingsPerDay = this.config.maxBookingsPerDay;
+                            this.savedConfig.operationalHours = this.config.operationalHours;
+                            this.savedConfig.ttsLanguage = this.config.ttsLanguage;
+                            this.savedConfig.timezone = this.config.timezone;
                             showToast(result.message, 'success');
                         } else {
                             showToast(result.message || 'Gagal menyimpan konfigurasi', 'error');
@@ -455,7 +589,8 @@
                     if (!this.selectedService || this.isToggling) return;
                     this.isToggling = true;
                     try {
-                        const response = await fetch(`{{ route('services.toggle', ':id') }}`.replace(':id', this.selectedService.id), {
+                        const response = await fetch(`{{ route('services.toggle', ':id') }}`.replace(':id', this
+                            .selectedService.id), {
                             method: 'PATCH',
                             headers: {
                                 'Accept': 'application/json',

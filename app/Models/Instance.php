@@ -18,10 +18,19 @@ class Instance extends Model
         'email',
         'website',
         'logo',
+        'favicon',
         'tts_enabled',
+        'tts_language',
         'max_bookings_per_day',
         'is_active',
         'brand_color',
+        'secondary_color',
+        'latitude',
+        'longitude',
+        'operational_hours',
+        'whatsapp_number',
+        'instagram',
+        'facebook',
         'timezone',
         'settings',
     ];
@@ -30,6 +39,7 @@ class Instance extends Model
         'tts_enabled' => 'boolean',
         'max_bookings_per_day' => 'integer',
         'is_active' => 'boolean',
+        'operational_hours' => 'array',
         'settings' => 'array',
     ];
 
