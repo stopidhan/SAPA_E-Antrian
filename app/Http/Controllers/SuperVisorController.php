@@ -327,20 +327,20 @@ class SuperVisorController extends Controller
         // Filter Options for History Tab
         $serviceOptions = Service::where('instance_id', $instanceId)
             ->get(['id', 'service_name'])
-            ->map(fn($s) => ['value' => (string)$s->id, 'label' => $s->service_name])
+            ->map(fn ($s) => ['value' => (string)$s->id, 'label' => $s->service_name])
             ->prepend(['value' => 'all', 'label' => 'Semua Layanan'])
             ->toArray();
 
         $operatorOptions = User::where('instance_id', $instanceId)
             ->where('role', 'staff_operator')
             ->get(['id', 'name'])
-            ->map(fn($u) => ['value' => (string)$u->id, 'label' => $u->name])
+            ->map(fn ($u) => ['value' => (string)$u->id, 'label' => $u->name])
             ->prepend(['value' => 'all', 'label' => 'Semua Operator'])
             ->toArray();
 
         $counterOptions = ServiceCounter::where('instance_id', $instanceId)
             ->get(['id', 'counter_number'])
-            ->map(fn($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
+            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
             ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
             ->toArray();
 

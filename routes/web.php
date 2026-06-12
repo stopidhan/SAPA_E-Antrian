@@ -203,10 +203,6 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
                     return view("Pages.AdminInstansi.activityLog");
                 })->name("activity.log");
             });
-
-            Route::get('/superadmin-report', function () {
-                return view("Pages.AdminInstansi.report");
-            })->name("superadmin.report");
         });
     });
 });

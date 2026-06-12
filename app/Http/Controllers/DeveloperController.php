@@ -32,7 +32,7 @@ class DeveloperController extends Controller
             'instance_slug' => 'required|string|max:255|unique:instances,instance_slug',
             'admin_name'    => 'required|string|max:255',
             'admin_email'   => 'required|email|unique:users,email',
-            'admin_password'=> 'required|string|min:8',
+            'admin_password' => 'required|string|min:8',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -58,26 +58,63 @@ class DeveloperController extends Controller
 
     public function edit(Instance $instance)
     {
-        return view('Pages.Developer.edit', compact('instance'));
+        $admin = $instance->users()->where('role', 'admin_instansi')->first();
+        return view('Pages.Developer.edit', compact('instance', 'admin'));
     }
 
     public function update(Request $request, Instance $instance)
     {
+        $adminUser = $instance->users()->where('role', 'admin_instansi')->first();
+
+        $adminEmailRule = ['nullable', 'email'];
+        if ($adminUser) {
+            $adminEmailRule[] = Rule::unique('users', 'email')->ignore($adminUser->id);
+        } else {
+            $adminEmailRule[] = Rule::unique('users', 'email');
+        }
+
         $request->validate([
-            'instance_name' => 'required|string|max:255',
-            'instance_slug' => ['required', 'string', 'max:255', Rule::unique('instances')->ignore($instance->id)],
-            'is_active'     => 'boolean',
-            'brand_color'   => 'nullable|string|max:50',
-            'timezone'      => 'required|string|max:100',
+            'instance_name'  => 'required|string|max:255',
+            'instance_slug'  => ['required', 'string', 'max:255', Rule::unique('instances')->ignore($instance->id)],
+            'is_active'      => 'boolean',
+            'admin_name'     => 'nullable|string|max:255',
+            'admin_email'    => $adminEmailRule,
+            'admin_password' => 'nullable|string|min:8',
         ]);
 
-        $instance->update([
-            'instance_name' => $request->instance_name,
-            'instance_slug' => $request->instance_slug,
-            'is_active'     => $request->boolean('is_active'),
-            'brand_color'   => $request->brand_color,
-            'timezone'      => $request->timezone,
-        ]);
+        DB::transaction(function () use ($request, $instance, $adminUser) {
+            $instance->update([
+                'instance_name' => $request->instance_name,
+                'instance_slug' => $request->instance_slug,
+                'is_active'     => $request->boolean('is_active'),
+            ]);
+
+            if ($adminUser) {
+                $adminData = [];
+                if ($request->filled('admin_name')) {
+                    $adminData['name'] = $request->admin_name;
+                }
+                if ($request->filled('admin_email')) {
+                    $adminData['email'] = $request->admin_email;
+                }
+                if ($request->filled('admin_password')) {
+                    $adminData['password'] = Hash::make($request->admin_password);
+                }
+                
+                if (!empty($adminData)) {
+                    $adminUser->update($adminData);
+                }
+            } else if ($request->filled('admin_email') && $request->filled('admin_password')) {
+                User::create([
+                    'name'        => $request->admin_name ?? 'Admin',
+                    'email'       => $request->admin_email,
+                    'password'    => Hash::make($request->admin_password),
+                    'role'        => 'admin_instansi',
+                    'instance_id' => $instance->id,
+                    'is_active'   => true,
+                ]);
+            }
+        });
 
         return redirect()->route('developer.instances.index')->with('success', 'Organization updated successfully.');
     }
@@ -86,7 +123,7 @@ class DeveloperController extends Controller
     {
         Session::put('impersonate_instance_id', $instance->id);
         Session::put('impersonate_instance_slug', $instance->instance_slug);
-        
+
         return redirect()->route('admininstance.dashboard', ['instance_slug' => $instance->instance_slug])
             ->with('success', "You are now impersonating {$instance->instance_name}.");
     }

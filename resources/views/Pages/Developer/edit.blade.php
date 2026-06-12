@@ -33,20 +33,32 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Instance Slug (URL Prefix)</label>
                             <input type="text" name="instance_slug" value="{{ old('instance_slug', $instance->instance_slug) }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">e.g. rsud-jakarta. Only letters, numbers, and dashes.</p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Brand Color (Hex)</label>
-                            <input type="color" name="brand_color" value="{{ old('brand_color', $instance->brand_color ?? '#ffffff') }}" class="mt-1 block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-10 w-24">
+                            <label class="block text-sm font-medium text-gray-700">Instance Code (UUID)</label>
+                            <input type="text" value="{{ $instance->instance_code }}" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-gray-300 focus:ring-0 text-gray-500" readonly>
+                        </div>
+                    </div>
+
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Admin Account Recovery / Creation</h3>
+                    <p class="text-sm text-gray-600 mb-4">Fill these fields only if you need to create a new admin account or reset an existing admin's password.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Admin Name</label>
+                            <input type="text" name="admin_name" value="{{ old('admin_name', $admin->name ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Timezone</label>
-                            <select name="timezone" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                @foreach(timezone_identifiers_list() as $tz)
-                                    <option value="{{ $tz }}" {{ old('timezone', $instance->timezone ?? 'Asia/Jakarta') == $tz ? 'selected' : '' }}>{{ $tz }}</option>
-                                @endforeach
-                            </select>
+                            <label class="block text-sm font-medium text-gray-700">Admin Email</label>
+                            <input type="email" name="admin_email" value="{{ old('admin_email', $admin->email ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">If you update the email or fill in a new password, the admin account will be updated.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">New Password</label>
+                            <input type="password" name="admin_password" minlength="8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
                     </div>
 

@@ -98,18 +98,40 @@
                 <div class="col-span-7 flex flex-col">
 
                     {{-- Area Multimedia (Atas) --}}
-                    <div
-                        class="flex-1 relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-400 to-blue-700">
-                        {{-- Placeholder Background --}}
-                        <div class="absolute inset-0 bg-cover bg-center"
-                            style="background-image: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&q=80'); filter: brightness(0.65);">
-                        </div>
-                        {{-- Overlay Teks --}}
-                        <div class="absolute bottom-0 left-0 right-0 p-8">
-                            <p class="text-white/70 text-sm font-semibold uppercase tracking-wider mb-1">Dinas
-                                Kependudukan dan Catatan Sipil</p>
-                            <h2 class="text-white text-4xl font-extrabold leading-tight">Layanan Publik<br>Terbaik</h2>
-                        </div>
+                    <div class="flex-1 relative rounded-3xl overflow-hidden bg-black shadow-inner" x-data="mediaPlayer()" x-init="initPlayer()">
+                        
+                        {{-- Media Slider --}}
+                        <template x-if="contents.length > 0">
+                            <div class="absolute inset-0 w-full h-full">
+                                <template x-for="(media, index) in contents" :key="index">
+                                    <div x-show="currentIndex === index" 
+                                         x-transition.opacity.duration.1000ms
+                                         class="absolute inset-0 w-full h-full flex items-center justify-center bg-black">
+                                         
+                                         <template x-if="media.type === 'image'">
+                                             <img :src="media.url" class="w-full h-full object-cover" />
+                                         </template>
+                                         <template x-if="media.type === 'video'">
+                                             <video :id="'media-video-' + index" :src="media.url" class="w-full h-full object-cover" muted playsinline></video>
+                                         </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        {{-- Fallback / Default Background --}}
+                        <template x-if="contents.length === 0">
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-400 to-blue-700 w-full h-full">
+                                <div class="absolute inset-0 bg-cover bg-center"
+                                    style="background-image: url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&q=80'); filter: brightness(0.65);">
+                                </div>
+                                {{-- Overlay Teks --}}
+                                <div class="absolute bottom-0 left-0 right-0 p-8">
+                                    <p class="text-white/70 text-sm font-semibold uppercase tracking-wider mb-1">{{ $instance->instance_name }}</p>
+                                    <h2 class="text-white text-4xl font-extrabold leading-tight">Layanan Publik<br>Terbaik</h2>
+                                </div>
+                            </div>
+                        </template>
                     </div>
 
                     {{-- Card Info (Bawah) --}}
@@ -307,6 +329,48 @@
                 }, 8000);
             }
 
+            function mediaPlayer() {
+                return {
+                    contents: @json($mediaContents ?? []),
+                    currentIndex: 0,
+                    timer: null,
+
+                    initPlayer() {
+                        if (this.contents.length === 0) return;
+                        this.playCurrentMedia();
+                    },
+
+                    playCurrentMedia() {
+                        if (this.timer) clearTimeout(this.timer);
+                        
+                        let media = this.contents[this.currentIndex];
+                        
+                        if (media.type === 'video') {
+                            this.$nextTick(() => {
+                                let videoEl = document.getElementById('media-video-' + this.currentIndex);
+                                if (videoEl) {
+                                    videoEl.currentTime = 0;
+                                    videoEl.play().catch(e => console.log('Video play error:', e));
+                                }
+                                
+                                this.timer = setTimeout(() => {
+                                    this.nextMedia();
+                                }, media.duration);
+                            });
+                        } else {
+                            this.timer = setTimeout(() => {
+                                this.nextMedia();
+                            }, media.duration);
+                        }
+                    },
+
+                    nextMedia() {
+                        this.currentIndex = (this.currentIndex + 1) % this.contents.length;
+                        this.playCurrentMedia();
+                    }
+                }
+            }
+
             function monitorClock() {
                 const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                 const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September',
@@ -327,9 +391,10 @@
                         update();
                         setInterval(update, 1000);
                     }
-                }
+                };
+            }
 
-                function monitorRealtime() {
+            function monitorRealtime() {
                     return {
                         currentCall: null,
                         counters: [],
@@ -454,76 +519,8 @@
                                 })
                                 .catch(error => console.error('Error fetching monitor data:', error));
                         }
-
-                        function monitorRealtime() {
-                            return {
-                                currentCall: null,
-                                counters: [],
-                                stats: {
-                                    active: '-',
-                                    total: '-'
-                                },
-
-                                audioQueue: [],
-                                isPlaying: false,
-
-                                initMonitor() {
-                                    this.fetchData();
-
-                                    // Set up event listener for websocket trigger
-                                    window.addEventListener('fetch-monitor-data', () => {
-                                        this.fetchData();
-                                    });
-
-                                    window.addEventListener('add-call-queue', (e) => {
-                                        this.audioQueue.push(e.detail);
-                                        this.processAudioQueue();
-                                    });
-                                },
-
-                                processAudioQueue() {
-                                    if (this.isPlaying || this.audioQueue.length === 0) return;
-
-                                    this.isPlaying = true;
-                                    const callInfo = this.audioQueue.shift();
-
-                                    // Update tampilan besar Panggilan Saat Ini ke nomor yang baru masuk
-                                    this.currentCall = callInfo;
-
-                                    // Mainkan bunyi panggilan
-                                    const audio = new Audio(
-                                    'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
-                                    audio.play().then(() => {
-                                        // Beri waktu 4 detik menampilkan nomor ini sebelum memproses nomor loket berikutnya
-                                        setTimeout(() => {
-                                            this.isPlaying = false;
-                                            this.processAudioQueue();
-                                        }, 4000);
-                                    }).catch(e => {
-                                        console.log('Audio error:', e);
-                                        setTimeout(() => {
-                                            this.isPlaying = false;
-                                            this.processAudioQueue();
-                                        }, 2000);
-                                    });
-                                },
-
-                                fetchData() {
-                                    fetch('{{ route('monitor.api') }}')
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
-                                            if (!this.isPlaying && this.audioQueue.length === 0) {
-                                                this.currentCall = data.current_call;
-                                            }
-
-                                            this.counters = data.counters;
-                                            this.stats = data.counters_stats;
-                                        })
-                                        .catch(error => console.error('Error fetching monitor data:', error));
-                                }
-                            }
-                        }
+                    }
+                }
         </script>
 </body>
 

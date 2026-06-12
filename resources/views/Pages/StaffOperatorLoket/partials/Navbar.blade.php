@@ -22,7 +22,7 @@
 
         {{-- Kanan: Profil + Logout --}}
         <div class="flex items-center gap-3">
-            <button x-show="counterId" @click="closeSession()" class="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold rounded-lg hover:bg-amber-100 transition">
+            <button x-show="counterId" type="button" @click="$dispatch('open-modal', 'confirm-close-session')" class="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold rounded-lg hover:bg-amber-100 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 Tutup Sesi
             </button>
@@ -32,13 +32,10 @@
                 </div>
 <span class="text-sm font-semibold text-gray-700">{{ auth()->user()->name ?? 'Operator' }}</span>
             </div>
-            <form method="POST" action="{{ route('logout', ['instance_slug' => request()->route('instance_slug') ?? optional(auth()->user()->instance)->instance_slug ?? 'admin']) }}" class="m-0">
-                @csrf
-                <button type="submit" class="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-500 text-sm font-semibold rounded-lg hover:bg-gray-50 hover:text-red-500 hover:border-red-200 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>       
-                    Logout
-                </button>
-            </form>
+            <button type="button" @click="$dispatch('open-modal', 'confirm-logout')" class="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-500 text-sm font-semibold rounded-lg hover:bg-gray-50 hover:text-red-500 hover:border-red-200 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>       
+                Logout
+            </button>
         </div>
 
     </div>

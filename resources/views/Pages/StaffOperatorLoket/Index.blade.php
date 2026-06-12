@@ -31,7 +31,7 @@
 <body class="antialiased">
 
     {{-- ====== FULL-SCREEN WRAPPER + ALPINE STATE ====== --}}
-    <div x-data="operatorDashboard()" class="min-h-screen bg-slate-50 flex flex-col">
+    <div x-data="operatorDashboard()" @confirm-close-session.window="closeSession()" class="min-h-screen bg-slate-50 flex flex-col">
 
         {{-- Navbar --}}
         @include('Pages.StaffOperatorLoket.partials.Navbar')
@@ -100,6 +100,10 @@
                 </div>
             </div>
         </div>
+
+        {{-- ====== MODAL CONFIRMATION ====== --}}
+        <x-modals.modal-confirmation name="confirm-logout" variant="logout" />
+        <x-modals.modal-confirmation name="confirm-close-session" variant="close-session" />
     </div>
 
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
@@ -206,8 +210,6 @@
                 },
 
                 closeSession() {
-                    if (!confirm('Apakah Anda yakin ingin menutup sesi loket ini?')) return;
-                    
                     fetch(`/${this.instanceSlug}/staff/operator/close-session`, {
                         method: 'POST',
                         headers: {

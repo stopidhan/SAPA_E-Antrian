@@ -56,6 +56,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('supervisor.dashboard', ['instance_slug' => $instanceSlug]);
         }
 
+        if ($user->role === 'super_admin') {
+            return redirect()->route('developer.instances.index');
+        }
+
         // Untuk role lain (admin, kepala layanan, dll)
         if ($intended) {
             return redirect($intended);

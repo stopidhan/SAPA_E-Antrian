@@ -22,7 +22,7 @@ class UserManagementController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
@@ -95,7 +95,7 @@ class UserManagementController extends Controller
     public function update(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
         if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
-            return $request->wantsJson() 
+            return $request->wantsJson()
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
         }
@@ -148,7 +148,7 @@ class UserManagementController extends Controller
     public function toggleStatus(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
         if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
-            return $request->wantsJson() 
+            return $request->wantsJson()
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
         }
@@ -186,45 +186,10 @@ class UserManagementController extends Controller
         }
     }
 
-    public function destroy(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
-    {
-        if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
-            return $request->wantsJson() 
-                ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
-                : back()->with('error', 'Unauthorized');
-        }
-
-        try {
-            if ($user->role === 'super_admin') {
-                $message = 'Tidak dapat menghapus Super Admin.';
-                return $request->wantsJson() ? response()->json(['success' => false, 'message' => $message], 403) : back()->with('error', $message);
-            }
-
-            if ($user->id === auth()->id()) {
-                $message = 'Anda tidak dapat menghapus akun sendiri.';
-                return $request->wantsJson() ? response()->json(['success' => false, 'message' => $message], 403) : back()->with('error', $message);
-            }
-
-            $user->delete();
-
-            if ($request->wantsJson()) {
-                return response()->json(['success' => true, 'message' => 'User berhasil dihapus.']);
-            }
-
-            return back()->with('success', 'User berhasil dihapus.');
-        } catch (\Exception $e) {
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Gagal menghapus user: ' . $e->getMessage()], 400);
-            }
-
-            return back()->with('error', 'Gagal menghapus user: ' . $e->getMessage());
-        }
-    }
-
     public function resetPassword(Request $request, string $instanceSlug, User $user): JsonResponse|RedirectResponse
     {
         if ($user->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
-            return $request->wantsJson() 
+            return $request->wantsJson()
                 ? response()->json(['success' => false, 'message' => 'Unauthorized'], 403)
                 : back()->with('error', 'Unauthorized');
         }

@@ -11,7 +11,20 @@ class MonitorController extends Controller
     public function index(string $instanceSlug)
     {
         $instance = \App\Models\Instance::where('instance_slug', $instanceSlug)->firstOrFail();
-        return view('Pages.MonitorPublic.monitor', compact('instance'));
+        
+        $mediaContents = \App\Models\MediaContent::where('instance_id', $instance->id)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($media) {
+                return [
+                    'type' => $media->media_type,
+                    'url' => asset('storage/' . $media->file_path),
+                    'duration' => ($media->duration ?? 10) * 1000,
+                ];
+            });
+
+        return view('Pages.MonitorPublic.monitor', compact('instance', 'mediaContents'));
     }
 
     public function getMonitorApi(string $instanceSlug)
