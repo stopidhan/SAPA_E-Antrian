@@ -130,9 +130,9 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                         </svg>
-                                        <h2 class="text-lg font-bold">Manajemen Layanan & Konter</h2>
+                                        <h2 class="text-lg font-bold">Manajemen Layanan & Loket</h2>
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-1">Kelola layanan dan konter yang tersedia di sistem
+                                    <p class="text-sm text-gray-500 mt-1">Kelola layanan dan Loket yang tersedia di sistem
                                         antrean</p>
                                 </div>
                                 <x-button type="button" variant="success" @click="openServiceDialog()"
@@ -229,7 +229,7 @@
 
                                         {{-- Service Counters List --}}
                                         <div class="border-t px-4 py-3 bg-gray-50">
-                                            <div class="text-sm font-medium text-gray-600 mb-3">Konter Melayani Layanan
+                                            <div class="text-sm font-medium text-gray-600 mb-3">Loket Melayani Layanan
                                                 Ini:</div>
 
                                             <template x-if="service.counters && service.counters.length > 0">
@@ -238,7 +238,7 @@
                                                         <div
                                                             class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1">
                                                             <span class="text-sm font-medium text-gray-700"
-                                                                x-text="`Konter ${counter.counter_number}`"></span>
+                                                                x-text="`Loket ${counter.counter_number}`"></span>
                                                             <template x-if="counter.is_active">
                                                                 <span class="w-2 h-2 rounded-full bg-green-500"></span>
                                                             </template>
@@ -251,7 +251,7 @@
                                             </template>
 
                                             <template x-if="!service.counters || service.counters.length === 0">
-                                                <p class="text-sm text-gray-400 italic">Belum ada konter yang melayani
+                                                <p class="text-sm text-gray-400 italic">Belum ada Loket yang melayani
                                                     layanan ini</p>
                                             </template>
                                         </div>
@@ -279,11 +279,11 @@
                                 </p>
                             </div>
                             <hr class="border-gray-100">
-                            <div>
+                            <div x-show="savedConfig.ttsEnabled">
                                 <p class="text-sm text-gray-500">Bahasa TTS</p>
                                 <p class="text-lg font-semibold text-gray-900" x-text="savedConfig.ttsLanguage"></p>
                             </div>
-                            <hr class="border-gray-100">
+                            <hr class="border-gray-100" x-show="savedConfig.ttsEnabled">
                             <div>
                                 <p class="text-sm text-gray-500">Maksimal Booking Online per Hari</p>
                                 <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxBookingsPerDay"></p>

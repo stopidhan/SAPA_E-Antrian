@@ -24,41 +24,13 @@
             font-family: 'Figtree', sans-serif
         }
 
-        /* Overlay Style */
-        #audio-unlock-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            color: white;
-            cursor: pointer;
-            transition: opacity 0.5s ease;
+        body {
+            font-family: 'Figtree', sans-serif
         }
     </style>
 </head>
 
-<body class="bg-gray-200 antialiased overflow-hidden" x-data="monitorRealtime()" x-init="initMonitor()">
-
-    {{-- ====== OVERLAY AKTIFKAN SUARA ====== --}}
-    <div id="audio-unlock-overlay" onclick="unlockAudio()">
-        <div
-            class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-xl shadow-blue-500/50">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-            </svg>
-        </div>
-        <h2 class="text-3xl font-black mb-2">Monitor Sudah Siap</h2>
-        <p class="text-gray-300 text-lg">Klik di mana saja untuk mengaktifkan suara notifikasi</p>
-    </div>
+<body class="bg-gray-200 antialiased overflow-hidden" x-data="monitorRealtime()" x-init="initMonitor()" @click.once="unlockAudio()">
 
     <div class="w-full h-screen bg-gray-50 flex flex-col font-sans overflow-hidden select-none">
 
@@ -141,7 +113,7 @@
                             <div class="px-4">
                                 <p class="text-white/60 text-xs font-semibold uppercase tracking-wider mb-1">Jam
                                     Operasional</p>
-                                <p class="text-2xl font-extrabold">08:00 - 16:00</p>
+                                <p class="text-2xl font-extrabold" x-text="operationalInfo.jam_operasional">-</p>
                             </div>
                             {{-- Loket Aktif --}}
                             <div class="px-4">
@@ -154,8 +126,9 @@
                                 <p class="text-white/60 text-xs font-semibold uppercase tracking-wider mb-1">Status</p>
                                 <div class="flex items-center justify-center gap-2 mt-1">
                                     <span
-                                        class="w-3 h-3 bg-emerald-400 rounded-full shadow-sm shadow-emerald-400/50"></span>
-                                    <span class="text-2xl font-extrabold">Operasional</span>
+                                        class="w-3 h-3 rounded-full shadow-sm"
+                                        :class="operationalInfo.is_open ? 'bg-emerald-400 shadow-emerald-400/50' : 'bg-red-400 shadow-red-400/50'"></span>
+                                    <span class="text-2xl font-extrabold" x-text="operationalInfo.status">-</span>
                                 </div>
                             </div>
                         </div>
@@ -288,15 +261,14 @@
                             detail: e.queue
                         }));
                     }
+                })
+                .listen('MediaUpdated', (e) => {
+                    console.log('MediaUpdated event received');
+                    window.dispatchEvent(new CustomEvent('fetch-monitor-data'));
                 });
 
             // Fungsi untuk membuka blokir audio browser
             function unlockAudio() {
-                // Hilangkan overlay
-                const overlay = document.getElementById('audio-unlock-overlay');
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 500);
-
                 // Pancing browser agar memberikan izin audio dengan memutar suara kosong/pendek
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
                 audio.volume = 0; // Tanpa suara, hanya pancingan
@@ -336,6 +308,15 @@
                     timer: null,
 
                     initPlayer() {
+                        window.addEventListener('update-media-contents', (e) => {
+                            // Cek jika konten benar-benar berubah untuk menghindari restart paksa saat queue update
+                            if (JSON.stringify(this.contents) !== JSON.stringify(e.detail)) {
+                                this.contents = e.detail;
+                                this.currentIndex = 0;
+                                this.playCurrentMedia();
+                            }
+                        });
+
                         if (this.contents.length === 0) return;
                         this.playCurrentMedia();
                     },
@@ -402,9 +383,16 @@
                             active: '-',
                             total: '-'
                         },
+                        operationalInfo: {
+                            jam_operasional: '-',
+                            status: '-',
+                            is_open: false
+                        },
 
                         audioQueue: [],
                         isPlaying: false,
+                        ttsEnabled: {{ $instance->tts_enabled ? 'true' : 'false' }},
+                        ttsLanguage: '{{ $instance->tts_language ?? "id-ID" }}',
 
                         initMonitor() {
                             this.fetchData();
@@ -437,7 +425,7 @@
                         },
 
                         playTTS(queueNumber, counterNumber, callback) {
-                            if (!('speechSynthesis' in window)) {
+                            if (!this.ttsEnabled || !('speechSynthesis' in window)) {
                                 callback();
                                 return;
                             }
@@ -447,15 +435,21 @@
 
                             // Teks yang akan dibacakan
                             let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju loket, ${counterNumber}.`;
+                            if (this.ttsLanguage.startsWith('en')) {
+                                textToSpeak = `Queue number, ${spelledNumber}. please proceed to counter, ${counterNumber}.`;
+                            }
 
                             let utterance = new SpeechSynthesisUtterance(textToSpeak);
-                            utterance.lang = 'id-ID';
+                            utterance.lang = this.ttsLanguage;
                             utterance.rate = 0.85; // Diperlambat sedikit agar lebih jelas
 
-                            // Mencari suara Microsoft Edge TTS (Gadis / Ardi)
+                            // Mencari suara Microsoft Edge TTS (Gadis / Ardi) atau yang sesuai dengan bahasa
                             let voices = window.speechSynthesis.getVoices();
-                            let edgeVoice = voices.find(v => v.name.includes('Gadis') || v.name.includes('Ardi') || (v.name
-                                .includes('Microsoft') && v.lang.includes('id')));
+                            let edgeVoice = voices.find(v => (v.name.includes('Gadis') || v.name.includes('Ardi') || v.name.includes('Microsoft')) && v.lang.includes(this.ttsLanguage.split('-')[0]));
+                            
+                            if (!edgeVoice) {
+                                edgeVoice = voices.find(v => v.lang.includes(this.ttsLanguage.split('-')[0]));
+                            }
 
                             if (edgeVoice) {
                                 utterance.voice = edgeVoice;
@@ -505,8 +499,8 @@
                         },
 
                         fetchData() {
-                            const instanceCode = '{{ $instance->instance_code }}';
-                            fetch(`/${instanceCode}/monitor/api`)
+                            const instanceSlug = '{{ $instance->instance_slug }}';
+                            fetch(`/${instanceSlug}/monitor/api`)
                                 .then(response => response.json())
                                 .then(data => {
                                     // Jangan timpa currentCall jika sedang asyik memproses panggilan suara secara realtime
@@ -516,6 +510,8 @@
 
                                     this.counters = data.counters;
                                     this.stats = data.counters_stats;
+                                    this.operationalInfo = data.operational_info;
+                                    window.dispatchEvent(new CustomEvent('update-media-contents', { detail: data.media_contents }));
                                 })
                                 .catch(error => console.error('Error fetching monitor data:', error));
                         }

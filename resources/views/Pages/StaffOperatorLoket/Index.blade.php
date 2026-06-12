@@ -132,6 +132,8 @@
                 queue: @json($queuesData),
                 history: @json($historyData),
                 instanceSlug: '{{ auth()->user()->instance->instance_slug ?? '' }}',
+                ttsEnabled: {{ $tts_enabled ? 'true' : 'false' }},
+                ttsLanguage: '{{ $tts_language ?? "id-ID" }}',
 
                 init() {
                     // Coba auto-select counter dari localStorage jika ada tapi belum buka sesi
@@ -158,6 +160,14 @@
                     // Ambil data pertama kali saat halaman dimuat
                     if (this.counterId) {
                         this.fetchQueues();
+                    }
+
+                    // Pre-load Web Speech API Voices
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.getVoices();
+                        window.speechSynthesis.onvoiceschanged = () => {
+                            window.speechSynthesis.getVoices();
+                        };
                     }
 
                     // INISIALISASI WEBSOCKET (LARAVEL ECHO + REVERB)
@@ -226,6 +236,35 @@
                     });
                 },
 
+                playTTS(queueNumber, counterNumber) {
+                    if (!this.ttsEnabled || !('speechSynthesis' in window)) {
+                        return;
+                    }
+
+                    let spelledNumber = queueNumber.split('').join(' ');
+                    let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju loket, ${counterNumber}.`;
+                    if (this.ttsLanguage.startsWith('en')) {
+                        textToSpeak = `Queue number, ${spelledNumber}. please proceed to counter, ${counterNumber}.`;
+                    }
+
+                    let utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    utterance.lang = this.ttsLanguage;
+                    utterance.rate = 0.85;
+
+                    let voices = window.speechSynthesis.getVoices();
+                    let edgeVoice = voices.find(v => (v.name.includes('Gadis') || v.name.includes('Ardi') || v.name.includes('Microsoft')) && v.lang.includes(this.ttsLanguage.split('-')[0]));
+                    
+                    if (!edgeVoice) {
+                        edgeVoice = voices.find(v => v.lang.includes(this.ttsLanguage.split('-')[0]));
+                    }
+
+                    if (edgeVoice) {
+                        utterance.voice = edgeVoice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+                },
+
                 fetchQueues() {
                     fetch(`/${this.instanceSlug}/staff/operator/api/queues`)
                         .then(res => {
@@ -292,6 +331,7 @@
                             console.log(data.message);
                             this.state = 'calling';
                             this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket, 'call');
+                            this.playTTS(this.currentQueue.nomor, this.loket);
                         })
                         .catch(error => console.error('Error:', error));
                 },
@@ -313,6 +353,7 @@
                     });
 
                     this.showNotif('Memanggil ulang nomor ' + this.currentQueue.nomor + '...', 'call');
+                    this.playTTS(this.currentQueue.nomor, this.loket);
                 },
 
                 lewatiAntrian() {
@@ -359,6 +400,7 @@
                                 this.state = 'calling';
                                 this.showNotif('Memanggil nomor ' + this.currentQueue.nomor + ' ke ' + this.loket,
                                     'call');
+                                this.playTTS(this.currentQueue.nomor, this.loket);
                             });
 
                     } else {

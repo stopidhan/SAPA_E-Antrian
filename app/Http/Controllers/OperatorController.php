@@ -115,7 +115,10 @@ class OperatorController extends Controller
             }
         }
 
-        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds', 'availableCounters'));
+        $tts_enabled = $userInstance->tts_enabled ?? false;
+        $tts_language = $userInstance->tts_language ?? 'id-ID';
+
+        return view('Pages.StaffOperatorLoket.Index', compact('queuesData', 'historyData', 'namaLoket', 'idLoket', 'services', 'activeQueue', 'timerSeconds', 'availableCounters', 'tts_enabled', 'tts_language'));
     }
 
     public function openSession(Request $request, $instance_slug)

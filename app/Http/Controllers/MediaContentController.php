@@ -6,6 +6,7 @@ use App\Models\MediaContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Events\MediaUpdated;
 
 class MediaContentController extends Controller
 {
@@ -101,6 +102,8 @@ class MediaContentController extends Controller
                     $request->duration ?? ($mediaType === "image" ? 10 : null),
                 "is_active" => $request->has("is_active") ? true : false,
             ]);
+
+            broadcast(new MediaUpdated(app(\App\Services\TenantManager::class)->getInstanceId()));
 
             return redirect()
                 ->route("content.index")
@@ -198,6 +201,8 @@ class MediaContentController extends Controller
 
             $content->update($data);
 
+            broadcast(new MediaUpdated($content->instance_id));
+
             return redirect()
                 ->route("content.index")
                 ->with("success", "Konten berhasil diperbarui!");
@@ -221,6 +226,8 @@ class MediaContentController extends Controller
 
         try {
             $content->update(["is_active" => !$content->is_active]);
+
+            broadcast(new MediaUpdated($content->instance_id));
 
             return response()->json([
                 "success" => true,
@@ -257,6 +264,8 @@ class MediaContentController extends Controller
             }
 
             $content->delete();
+
+            broadcast(new MediaUpdated($content->instance_id));
 
             return redirect()
                 ->route("content.index")

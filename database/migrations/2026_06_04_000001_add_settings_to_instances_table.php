@@ -11,7 +11,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::table('instances', function (Blueprint $table) {
-            $table->boolean('tts_enabled')->default(false)->after('logo');
+            $table->boolean('tts_enabled')->default(true)->after('logo');
             $table->unsignedInteger('max_bookings_per_day')->default(5)->after('tts_enabled');
         });
     }

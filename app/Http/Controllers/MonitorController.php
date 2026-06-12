@@ -87,8 +87,40 @@ class MonitorController extends Controller
         $activeCounters = ServiceCounter::where('instance_id', $instanceId)->where('is_active', true)->count();
         $totalCounters = ServiceCounter::where('instance_id', $instanceId)->count();
 
+        // Cari jam operasional hari ini
+        $todayName = \Carbon\Carbon::now()->locale('id')->isoFormat('dddd');
+        $jamBuka = '08:00';
+        $jamTutup = '16:00';
+        $isOpenToday = false;
+
+        if (is_array($instance->operational_hours)) {
+            foreach ($instance->operational_hours as $oh) {
+                if (strtolower($oh['name']) === strtolower($todayName)) {
+                    $jamBuka = $oh['openTime'] ?? '08:00';
+                    $jamTutup = $oh['closeTime'] ?? '16:00';
+                    $isOpenToday = $oh['isOpen'] ?? false;
+                    break;
+                }
+            }
+        }
+
+        $now = \Carbon\Carbon::now()->format('H:i');
+        $isCurrentlyOpen = $instance->is_active && $isOpenToday && ($now >= $jamBuka && $now <= $jamTutup);
+
         // Validasi counter saat ini (jika ada) untuk pemicu notifikasi bunyi
         $latestCalledId = $currentCall && $currentCall->queue_status === 'called' ? $currentCall->id : null;
+
+        $mediaContents = \App\Models\MediaContent::where('instance_id', $instanceId)
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($media) {
+                return [
+                    'type' => $media->media_type,
+                    'url' => asset('storage/' . $media->file_path),
+                    'duration' => ($media->duration ?? 10) * 1000,
+                ];
+            });
 
         return response()->json([
             'current_call' => $currentCall ? [
@@ -102,6 +134,12 @@ class MonitorController extends Controller
                 'active' => $activeCounters,
                 'total' => $totalCounters
             ],
+            'operational_info' => [
+                'jam_operasional' => $isOpenToday ? $jamBuka . ' - ' . $jamTutup : 'Libur',
+                'status' => $isCurrentlyOpen ? 'Operasional' : 'Tutup',
+                'is_open' => $isCurrentlyOpen
+            ],
+            'media_contents' => $mediaContents
         ]);
     }
 }
