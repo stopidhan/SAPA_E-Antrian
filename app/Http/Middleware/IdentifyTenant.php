@@ -37,7 +37,7 @@ class IdentifyTenant
                 $user = auth()->user();
                 
                 // Allow super_admin to access anything
-                if (!$user->isSuperAdmin()) {
+                if (!method_exists($user, 'isSuperAdmin') || !$user->isSuperAdmin()) {
                     if ($user->instance_id !== $instance->id) {
                         abort(403, 'Akses tidak diizinkan untuk instansi ini.');
                     }

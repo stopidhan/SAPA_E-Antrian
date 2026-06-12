@@ -27,7 +27,7 @@ class CheckInstanceStatus
 
         if ($instance && !$instance->is_active) {
             // Allow super_admin to bypass this check if they are impersonating
-            if (auth()->check() && auth()->user()->isSuperAdmin()) {
+            if (auth()->check() && method_exists(auth()->user(), 'isSuperAdmin') && auth()->user()->isSuperAdmin()) {
                 return $next($request);
             }
             

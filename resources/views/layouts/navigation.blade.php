@@ -31,7 +31,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
-                    @if(Auth::user()->isSuperAdmin())
+                    @if(method_exists(Auth::user(), 'isSuperAdmin') && Auth::user()->isSuperAdmin())
                         <x-nav-link :href="route('developer.instances.index')" :active="request()->routeIs('developer.*')">
                             {{ __('Developer Dashboard') }}
                         </x-nav-link>
@@ -92,7 +92,7 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if(Auth::user()->isSuperAdmin())
+            @if(method_exists(Auth::user(), 'isSuperAdmin') && Auth::user()->isSuperAdmin())
                 <x-responsive-nav-link :href="route('developer.instances.index')" :active="request()->routeIs('developer.*')">
                     {{ __('Developer Dashboard') }}
                 </x-responsive-nav-link>
