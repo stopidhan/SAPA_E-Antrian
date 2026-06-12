@@ -420,6 +420,26 @@ class SuperVisorController extends Controller
     }
 
     /**
+     * AJAX endpoint returning rendered HTML partial for live tracking sections.
+     * Called by the WebSocket handler to swap Operator Performance + Counter Status DOM.
+     */
+    public function livePartial(Request $request)
+    {
+        $instance = $this->getInstance();
+        $instanceId = $instance->id;
+
+        $operatorPerformance = $this->getOperatorPerformance($instanceId);
+        $counters = $this->getCounterStatuses($instanceId);
+        $registrationTypes = $this->getRegistrationTypes($instanceId);
+
+        return view('Pages.KepalaLayanan.liveTracking', compact(
+            'operatorPerformance',
+            'counters',
+            'registrationTypes'
+        ))->render();
+    }
+
+    /**
      * AJAX endpoint for queue detail (for history detail modal).
      */
     public function queueDetail(string $instanceSlug, Queue $queue)

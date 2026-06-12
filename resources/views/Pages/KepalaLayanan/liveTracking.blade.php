@@ -2,7 +2,7 @@
 <div x-show="activeTab === 'live'" class="space-y-6">
 
     {{-- Operator Performance --}}
-    <div class="bg-white rounded-2xl border shadow-sm">
+    <div class="bg-white rounded-2xl border shadow-sm" id="live-operator-performance">
         <div class="p-6 border-b">
             <div class="flex items-center gap-2">
                 <h2 class="text-lg font-bold">Kinerja Operator </h2>
@@ -176,7 +176,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- Counter Status --}}
-        <div class="bg-white rounded-2xl border shadow-sm">
+        <div class="bg-white rounded-2xl border shadow-sm" id="live-counter-status">
             <div class="p-5 border-b">
                 <h3 class="font-bold">Status Loket Real-time</h3>
                 <p class="text-sm text-gray-500 mt-0.5">Monitoring kinerja per loket</p>

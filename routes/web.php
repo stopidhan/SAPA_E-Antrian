@@ -148,6 +148,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             Route::middleware(['role:kepala_layanan,admin_instansi'])->prefix('supervisor')->group(function () {
                 Route::get('/', [SuperVisorController::class, 'index'])->name('supervisor.dashboard');
                 Route::get('/api/live', [SuperVisorController::class, 'liveApi'])->name('supervisor.api.live');
+                Route::get('/api/live/partial', [SuperVisorController::class, 'livePartial'])->name('supervisor.api.live.partial');
                 Route::get('/api/queue/{queue}', [SuperVisorController::class, 'queueDetail'])->name('supervisor.api.queue-detail');
                 Route::get('/export/live/pdf', [SuperVisorController::class, 'exportLivePdf'])->name('supervisor.export.live.pdf');
                 Route::get('/export/live/excel', [SuperVisorController::class, 'exportLiveExcel'])->name('supervisor.export.live.excel');

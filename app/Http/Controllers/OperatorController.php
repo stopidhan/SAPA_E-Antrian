@@ -163,6 +163,9 @@ class OperatorController extends Controller
             'started_at' => now(),
         ]);
 
+        // Trigger websocket event to update Supervisor Dashboard (Operator joined)
+        event(new \App\Events\QueueUpdated('session_opened', null, $instanceId));
+
         return response()->json(['success' => true, 'message' => 'Sesi berhasil dibuka.']);
     }
 
@@ -174,6 +177,9 @@ class OperatorController extends Controller
                 'status' => 'closed',
                 'ended_at' => now(),
             ]);
+
+        // Trigger websocket event to update Supervisor Dashboard (Operator left)
+        event(new \App\Events\QueueUpdated('session_closed', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Sesi berhasil ditutup.']);
     }

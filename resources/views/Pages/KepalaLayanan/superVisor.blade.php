@@ -5,6 +5,29 @@
 @section('content')
     <div class="min-h-screen bg-gray-50" x-data="supervisorDashboard()">
 
+        {{-- Real-time Connection Status Indicator --}}
+        <div class="container mx-auto max-w-7xl px-4 pt-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <template x-if="wsConnected">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            Live — Real-time
+                        </span>
+                    </template>
+                    <template x-if="!wsConnected">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            Offline — Reconnecting...
+                        </span>
+                    </template>
+                </div>
+                <template x-if="lastUpdate">
+                    <span class="text-xs text-gray-400" x-text="'Update terakhir: ' + lastUpdate"></span>
+                </template>
+            </div>
+        </div>
+
         <main class="container mx-auto max-w-7xl px-4 py-6">
 
             {{-- ===== TOP STATS (5 cards) ===== --}}
@@ -89,13 +112,93 @@
                 period: 'today',
                 detailData: null,
                 detailLoading: false,
-                pollingInterval: null,
                 liveRegChart: null,
+                wsConnected: false,
+                lastUpdate: null,
+                fetchInProgress: false,
 
                 init() {
-                    // Start polling when on live tab
-                    this.startPolling();
                     this.renderLiveRegChart();
+                    this.initWebSocket();
+                },
+
+                /**
+                 * Initialize Laravel Echo + Reverb WebSocket connection.
+                 * Replaces the old setInterval polling with instant event-driven updates.
+                 * Uses the Echo instance already initialized by Vite in bootstrap.js/echo.js
+                 */
+                initWebSocket(retryCount = 0) {
+                    // Guard: wait for Echo instance from Vite to be ready
+                    if (typeof window.Echo === 'undefined' || typeof window.Echo.channel !== 'function') {
+                        if (retryCount < 20) {
+                            setTimeout(() => this.initWebSocket(retryCount + 1), 250);
+                            return;
+                        }
+                        console.error('[Supervisor WebSocket] Echo instance not loaded by Vite after retries');
+                        this.startFallbackPolling();
+                        return;
+                    }
+
+                    try {
+                        const channel = window.Echo.channel('queues.{{ auth()->user()->instance_id }}');
+
+                        // Listen for queue status changes (called, serving, completed, skipped, cancelled)
+                        channel.listen('QueueUpdated', (e) => {
+                            console.log('[Supervisor WebSocket] QueueUpdated:', e.message, e.queue);
+                            this.onRealtimeEvent('QueueUpdated', e);
+                        });
+
+                        // Listen for new queue check-ins (online/kiosk)
+                        channel.listen('QueueCheckedIn', (e) => {
+                            console.log('[Supervisor WebSocket] QueueCheckedIn:', e.queue);
+                            this.onRealtimeEvent('QueueCheckedIn', e);
+                        });
+
+                        // Track connection state via Pusher connector
+                        const pusher = window.Echo.connector.pusher;
+                        pusher.connection.bind('connected', () => {
+                            this.wsConnected = true;
+                            console.log('[Supervisor WebSocket] Connected ✓');
+                        });
+                        pusher.connection.bind('disconnected', () => {
+                            this.wsConnected = false;
+                            console.log('[Supervisor WebSocket] Disconnected ✕');
+                        });
+                        pusher.connection.bind('error', (err) => {
+                            this.wsConnected = false;
+                            console.warn('[Supervisor WebSocket] Connection error:', err);
+                        });
+
+                    } catch (err) {
+                        console.error('[Supervisor WebSocket] Init failed:', err);
+                        // Graceful fallback: poll every 15s if WebSocket fails
+                        this.startFallbackPolling();
+                    }
+                },
+
+                /**
+                 * Handle any real-time event by debouncing and fetching fresh data.
+                 */
+                onRealtimeEvent(eventName, payload) {
+                    this.lastUpdate = new Date().toLocaleTimeString('id-ID');
+
+                    // Debounce: if multiple events arrive within 500ms, only fetch once
+                    if (this._debounceTimer) clearTimeout(this._debounceTimer);
+                    this._debounceTimer = setTimeout(() => {
+                        this.fetchLiveData();
+                        this.fetchLivePartial();
+                    }, 300);
+                },
+
+                /**
+                 * Fallback polling in case WebSocket connection fails entirely.
+                 */
+                startFallbackPolling() {
+                    console.warn('[Supervisor] Falling back to polling (15s interval)');
+                    this._fallbackInterval = setInterval(() => {
+                        this.fetchLiveData();
+                        this.fetchLivePartial();
+                    }, 15000);
                 },
 
                 renderLiveRegChart() {
@@ -110,8 +213,8 @@
                                         {{ $registrationTypes['onsite'] ?? 0 }}
                                     ],
                                     backgroundColor: [
-                                        'rgba(59, 130, 246, 0.8)', // Blue for Online
-                                        'rgba(16, 185, 129, 0.8)' // Green for Onsite
+                                        'rgba(59, 130, 246, 0.8)',
+                                        'rgba(16, 185, 129, 0.8)'
                                     ],
                                 }]
                             },
@@ -128,19 +231,21 @@
                     }
                 },
 
-                startPolling() {
-                    // Poll every 10 seconds
-                    this.pollingInterval = setInterval(() => {
-                        this.fetchLiveData();
-                    }, 10000);
-                },
-
+                /**
+                 * Fetch JSON stats and update stat cards + chart.
+                 */
                 async fetchLiveData() {
+                    if (this.fetchInProgress) return;
+                    this.fetchInProgress = true;
+
                     try {
-                        const response = await fetch('{{ route('supervisor.api.live') }}', {
+                        const url = '{{ route('supervisor.api.live') }}?_t=' + new Date().getTime();
+                        const response = await fetch(url, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'Accept': 'application/json',
+                                'Cache-Control': 'no-cache',
+                                'Pragma': 'no-cache'
                             }
                         });
 
@@ -160,16 +265,70 @@
                             });
                         }
 
-                        // Update Registration Types Chart
+                        // Update Registration Types Doughnut Chart
                         if (data.registrationTypes && this.liveRegChart) {
                             this.liveRegChart.data.datasets[0].data = [
                                 data.registrationTypes.online,
                                 data.registrationTypes.onsite
                             ];
-                            this.liveRegChart.update();
+                            // Only update chart if canvas is visible (not hidden by another tab)
+                            // to prevent Chart.js fullSize layout error
+                            if (this.liveRegChart.canvas && this.liveRegChart.canvas.offsetParent !== null) {
+                                this.liveRegChart.update();
+                            }
                         }
                     } catch (err) {
-                        console.warn('Live polling error:', err);
+                        console.warn('[Supervisor] Live data fetch error:', err);
+                    } finally {
+                        this.fetchInProgress = false;
+                    }
+                },
+
+                /**
+                 * Fetch the rendered HTML partial for the live tracking tab sections
+                 * (Operator Performance + Counter Status) and swap the DOM content.
+                 * This ensures server-rendered Blade logic (colors, badges, bars) stays accurate.
+                 */
+                async fetchLivePartial() {
+                    try {
+                        const url = '{{ route('supervisor.api.live.partial') }}?_t=' + new Date().getTime();
+                        const response = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'text/html',
+                                'Cache-Control': 'no-cache',
+                                'Pragma': 'no-cache'
+                            }
+                        });
+
+                        if (!response.ok) return;
+
+                        const html = await response.text();
+
+                        // Replace the operator performance section
+                        const operatorContainer = document.getElementById('live-operator-performance');
+                        const counterContainer = document.getElementById('live-counter-status');
+
+                        if (operatorContainer || counterContainer) {
+                            // Parse the returned HTML into a temporary document
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+
+                            const newOperator = doc.getElementById('live-operator-performance');
+                            const newCounter = doc.getElementById('live-counter-status');
+                            
+                            console.log('[Supervisor] Live Partial Parsed. Found Operator:', !!newOperator, 'Found Counter:', !!newCounter);
+
+                            if (operatorContainer && newOperator) {
+                                operatorContainer.innerHTML = newOperator.innerHTML;
+                            }
+                            if (counterContainer && newCounter) {
+                                counterContainer.innerHTML = newCounter.innerHTML;
+                                console.log('[Supervisor] Counter Status DOM swapped successfully');
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('[Supervisor] Live partial fetch error:', err);
                     }
                 },
 
@@ -202,8 +361,12 @@
                 },
 
                 destroy() {
-                    if (this.pollingInterval) {
-                        clearInterval(this.pollingInterval);
+                    // Clean up WebSocket channel
+                    if (window.Echo) {
+                        window.Echo.leave('queues.{{ auth()->user()->instance_id }}');
+                    }
+                    if (this._fallbackInterval) {
+                        clearInterval(this._fallbackInterval);
                     }
                 }
             };
