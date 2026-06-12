@@ -18,10 +18,10 @@ class CheckCustomerInstance
     public function handle(Request $request, Closure $next): Response
     {
         $customer = Auth::guard('customer')->user();
-        $instanceCode = $request->route('instance_code');
+        $instanceSlug = $request->route('instance_slug');
 
-        if ($customer && $instanceCode) {
-            $instance = Instance::where('instance_code', $instanceCode)->first();
+        if ($customer && $instanceSlug) {
+            $instance = Instance::where('instance_slug', $instanceSlug)->first();
             
             // Jika instansi di URL tidak ditemukan, atau
             // Jika instance_id customer tidak cocok dengan id instansi dari URL
@@ -32,7 +32,7 @@ class CheckCustomerInstance
                 $request->session()->regenerateToken();
                 
                 // Arahkan kembali ke halaman login instansi yang dituju
-                return redirect()->route('booking.login', ['instance_code' => $instanceCode])
+                return redirect()->route('booking.login', ['instance_slug' => $instanceSlug])
                     ->withErrors(['whatsapp' => 'Sesi Anda tidak valid untuk instansi ini. Silakan login kembali.']);
             }
         }
@@ -40,3 +40,4 @@ class CheckCustomerInstance
         return $next($request);
     }
 }
+
