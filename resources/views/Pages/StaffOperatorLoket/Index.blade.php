@@ -237,14 +237,22 @@
                 },
 
                 playTTS(queueNumber, counterNumber) {
+                    // [UX UPDATE] Suara dinonaktifkan di sisi operator loket.
+                    // Suara panggilan utama dipusatkan di layar Monitor TV Publik agar tidak bergema/double sound.
+                    return;
+
                     if (!this.ttsEnabled || !('speechSynthesis' in window)) {
                         return;
                     }
 
                     let spelledNumber = queueNumber.split('').join(' ');
-                    let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju loket, ${counterNumber}.`;
+                    let cleanCounter = counterNumber.toLowerCase().includes('loket') 
+                        ? counterNumber 
+                        : `loket, ${counterNumber}`;
+
+                    let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju ${cleanCounter}.`;
                     if (this.ttsLanguage.startsWith('en')) {
-                        textToSpeak = `Queue number, ${spelledNumber}. please proceed to counter, ${counterNumber}.`;
+                        textToSpeak = `Queue number, ${spelledNumber}. please proceed to ${counterNumber.toLowerCase().includes('counter') ? counterNumber : 'counter ' + counterNumber}.`;
                     }
 
                     let utterance = new SpeechSynthesisUtterance(textToSpeak);

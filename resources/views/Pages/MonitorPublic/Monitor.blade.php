@@ -154,8 +154,8 @@
                                 <div>
                                     <p class="text-blue-600 text-8xl font-black tracking-tight leading-none mb-3"
                                         x-text="currentCall.queue_number">A000</p>
-                                    <p class="text-gray-900 text-xl font-bold">Silakan ke Loket <span
-                                            x-text="currentCall.counter_number"></span></p>
+                                    <p class="text-gray-900 text-xl font-bold">Silakan ke <span
+                                             x-text="currentCall.counter_number.toLowerCase().includes('loket') ? currentCall.counter_number : 'Loket ' + currentCall.counter_number"></span></p>
                                 </div>
                             </template>
                             <template x-if="!currentCall">
@@ -184,10 +184,10 @@
                                         <div class="w-10 h-10 rounded-xl flex items-center justify-center"
                                             :class="counter.icon_bg">
                                             <span class="text-white text-sm font-black"
-                                                x-text="counter.counter_number"></span>
+                                                x-text="counter.counter_number.replace(/loket/gi, '').trim()"></span>
                                         </div>
-                                        <span class="text-base font-bold text-gray-900">Loket <span
-                                                x-text="counter.counter_number"></span></span>
+                                        <span class="text-base font-bold text-gray-900"
+                                            x-text="counter.counter_number.toLowerCase().includes('loket') ? counter.counter_number : 'Loket ' + counter.counter_number"></span>
                                     </div>
                                     <span class="text-xl font-black"
                                         :class="counter.queue_number == '-' ? 'text-gray-300' : 'text-gray-900'"
@@ -433,10 +433,15 @@
                             // Pecah nomor antrean agar dibaca per huruf/angka (Contoh: A 0 0 1)
                             let spelledNumber = queueNumber.split('').join(' ');
 
+                            // Bersihkan kata "loket" dari counterNumber untuk menghindari suara ganda (e.g., "menuju loket Loket 1")
+                            let cleanCounter = counterNumber.toLowerCase().includes('loket') 
+                                ? counterNumber 
+                                : `loket, ${counterNumber}`;
+
                             // Teks yang akan dibacakan
-                            let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju loket, ${counterNumber}.`;
+                            let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju ${cleanCounter}.`;
                             if (this.ttsLanguage.startsWith('en')) {
-                                textToSpeak = `Queue number, ${spelledNumber}. please proceed to counter, ${counterNumber}.`;
+                                textToSpeak = `Queue number, ${spelledNumber}. please proceed to ${counterNumber.toLowerCase().includes('counter') ? counterNumber : 'counter ' + counterNumber}.`;
                             }
 
                             let utterance = new SpeechSynthesisUtterance(textToSpeak);
