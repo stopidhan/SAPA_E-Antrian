@@ -160,6 +160,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             Route::middleware(['role:staff_konten,admin_instansi'])->prefix('content')->group(function () {
                 Route::get('/', [MediaContentController::class, "index"])->name("content.index");
                 Route::post('/', [MediaContentController::class, "store"])->name("content.store");
+                Route::post('/update-order', [MediaContentController::class, "updateOrder"])->name("content.updateOrder");
                 Route::patch('/{content}', [MediaContentController::class, "update"])->name("content.update");
                 Route::patch('/{content}/toggle', [MediaContentController::class, "toggle"])->name("content.toggle");
                 Route::delete('/{content}', [MediaContentController::class, "destroy"])->name("content.destroy");

@@ -17,6 +17,7 @@ class MediaContent extends Model
         "media_type",
         "file_path",
         "duration",
+        "sort_order",
         "is_active",
     ];
 

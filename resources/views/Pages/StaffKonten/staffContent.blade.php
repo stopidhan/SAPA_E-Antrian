@@ -99,12 +99,26 @@
 
                 {{-- Daftar Konten --}}
                 <div class="p-6 text-gray-900 bg-white overflow-hidden shadow-lg sm:rounded-lg flex flex-col gap-6">
-                    <h3 class="text-lg font-semibold">Daftar Konten</h3>
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Daftar Konten</h3>
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded border border-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                            </svg>
+                            Drag & Drop untuk mengatur urutan
+                        </span>
+                    </div>
 
+                    <div id="content-list" class="flex flex-col gap-4">
                     @forelse($contents as $content)
-                        <div class="space-y-4">
-                            <div class="border border-gray-300 p-4 rounded-lg">
-                                <div class="flex flex-row gap-4">
+                        <div class="space-y-4 sortable-item cursor-move" data-id="{{ $content->id }}">
+                            <div class="border border-gray-300 p-4 rounded-lg bg-white hover:border-blue-400 transition-colors">
+                                <div class="flex flex-row gap-4 items-center">
+                                    <div class="flex-shrink-0 text-gray-400 px-2 cursor-move hidden sm:block">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                        </svg>
+                                    </div>
                                     <div class="flex-shrink-0">
                                         @if ($content->media_type === 'image')
                                             <img src="{{ Storage::url($content->file_path) }}" alt="{{ $content->title }}"
@@ -163,10 +177,11 @@
                             </div>
                         </div>
                     @empty
-                        <div class="text-center py-8 text-gray-500">
+                        <div class="text-center py-8 text-gray-500 w-full">
                             <p>Belum ada konten yang diupload.</p>
                         </div>
                     @endforelse
+                    </div>
                 </div>
             </div>
 
@@ -404,6 +419,62 @@
                         });
                 });
             });
+            
+            // Sortable JS for Drag and Drop Ordering
+            const contentList = document.getElementById('content-list');
+            if (contentList && contentList.children.length > 0) {
+                new Sortable(contentList, {
+                    animation: 150,
+                    ghostClass: 'opacity-50',
+                    handle: '.sortable-item',
+                    onEnd: function (evt) {
+                        const items = contentList.querySelectorAll('.sortable-item');
+                        const newOrder = [];
+                        
+                        items.forEach((item, index) => {
+                            newOrder.push({
+                                id: item.getAttribute('data-id'),
+                                sort_order: index
+                            });
+                        });
+
+                        // Send AJAX request to update order
+                        fetch(`{{ route('content.updateOrder', ['instance_slug' => request()->route('instance_slug')]) }}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ order: newOrder })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof showToast === 'function') {
+                                    showToast(data.message, 'success');
+                                } else {
+                                    console.log(data.message);
+                                }
+                            } else {
+                                if (typeof showToast === 'function') {
+                                    showToast('Gagal mengubah urutan', 'error');
+                                } else {
+                                    alert('Gagal mengubah urutan');
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            if (typeof showToast === 'function') {
+                                showToast('Terjadi kesalahan', 'error');
+                            } else {
+                                alert('Terjadi kesalahan');
+                            }
+                        });
+                    }
+                });
+            }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 @endsection

@@ -14,6 +14,7 @@ class MonitorController extends Controller
         
         $mediaContents = \App\Models\MediaContent::where('instance_id', $instance->id)
             ->where('is_active', true)
+            ->orderBy('sort_order', 'asc')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($media) {
@@ -112,6 +113,7 @@ class MonitorController extends Controller
 
         $mediaContents = \App\Models\MediaContent::where('instance_id', $instanceId)
             ->where('is_active', true)
+            ->orderBy('sort_order', 'asc')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($media) {

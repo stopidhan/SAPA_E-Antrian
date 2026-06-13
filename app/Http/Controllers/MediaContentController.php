@@ -19,6 +19,7 @@ class MediaContentController extends Controller
             "instance_id",
             app(\App\Services\TenantManager::class)->getInstanceId(),
         )
+            ->orderBy("sort_order", "asc")
             ->orderBy("created_at", "desc")
             ->get();
 
@@ -92,6 +93,8 @@ class MediaContentController extends Controller
             $fileName = time() . "_" . $file->getClientOriginalName();
             $filePath = $file->storeAs("media_contents", $fileName, "public");
 
+            $maxSortOrder = MediaContent::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->max('sort_order');
+
             // Create media content record
             MediaContent::create([
                 "instance_id" => app(\App\Services\TenantManager::class)->getInstanceId(),
@@ -100,6 +103,7 @@ class MediaContentController extends Controller
                 "file_path" => $filePath,
                 "duration" =>
                     $request->duration ?? ($mediaType === "image" ? 10 : null),
+                "sort_order" => $maxSortOrder !== null ? $maxSortOrder + 1 : 0,
                 "is_active" => $request->has("is_active") ? true : false,
             ]);
 
@@ -275,6 +279,31 @@ class MediaContentController extends Controller
                 "error",
                 "Terjadi kesalahan: " . $e->getMessage(),
             );
+        }
+    }
+    /**
+     * Update the display order of media content.
+     */
+    public function updateOrder(Request $request, string $instanceSlug)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*.id' => 'required|exists:media_contents,id',
+            'order.*.sort_order' => 'required|integer',
+        ]);
+
+        try {
+            foreach ($request->order as $item) {
+                MediaContent::where('id', $item['id'])
+                    ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
+                    ->update(['sort_order' => $item['sort_order']]);
+            }
+            
+            broadcast(new MediaUpdated(app(\App\Services\TenantManager::class)->getInstanceId()));
+
+            return response()->json(['success' => true, 'message' => 'Urutan berhasil diperbarui']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
