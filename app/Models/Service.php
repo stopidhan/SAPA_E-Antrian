@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Traits\BelongsToInstance;
+use App\Models\Traits\LogsActivity;
 
 class Service extends Model
 {
-    use HasFactory, BelongsToInstance;
+    use HasFactory, BelongsToInstance, LogsActivity;
 
     protected $table = 'services';
 

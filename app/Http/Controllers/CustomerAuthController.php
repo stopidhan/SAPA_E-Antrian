@@ -172,6 +172,15 @@ class CustomerAuthController extends Controller
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
 
+        activity('auth')
+            ->causedBy($customer)
+            ->withProperties([
+                'status' => 'success',
+                'action_label' => 'Login Pelanggan',
+                'ip_address' => $request->ip(),
+            ])
+            ->log("Pelanggan {$customer->name} berhasil login.");
+
         Session::forget([
             'customer_auth.pending_whatsapp',
             'customer_auth.pending_name',
@@ -221,11 +230,33 @@ class CustomerAuthController extends Controller
         Auth::guard('customer')->login($customer);
         $request->session()->regenerate();
 
+        activity('auth')
+            ->causedBy($customer)
+            ->withProperties([
+                'status' => 'success',
+                'action_label' => 'Login Pelanggan',
+                'ip_address' => $request->ip(),
+            ])
+            ->log("Pelanggan {$customer->name} berhasil login.");
+
         return redirect()->intended(route('booking.dashboard', ['instance_slug' => $instanceSlug]));
     }
 
     public function logout(Request $request, string $instanceSlug): RedirectResponse
     {
+        $customer = Auth::guard('customer')->user();
+        
+        if ($customer) {
+            activity('auth')
+                ->causedBy($customer)
+                ->withProperties([
+                    'status' => 'success',
+                    'action_label' => 'Logout Pelanggan',
+                    'ip_address' => $request->ip(),
+                ])
+                ->log("Pelanggan {$customer->name} berhasil logout.");
+        }
+
         Auth::guard('customer')->logout();
 
         $request->session()->invalidate();

@@ -29,6 +29,15 @@ class AuthenticatedSessionController extends Controller
 
         $user = auth()->user();
 
+        activity('auth')
+            ->causedBy($user)
+            ->withProperties([
+                'status' => 'success',
+                'action_label' => 'Login',
+                'ip_address' => $request->ip(),
+            ])
+            ->log("User {$user->name} berhasil login.");
+
         // [BUG FIX] Hapus "intended URL" jika mengarah ke endpoint API
         // Mencegah bug redirect ke halaman JSON akibat polling AJAX yang masuk
         // saat sesi user lain sedang aktif di background (Intended URL Poisoning)
@@ -73,6 +82,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        if ($user) {
+            activity('auth')
+                ->causedBy($user)
+                ->withProperties([
+                    'status' => 'success',
+                    'action_label' => 'Logout',
+                    'ip_address' => $request->ip(),
+                ])
+                ->log("User {$user->name} berhasil logout.");
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

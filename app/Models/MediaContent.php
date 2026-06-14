@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Traits\BelongsToInstance;
+use App\Models\Traits\LogsActivity;
 
 class MediaContent extends Model
 {
-    use HasFactory, BelongsToInstance;
+    use HasFactory, BelongsToInstance, LogsActivity;
 
     protected $fillable = [
         "instance_id",

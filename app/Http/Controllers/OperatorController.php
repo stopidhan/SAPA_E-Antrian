@@ -292,6 +292,16 @@ class OperatorController extends Controller
 
         $queue->load('counter', 'service');
 
+        activity('queue')
+            ->performedOn($queue)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'status' => 'info',
+                'action_label' => 'Panggil Antrean',
+                'ip_address' => request()->ip(),
+            ])
+            ->log("Antrean {$queue->queue_number} dipanggil ke " . ($queue->counter ? $queue->counter->counter_number : 'Loket') . ".");
+
         event(new \App\Events\QueueUpdated('called', [
             'id' => $queue->id,
             'queue_number' => $queue->queue_number,
@@ -317,6 +327,17 @@ class OperatorController extends Controller
             'user_id'            => auth()->id(),
         ]);
 
+        $queue->load('counter');
+        activity('queue')
+            ->performedOn($queue)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'status' => 'info',
+                'action_label' => 'Mulai Layani',
+                'ip_address' => request()->ip(),
+            ])
+            ->log("Mulai melayani antrean {$queue->queue_number} di " . ($queue->counter ? $queue->counter->counter_number : 'Loket') . ".");
+
         event(new \App\Events\QueueUpdated('serving', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Status: Dilayani']);
@@ -330,6 +351,16 @@ class OperatorController extends Controller
             'queue_status' => 'skipped', // dilewati
             'user_id'      => auth()->id(),
         ]);
+
+        activity('queue')
+            ->performedOn($queue)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'status' => 'warning',
+                'action_label' => 'Lewati Antrean',
+                'ip_address' => request()->ip(),
+            ])
+            ->log("Antrean {$queue->queue_number} dilewati.");
 
         event(new \App\Events\QueueUpdated('skipped', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
@@ -448,6 +479,17 @@ class OperatorController extends Controller
                 }
             }
         }
+
+        activity('queue')
+            ->performedOn($queue)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'status' => 'success',
+                'action_label' => 'Selesai Layani',
+                'ip_address' => request()->ip(),
+            ])
+            ->log("Selesai melayani antrean {$queue->queue_number}.");
+
         event(new \App\Events\QueueUpdated('completed', null, app(\App\Services\TenantManager::class)->getInstanceId()));
 
         return response()->json(['success' => true, 'message' => 'Status: Selesai']);

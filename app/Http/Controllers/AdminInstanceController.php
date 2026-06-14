@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Models\ServiceCounter;
+use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -336,4 +337,6 @@ class AdminInstanceController extends Controller
             ], 500);
         }
     }
+
+
 }

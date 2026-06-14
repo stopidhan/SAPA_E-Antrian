@@ -12,6 +12,7 @@ use App\Http\Controllers\KioskController;
 use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\SuperVisorController;
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeveloperController;
 
@@ -201,9 +202,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
                 Route::get('/report/export/pdf', [ReportController::class, "exportPdf"])->name("reports.export.pdf");
                 Route::get('/report/export/excel', [ReportController::class, "exportExcel"])->name("reports.export.excel");
 
-                Route::get("/activity-log", function () {
-                    return view("Pages.AdminInstansi.activityLog");
-                })->name("activity.log");
+                Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log');
             });
         });
     });
