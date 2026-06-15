@@ -203,9 +203,9 @@
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center sm:gap-3">
                 <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-indigo-600 rounded-full transition-all" style="width: {{ round(($totalTerisi / $totalKuota) * 100) }}%"></div>
+                    <div class="h-full bg-indigo-600 rounded-full transition-all" style="width: {{ $totalKuota > 0 ? round(($totalTerisi / $totalKuota) * 100) : 0 }}%"></div>
                 </div>
-                <p class="text-[10px] text-gray-500 mt-1 sm:mt-0 text-right sm:text-left sm:min-w-[110px]">{{ round(($totalTerisi / $totalKuota) * 100) }}% kuota terisi</p>
+                <p class="text-[10px] text-gray-500 mt-1 sm:mt-0 text-right sm:text-left sm:min-w-[110px]">{{ $totalKuota > 0 ? round(($totalTerisi / $totalKuota) * 100) : 0 }}% kuota terisi</p>
             </div>
         </div>
         @endif

@@ -4,7 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Login Customer - SAPA E-Antrian</title>
+    <title>Login Customer - {{ isset($instance) ? $instance->instance_name : 'SAPA E-Antrian' }}</title>
+    @if(isset($instance) && $instance->favicon)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $instance->favicon) }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,7 +16,12 @@
 <body class="bg-slate-100 antialiased min-h-screen flex items-center justify-center p-4" style="font-family:'Figtree',sans-serif">
     <div class="w-full max-w-lg">
         <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl px-6 py-5 shadow-lg">
-            <h1 class="text-xl font-extrabold">Login Customer</h1>
+            @if(isset($instance) && $instance->logo)
+                <div class="mb-3 flex justify-center">
+                    <img src="{{ asset('storage/' . $instance->logo) }}" alt="Logo {{ $instance->instance_name }}" class="h-12 object-contain bg-white rounded p-1">
+                </div>
+            @endif
+            <h1 class="text-xl font-extrabold">Login Customer {{ isset($instance) ? '- ' . $instance->instance_name : '' }}</h1>
             <p class="text-sm text-blue-100 mt-1">Gunakan nomor WhatsApp Anda untuk masuk dengan cepat.</p>
         </div>
 

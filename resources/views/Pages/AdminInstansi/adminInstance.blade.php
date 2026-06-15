@@ -61,13 +61,23 @@
                                 </div>
 
                                 {{-- Maksimal Booking per Hari --}}
-                                <div class="space-y-1.5">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        Maksimal Booking Online per Hari
-                                    </label>
-                                    <input type="number" x-model.number="config.maxBookingsPerDay" placeholder="5"
-                                        min="1" max="50"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <x-input-number 
+                                        label="Booking Online / Hari" 
+                                        name="maxOnlineBookingsPerDay" 
+                                        placeholder="5" 
+                                        min="1" 
+                                        max="2000" 
+                                        x-model.number="config.maxOnlineBookingsPerDay" 
+                                    />
+                                    <x-input-number 
+                                        label="Booking Offline / Hari" 
+                                        name="maxOfflineBookingsPerDay" 
+                                        placeholder="100" 
+                                        min="1" 
+                                        max="2000" 
+                                        x-model.number="config.maxOfflineBookingsPerDay" 
+                                    />
                                 </div>
 
                                 {{-- Zona Waktu --}}
@@ -91,29 +101,52 @@
                                         <p class="text-sm text-gray-500">Atur jadwal buka dan tutup instansi Anda setiap
                                             harinya.</p>
                                     </div>
-                                    <div class="space-y-4 max-w-2xl bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                        <template x-for="(day, index) in config.operationalHours" :key="index">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-32 font-medium text-gray-700" x-text="day.name"></div>
+                                    
+                                    <div class="border border-gray-200 rounded-xl overflow-hidden bg-white max-w-2xl shadow-sm">
+                                        {{-- Header --}}
+                                        <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                                            <span class="text-sm font-semibold text-gray-700">Hari & Status</span>
+                                            <span class="text-sm font-semibold text-gray-700 mr-8">Jam Layanan</span>
+                                        </div>
+                                        
+                                        {{-- List of Days --}}
+                                        <div class="divide-y divide-gray-100">
+                                            <template x-for="(day, index) in config.operationalHours" :key="index">
+                                                <div class="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors"
+                                                     :class="!day.isOpen ? 'bg-gray-50/50' : ''">
+                                                    
+                                                    {{-- Toggle & Day Name --}}
+                                                    <div class="flex items-center gap-4 w-1/3">
+                                                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                                            <input type="checkbox" x-model="day.isOpen" class="sr-only peer">
+                                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                                        </label>
+                                                        <span class="font-medium" :class="day.isOpen ? 'text-gray-900' : 'text-gray-400'" x-text="day.name"></span>
+                                                    </div>
 
-                                                <label class="flex items-center gap-2 cursor-pointer">
-                                                    <input type="checkbox" x-model="day.isOpen"
-                                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                    <span class="text-sm text-gray-600">Buka</span>
-                                                </label>
-
-                                                <div class="flex items-center gap-2 flex-1 ml-4" x-show="day.isOpen">
-                                                    <input type="time" x-model="day.openTime"
-                                                        class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                                    <span class="text-gray-500">-</span>
-                                                    <input type="time" x-model="day.closeTime"
-                                                        class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                                    {{-- Time Range --}}
+                                                    <div class="flex-1 flex justify-end">
+                                                        <div x-show="day.isOpen" class="flex items-center gap-3">
+                                                            <div class="relative">
+                                                                <input type="time" x-model="day.openTime"
+                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                            </div>
+                                                            <span class="text-gray-400 text-sm font-medium">s/d</span>
+                                                            <div class="relative">
+                                                                <input type="time" x-model="day.closeTime"
+                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                            </div>
+                                                        </div>
+                                                        <div x-show="!day.isOpen" class="w-[245px] flex justify-end pr-2">
+                                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                                                Tutup / Libur
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="flex-1 ml-4 text-sm text-gray-400 italic" x-show="!day.isOpen">
-                                                    Tutup / Libur
-                                                </div>
-                                            </div>
-                                        </template>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -238,7 +271,7 @@
                                                         <div
                                                             class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1">
                                                             <span class="text-sm font-medium text-gray-700"
-                                                                x-text="`Loket ${counter.counter_number}`"></span>
+                                                                x-text="counter.counter_number"></span>
                                                             <template x-if="counter.is_active">
                                                                 <span class="w-2 h-2 rounded-full bg-green-500"></span>
                                                             </template>
@@ -284,9 +317,15 @@
                                 <p class="text-lg font-semibold text-gray-900" x-text="savedConfig.ttsLanguage"></p>
                             </div>
                             <hr class="border-gray-100" x-show="savedConfig.ttsEnabled">
-                            <div>
-                                <p class="text-sm text-gray-500">Maksimal Booking Online per Hari</p>
-                                <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxBookingsPerDay"></p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Max Booking Online</p>
+                                    <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxOnlineBookingsPerDay"></p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Max Booking Offline</p>
+                                    <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxOfflineBookingsPerDay"></p>
+                                </div>
                             </div>
                             <hr class="border-gray-100">
                             <div>
@@ -387,7 +426,8 @@
 
                 config: {
                     ttsEnabled: initialConfig.tts_enabled,
-                    maxBookingsPerDay: initialConfig.max_bookings_per_day,
+                    maxOnlineBookingsPerDay: initialConfig.max_online_bookings_per_day,
+                    maxOfflineBookingsPerDay: initialConfig.max_offline_bookings_per_day,
                     operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
                     ttsLanguage: initialConfig.tts_language || 'id-ID',
                     timezone: initialConfig.timezone || 'Asia/Jakarta',
@@ -395,7 +435,8 @@
 
                 savedConfig: {
                     ttsEnabled: initialConfig.tts_enabled,
-                    maxBookingsPerDay: initialConfig.max_bookings_per_day,
+                    maxOnlineBookingsPerDay: initialConfig.max_online_bookings_per_day,
+                    maxOfflineBookingsPerDay: initialConfig.max_offline_bookings_per_day,
                     operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
                     ttsLanguage: initialConfig.tts_language || 'id-ID',
                     timezone: initialConfig.timezone || 'Asia/Jakarta',
@@ -424,13 +465,15 @@
                         const result = await response.json();
                         if (result.success) {
                             this.config.ttsEnabled = result.data.tts_enabled;
-                            this.config.maxBookingsPerDay = result.data.max_bookings_per_day;
+                            this.config.maxOnlineBookingsPerDay = result.data.max_online_bookings_per_day;
+                            this.config.maxOfflineBookingsPerDay = result.data.max_offline_bookings_per_day;
                             this.config.operationalHours = result.data.operational_hours || defaultDays;
                             this.config.ttsLanguage = result.data.tts_language || 'id-ID';
                             this.config.timezone = result.data.timezone || 'Asia/Jakarta';
 
                             this.savedConfig.ttsEnabled = result.data.tts_enabled;
-                            this.savedConfig.maxBookingsPerDay = result.data.max_bookings_per_day;
+                            this.savedConfig.maxOnlineBookingsPerDay = result.data.max_online_bookings_per_day;
+                            this.savedConfig.maxOfflineBookingsPerDay = result.data.max_offline_bookings_per_day;
                             this.savedConfig.operationalHours = result.data.operational_hours || defaultDays;
                             this.savedConfig.ttsLanguage = result.data.tts_language || 'id-ID';
                             this.savedConfig.timezone = result.data.timezone || 'Asia/Jakarta';
@@ -451,7 +494,8 @@
                             },
                             body: JSON.stringify({
                                 tts_enabled: this.config.ttsEnabled,
-                                max_bookings_per_day: this.config.maxBookingsPerDay,
+                                max_online_bookings_per_day: this.config.maxOnlineBookingsPerDay,
+                                max_offline_bookings_per_day: this.config.maxOfflineBookingsPerDay,
                                 operational_hours: this.config.operationalHours,
                                 tts_language: this.config.ttsLanguage,
                                 timezone: this.config.timezone,
@@ -460,7 +504,8 @@
                         const result = await response.json();
                         if (result.success) {
                             this.savedConfig.ttsEnabled = this.config.ttsEnabled;
-                            this.savedConfig.maxBookingsPerDay = this.config.maxBookingsPerDay;
+                            this.savedConfig.maxOnlineBookingsPerDay = this.config.maxOnlineBookingsPerDay;
+                            this.savedConfig.maxOfflineBookingsPerDay = this.config.maxOfflineBookingsPerDay;
                             this.savedConfig.operationalHours = this.config.operationalHours;
                             this.savedConfig.ttsLanguage = this.config.ttsLanguage;
                             this.savedConfig.timezone = this.config.timezone;

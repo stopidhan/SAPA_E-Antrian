@@ -30,12 +30,14 @@ class CustomerAuthController extends Controller
 
     public function showLoginForm(): View
     {
-        return view('Pages.Remoteuser.Login');
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
+        return view('Pages.Remoteuser.Login', compact('instance'));
     }
 
     public function showRegisterForm(): View
     {
-        return view('Pages.Remoteuser.Register');
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
+        return view('Pages.Remoteuser.Register', compact('instance'));
     }
 
     public function register(SendCustomerOtpRequest $request, string $instanceSlug): RedirectResponse

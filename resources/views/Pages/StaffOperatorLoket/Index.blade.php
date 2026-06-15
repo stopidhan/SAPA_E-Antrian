@@ -14,6 +14,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Dashboard Operator — SAPA E-Antrian</title>
+    @php
+        $instanceSlug = request()->route('instance_slug');
+        $instance = $instanceSlug ? \App\Models\Instance::where('instance_slug', $instanceSlug)->first() : null;
+    @endphp
+    @if($instance && $instance->favicon)
+        <link rel="icon" href="{{ asset('storage/' . $instance->favicon) }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -31,7 +38,8 @@
 <body class="antialiased">
 
     {{-- ====== FULL-SCREEN WRAPPER + ALPINE STATE ====== --}}
-    <div x-data="operatorDashboard()" @confirm-close-session.window="closeSession()" class="min-h-screen bg-slate-50 flex flex-col">
+    <div x-data="operatorDashboard()" @confirm-close-session.window="closeSession()"
+        class="min-h-screen bg-slate-50 flex flex-col">
 
         {{-- Navbar --}}
         @include('Pages.StaffOperatorLoket.partials.Navbar')
@@ -81,20 +89,22 @@
         </div>
 
         {{-- ====== MODAL PILIH LOKET ====== --}}
-        <div x-show="!counterId" x-cloak class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div x-show="!counterId" x-cloak
+            class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
                 <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Pilih Loket / Buka Sesi</h2>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
-                    @foreach($availableCounters as $c)
-                    <button @click="openSession({{ $c->id }})" class="w-full text-left px-5 py-4 rounded-xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex justify-between items-center group">
-                        <div>
-                            <span class="block font-bold text-slate-800">{{ $c->counter_number }}</span>
-                            <span class="block text-sm text-slate-500">{{ $c->service->service_name }}</span>
-                        </div>
-                        <span class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
-                    </button>
+                    @foreach ($availableCounters as $c)
+                        <button @click="openSession({{ $c->id }})"
+                            class="w-full text-left px-5 py-4 rounded-xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex justify-between items-center group">
+                            <div>
+                                <span class="block font-bold text-slate-800">{{ $c->counter_number }}</span>
+                                <span class="block text-sm text-slate-500">{{ $c->service->service_name }}</span>
+                            </div>
+                            <span class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
+                        </button>
                     @endforeach
-                    @if($availableCounters->isEmpty())
+                    @if ($availableCounters->isEmpty())
                         <div class="text-center text-slate-500">Tidak ada loket aktif yang tersedia.</div>
                     @endif
                 </div>
@@ -133,7 +143,7 @@
                 history: @json($historyData),
                 instanceSlug: '{{ auth()->user()->instance->instance_slug ?? '' }}',
                 ttsEnabled: {{ $tts_enabled ? 'true' : 'false' }},
-                ttsLanguage: '{{ $tts_language ?? "id-ID" }}',
+                ttsLanguage: '{{ $tts_language ?? 'id-ID' }}',
 
                 init() {
                     // Coba auto-select counter dari localStorage jika ada tapi belum buka sesi
@@ -177,54 +187,58 @@
                     window.Echo.channel('queues.{{ auth()->user()->instance_id }}')
                         .listen('QueueUpdated', (e) => {
                             console.log('[WebSocket] Antrean terupdate:', e);
-                            if(this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            if (this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         })
                         .listen('QueueCheckedIn', (e) => {
                             console.log('[WebSocket] Ada antrean baru datang:', e);
-                            if(this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            if (this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         });
                 },
 
                 openSession(counterId) {
                     fetch(`/${this.instanceSlug}/staff/operator/open-session`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({ counter_id: counterId })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            localStorage.setItem('last_counter_id', counterId);
-                            window.location.reload();
-                        } else {
-                            alert(data.message || 'Gagal membuka sesi');
-                            window.location.reload();
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error opening session:', err);
-                        alert('Gagal membuka sesi. Silakan coba lagi.');
-                    });
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content')
+                            },
+                            body: JSON.stringify({
+                                counter_id: counterId
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                localStorage.setItem('last_counter_id', counterId);
+                                window.location.reload();
+                            } else {
+                                alert(data.message || 'Gagal membuka sesi');
+                                window.location.reload();
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error opening session:', err);
+                            alert('Gagal membuka sesi. Silakan coba lagi.');
+                        });
                 },
 
                 closeSession() {
                     fetch(`/${this.instanceSlug}/staff/operator/close-session`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            localStorage.removeItem('last_counter_id');
-                            window.location.reload();
-                        }
-                    });
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                                    'content')
+                            }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                localStorage.removeItem('last_counter_id');
+                                window.location.reload();
+                            }
+                        });
                 },
 
                 playTTS(queueNumber, counterNumber) {
@@ -237,13 +251,14 @@
                     }
 
                     let spelledNumber = queueNumber.split('').join(' ');
-                    let cleanCounter = counterNumber.toLowerCase().includes('loket') 
-                        ? counterNumber 
-                        : `loket, ${counterNumber}`;
+                    let cleanCounter = counterNumber.toLowerCase().includes('loket') ?
+                        counterNumber :
+                        `loket, ${counterNumber}`;
 
                     let textToSpeak = `Nomor antrean, ${spelledNumber}. silakan menuju ${cleanCounter}.`;
                     if (this.ttsLanguage.startsWith('en')) {
-                        textToSpeak = `Queue number, ${spelledNumber}. please proceed to ${counterNumber.toLowerCase().includes('counter') ? counterNumber : 'counter ' + counterNumber}.`;
+                        textToSpeak =
+                            `Queue number, ${spelledNumber}. please proceed to ${counterNumber.toLowerCase().includes('counter') ? counterNumber : 'counter ' + counterNumber}.`;
                     }
 
                     let utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -251,8 +266,9 @@
                     utterance.rate = 0.85;
 
                     let voices = window.speechSynthesis.getVoices();
-                    let edgeVoice = voices.find(v => (v.name.includes('Gadis') || v.name.includes('Ardi') || v.name.includes('Microsoft')) && v.lang.includes(this.ttsLanguage.split('-')[0]));
-                    
+                    let edgeVoice = voices.find(v => (v.name.includes('Gadis') || v.name.includes('Ardi') || v.name
+                        .includes('Microsoft')) && v.lang.includes(this.ttsLanguage.split('-')[0]));
+
                     if (!edgeVoice) {
                         edgeVoice = voices.find(v => v.lang.includes(this.ttsLanguage.split('-')[0]));
                     }

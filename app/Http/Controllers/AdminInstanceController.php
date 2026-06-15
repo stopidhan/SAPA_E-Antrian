@@ -21,7 +21,8 @@ class AdminInstanceController extends Controller
 
         $config = [
             'tts_enabled' => (bool) $instance->tts_enabled,
-            'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+            'max_online_bookings_per_day' => (int) $instance->max_online_bookings_per_day,
+            'max_offline_bookings_per_day' => (int) $instance->max_offline_bookings_per_day,
             'operational_hours' => $instance->operational_hours,
             'tts_language' => $instance->tts_language ?? 'id-ID',
             'timezone' => $instance->timezone ?? 'Asia/Jakarta',
@@ -44,7 +45,8 @@ class AdminInstanceController extends Controller
             'success' => true,
             'data' => [
                 'tts_enabled' => (bool) $instance->tts_enabled,
-                'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+                'max_online_bookings_per_day' => (int) $instance->max_online_bookings_per_day,
+                'max_offline_bookings_per_day' => (int) $instance->max_offline_bookings_per_day,
                 'operational_hours' => $instance->operational_hours,
                 'tts_language' => $instance->tts_language ?? 'id-ID',
                 'timezone' => $instance->timezone ?? 'Asia/Jakarta',
@@ -56,7 +58,8 @@ class AdminInstanceController extends Controller
     {
         $validated = $request->validate([
             'tts_enabled' => ['required', 'boolean'],
-            'max_bookings_per_day' => ['required', 'integer', 'min:1', 'max:200'],
+            'max_online_bookings_per_day' => ['required', 'integer', 'min:1', 'max:2000'],
+            'max_offline_bookings_per_day' => ['required', 'integer', 'min:1', 'max:2000'],
             'operational_hours' => ['nullable', 'array'],
             'tts_language' => ['nullable', 'string', 'max:20'],
             'timezone' => ['nullable', 'string', 'max:50'],
@@ -71,7 +74,8 @@ class AdminInstanceController extends Controller
                 'message' => 'Konfigurasi berhasil disimpan',
                 'data' => [
                     'tts_enabled' => (bool) $instance->tts_enabled,
-                    'max_bookings_per_day' => (int) $instance->max_bookings_per_day,
+                    'max_online_bookings_per_day' => (int) $instance->max_online_bookings_per_day,
+                    'max_offline_bookings_per_day' => (int) $instance->max_offline_bookings_per_day,
                     'operational_hours' => $instance->operational_hours,
                     'tts_language' => $instance->tts_language ?? 'id-ID',
                     'timezone' => $instance->timezone ?? 'Asia/Jakarta',

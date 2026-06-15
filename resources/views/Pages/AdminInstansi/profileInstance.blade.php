@@ -69,6 +69,9 @@
                                             </svg>
                                             <span>Upload Logo</span>
                                         </button>
+                                        <p class="text-xs text-center text-gray-400 leading-tight mt-1">
+                                            Maks 2MB<br>Format: JPG, PNG, SVG<br>Rekomendasi: 512x512px
+                                        </p>
                                     </div>
 
                                     <hr class="border-gray-100">
@@ -89,7 +92,7 @@
                                         </div>
 
                                         <input type="file" name="favicon" id="favicon-input" class="hidden"
-                                            accept="image/*"
+                                            accept="image/png, image/x-icon"
                                             @change="
                                                 if ($el.files[0]) {
                                                     const reader = new FileReader();
@@ -109,8 +112,8 @@
                                             </svg>
                                             <span>Upload Favicon</span>
                                         </button>
-                                        <p class="text-xs text-center text-gray-400 leading-tight">
-                                            Maks 512KB<br>Rekomendasi: 32x32px
+                                        <p class="text-xs text-center text-gray-400 leading-tight mt-1">
+                                            Maks 512KB<br>Format: PNG, ICO<br>Rekomendasi: 32x32px
                                         </p>
                                     </div>
                                 </div>

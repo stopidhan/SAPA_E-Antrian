@@ -1,6 +1,8 @@
 @php
     $instanceSlug = request()->route('instance_slug');
-    $instanceName = \App\Models\Instance::where('instance_slug', $instanceSlug)->value('instance_name');
+    $instance = \App\Models\Instance::where('instance_slug', $instanceSlug)->first();
+    $instanceName = $instance?->instance_name;
+    $instanceLogo = $instance?->logo;
 
     $navMenuItems = [
         [
@@ -63,14 +65,21 @@
         <div class="h-[57px] shrink-0 flex items-center border-b border-gray-100 px-3 gap-3"
             :class="sidebarOpen ? 'justify-start' : 'justify-center'">
             <a href="#" class="shrink-0">
-                <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
-                    <span class="text-white text-xs font-black tracking-tight">SAPA</span>
-                </div>
+                @if ($instanceLogo)
+                    <img src="{{ asset('storage/' . $instanceLogo) }}" alt="Logo"
+                        class="w-9 h-9 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
+                @else
+                    <div
+                        class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
+                        <span class="text-white text-xs font-black tracking-tight">SAPA</span>
+                    </div>
+                @endif
             </a>
-            <span class="text-lg font-bold text-gray-900 whitespace-nowrap" x-show="sidebarOpen" x-cloak
+            <span class="text-sm font-bold text-gray-900 whitespace-nowrap" x-show="sidebarOpen" x-cloak
                 x-transition:enter="transition-opacity duration-200 delay-150" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity duration-100"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">SAPA</span>
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">{{ $instanceName ?? 'SAPA' }}</span>
         </div>
 
         {{-- Menu Items --}}
@@ -97,6 +106,24 @@
                     </li>
                 @endforeach
             </ul>
+        </div>
+
+        {{-- System Footer --}}
+        <div class="shrink-0 border-t border-gray-100 p-4 bg-gray-50/50">
+            <div class="flex flex-col items-center justify-center text-center overflow-hidden">
+                <span class="text-xs font-bold text-slate-700 whitespace-nowrap transition-all duration-300"
+                    x-show="sidebarOpen" x-cloak>
+                    SAPA E-Antrian
+                </span>
+                <span class="text-[10px] font-bold text-slate-400 whitespace-nowrap transition-all duration-300"
+                    x-show="!sidebarOpen" x-cloak>
+                    SAPA
+                </span>
+                <span class="text-[10px] text-slate-500 whitespace-nowrap mt-0.5 transition-all duration-300"
+                    x-show="sidebarOpen" x-cloak>
+                    &copy; {{ date('Y') }} Hak Cipta Dilindungi
+                </span>
+            </div>
         </div>
     </aside>
 
@@ -127,14 +154,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                @if($instanceName)
-                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 shadow-sm">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span class="text-sm font-semibold whitespace-nowrap">{{ $instanceName }}</span>
-                </div>
-                @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -161,26 +180,37 @@
     <nav class="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div
-                    class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
-                    <span class="text-white text-xs font-black tracking-tight">SAPA</span>
-                </div>
+                @if ($instanceLogo)
+                    <img src="{{ asset('storage/' . $instanceLogo) }}" alt="Logo"
+                        class="w-10 h-10 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
+                @else
+                    <div
+                        class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
+                        <span class="text-white text-xs font-black tracking-tight">SAPA</span>
+                    </div>
+                @endif
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">{{ $navbarTitle }}</h1>
+                    <h1 class="text-xl font-bold text-gray-900">{{ $instanceName }}</h1>
                     @if ($navbarSubtitle)
                         <p class="text-sm text-gray-500">{{ $navbarSubtitle }}</p>
                     @endif
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                @if($instanceName)
-                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 shadow-sm">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    <span class="text-sm font-semibold whitespace-nowrap">{{ $instanceName }}</span>
+                <div class="hidden md:block text-right mr-2 border-r border-gray-200 pr-4">
+                    <p class="text-xs font-bold text-slate-700">SAPA E-Antrian</p>
+                    <p class="text-[10px] text-slate-500">&copy; {{ date('Y') }} Hak Cipta Dilindungi</p>
                 </div>
-                @endif
+                {{-- @if ($instanceName)
+                    <div
+                        class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 shadow-sm">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span class="text-sm font-semibold whitespace-nowrap">{{ $instanceName }}</span>
+                    </div>
+                @endif --}}
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"

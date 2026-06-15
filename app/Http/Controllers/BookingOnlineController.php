@@ -75,12 +75,13 @@ class BookingOnlineController extends Controller
         ];
 
         // Hitung Total Kuota & Terisi
-        $totalKuota = 0;
+        $instance = \App\Models\Instance::find($authCustomer->instance_id);
+        $totalKuota = $instance ? (int) $instance->max_online_bookings_per_day : 0;
+        
         $totalTerisi = 0;
         $today = now()->toDateString();
         
         foreach($layanans as $svc) {
-            $totalKuota += 50; 
             $totalTerisi += $svc->queues->where('queue_date', $today)->count();
         }
         $sisaKuota = max(0, $totalKuota - $totalTerisi);

@@ -22,7 +22,8 @@ class Instance extends Model
         'favicon',
         'tts_enabled',
         'tts_language',
-        'max_bookings_per_day',
+        'max_online_bookings_per_day',
+        'max_offline_bookings_per_day',
         'is_active',
         'brand_color',
         'secondary_color',
@@ -38,7 +39,8 @@ class Instance extends Model
 
     protected $casts = [
         'tts_enabled' => 'boolean',
-        'max_bookings_per_day' => 'integer',
+        'max_online_bookings_per_day' => 'integer',
+        'max_offline_bookings_per_day' => 'integer',
         'is_active' => 'boolean',
         'operational_hours' => 'array',
         'settings' => 'array',

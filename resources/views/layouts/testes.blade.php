@@ -7,6 +7,14 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SAPA - Sistem Antrean Publik')</title>
 
+    @php
+        $instanceSlug = request()->route('instance_slug');
+        $instance = $instanceSlug ? \App\Models\Instance::where('instance_slug', $instanceSlug)->first() : null;
+    @endphp
+    @if($instance && $instance->favicon)
+        <link rel="icon" href="{{ asset('storage/' . $instance->favicon) }}">
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Alpine.js --}}
