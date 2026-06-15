@@ -10,7 +10,7 @@ class CreateActivityLogTable extends Migration
     {
         Schema::connection(config('activitylog.database_connection'))->create(config('activitylog.table_name'), function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->foreignId('instance_id')->constrained('instances')->cascadeOnDelete();
+            $table->foreignId('instance_id')->nullable()->constrained('instances')->cascadeOnDelete();
             $table->string('log_name')->nullable();
             $table->text('description');
             $table->nullableMorphs('subject', 'subject');

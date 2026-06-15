@@ -26,6 +26,12 @@ class Activity extends SpatieActivity
                 } elseif (auth()->check() && auth()->user()->instance_id) {
                     // Fallback to user's instance_id if available
                     $activity->instance_id = auth()->user()->instance_id;
+                } elseif ($activity->subject_type === Instance::class && $activity->subject_id) {
+                    // If the subject is the Instance itself
+                    $activity->instance_id = $activity->subject_id;
+                } elseif ($activity->subject && $activity->subject->instance_id) {
+                    // If the subject has an instance_id
+                    $activity->instance_id = $activity->subject->instance_id;
                 }
             }
         });
