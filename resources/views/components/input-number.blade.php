@@ -22,12 +22,13 @@
             @endif
         </label>
     @endif
-    <input type="number" name="{{ $name }}" x-model="form.{{ $name }}" @input="hasChanges = true"
+    <input type="number" name="{{ $name }}" 
         value="{{ $value }}" placeholder="{{ $placeholder }}"
         class="{{ $inputClass }} @if ($error) border-red-500 focus:ring-red-500 focus:border-red-500 @endif @if ($readonly) cursor-not-allowed pointer-events-none @endif"
         @if ($min !== null) min="{{ $min }}" @endif
         @if ($max !== null) max="{{ $max }}" @endif
-        @if ($required) required @endif @if ($readonly) readonly @endif>
+        @if ($required) required @endif @if ($readonly) readonly @endif
+        {{ $attributes }}>
 
     @if ($error)
         <p class="text-sm text-red-600">{{ $error }}</p>

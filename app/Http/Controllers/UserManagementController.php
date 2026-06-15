@@ -161,6 +161,13 @@ class UserManagementController extends Controller
                     : back()->with('error', $message);
             }
 
+            if ($user->id === auth()->id()) {
+                $message = 'Anda tidak dapat menonaktifkan akun Anda sendiri.';
+                return $request->wantsJson()
+                    ? response()->json(['success' => false, 'message' => $message], 403)
+                    : back()->with('error', $message);
+            }
+
             $user->update(['is_active' => !$user->is_active]);
 
             $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';

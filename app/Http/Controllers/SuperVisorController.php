@@ -137,7 +137,7 @@ class SuperVisorController extends Controller
 
             // Find current active session to get the counter name, or N/A
             $session = $operator->activeCounterSession;
-            $counterName = $session ? 'Loket ' . $session->counter->counter_number : 'Offline';
+            $counterName = $session ? $session->counter->counter_number : 'Offline';
 
             // Only include if they have served something today or are currently online
             if ($todayServed > 0 || $session) {
@@ -188,7 +188,7 @@ class SuperVisorController extends Controller
             }
 
             $statuses[] = (object) [
-                'name' => 'Loket ' . $counter->counter_number,
+                'name' => $counter->counter_number,
                 'operatorName' => $counter->currentSession->user->name ?? null,
                 'status' => $status,
                 'current_queue' => $currentQueue,
@@ -340,7 +340,7 @@ class SuperVisorController extends Controller
 
         $counterOptions = ServiceCounter::where('instance_id', $instanceId)
             ->get(['id', 'counter_number'])
-            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
+            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => $c->counter_number])
             ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
             ->toArray();
 
@@ -376,7 +376,7 @@ class SuperVisorController extends Controller
                     : Carbon::parse($queue->queue_date)->translatedFormat('d M Y'),
                 'counter_id' => $queue->service_counter_id,
                 'counter_name' => $queue->counter
-                    ? 'Loket ' . $queue->counter->counter_number
+                    ? $queue->counter->counter_number
                     : '-',
                 'operator_name' => $queue->user?->name ?? '-',
                 'photo_path' => $queue->photos->isNotEmpty()
@@ -470,7 +470,7 @@ class SuperVisorController extends Controller
             'service_description' => $queue->service_description,
             'queue_status' => $queue->queue_status,
             'counter_name' => $queue->counter
-                ? 'Loket ' . $queue->counter->counter_number
+                ? $queue->counter->counter_number
                 : '-',
             'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {

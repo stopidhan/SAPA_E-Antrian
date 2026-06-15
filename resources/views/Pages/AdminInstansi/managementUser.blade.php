@@ -125,8 +125,12 @@
 
                             {{-- Aksi --}}
                             <td class="px-4 py-3 text-center">
-                                <x-action-buttons :edit="true" editAction="openEditModal" :toggle="true"
-                                    toggleAction="openToggleModal" />
+                                @if (auth()->id() !== $user->id)
+                                    <x-action-buttons :edit="true" editAction="openEditModal" :toggle="true"
+                                        toggleAction="openToggleModal" />
+                                @else
+                                    <x-action-buttons :edit="true" editAction="openEditModal" :toggle="false" />
+                                @endif
                             </td>
                         </tr>
                     @empty
