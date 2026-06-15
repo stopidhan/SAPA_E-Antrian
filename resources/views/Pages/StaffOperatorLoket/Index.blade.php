@@ -171,16 +171,7 @@
                     }
 
                     // INISIALISASI WEBSOCKET (LARAVEL ECHO + REVERB)
-                    // Menggantikan sistem polling AJAX setInterval
-                    window.Echo = new Echo({
-                        broadcaster: 'reverb',
-                        key: '{{ config('broadcasting.connections.reverb.key') }}',
-                        wsHost: window.location.hostname,
-                        wsPort: {{ config('broadcasting.connections.reverb.options.port') }},
-                        wssPort: {{ config('broadcasting.connections.reverb.options.port') }},
-                        forceTLS: false,
-                        enabledTransports: ['ws', 'wss'],
-                    });
+                    // Echo sudah diinisialisasi otomatis oleh resources/js/echo.js melalui Vite.
 
                     // Listen event dari channel instansi ini via WebSocket
                     window.Echo.channel('queues.{{ auth()->user()->instance_id }}')
