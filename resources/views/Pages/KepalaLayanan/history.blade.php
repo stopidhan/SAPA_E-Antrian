@@ -11,7 +11,7 @@
                 <h2 class="text-lg font-bold">Filter Riwayat Layanan</h2>
             </div>
 
-            <form method="GET" action="{{ route('supervisor.dashboard') }}" class="space-y-4">
+            <form method="GET" action="{{ route('supervisor.dashboard') }}" class="space-y-4" @submit="cleanFilters">
                 {{-- Hidden input to keep active tab --}}
                 <input type="hidden" name="tab" value="history">
 
@@ -21,8 +21,8 @@
                         <x-input-text name="search" label="Cari Antrean"
                             placeholder="No. Antrean atau Nama Pelanggan..." value="{{ request('search') }}" />
                     </div>
-                    <x-input-date name="start_date" label="Tanggal Mulai" value="{{ request('start_date') }}" />
-                    <x-input-date name="end_date" label="Tanggal Akhir" value="{{ request('end_date') }}" />
+                    <x-input-date name="start_date" label="Tanggal Mulai" value="{{ request('start_date', date('Y-m-d')) }}" />
+                    <x-input-date name="end_date" label="Tanggal Akhir" value="{{ request('end_date', date('Y-m-d')) }}" />
                 </div>
 
                 {{-- Row 2: Dropdowns --}}

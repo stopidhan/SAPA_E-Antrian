@@ -208,7 +208,7 @@ class ReportController extends Controller
                     : \Carbon\Carbon::parse($queue->queue_date)->translatedFormat('d M Y'),
                 'counter_id' => $queue->service_counter_id,
                 'counter_name' => $queue->counter
-                    ? 'Loket ' . $queue->counter->counter_number
+                    ? 'Loket ' . preg_replace('/^Loket\s*/i', '', $queue->counter->counter_number)
                     : '-',
                 'operator_name' => $queue->user?->name ?? '-',
                 'photo_path' => $queue->photos->isNotEmpty()
@@ -216,7 +216,10 @@ class ReportController extends Controller
                     : null,
                 'photos' => $queue->photos->map(function ($photo) {
                     $path = $photo->photo_path;
-                    return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
+                    if (str_starts_with($path, 'http')) {
+                        return $path;
+                    }
+                    return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
                 })->toArray(),
             ];
         });
@@ -237,7 +240,7 @@ class ReportController extends Controller
 
         $counterOptions = \App\Models\ServiceCounter::where('instance_id', $instance->id)
             ->get(['id', 'counter_number'])
-            ->map(fn($c) => ['value' => (string)$c->id, 'label' => "Loket $c->counter_number"])
+            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => 'Loket ' . preg_replace('/^Loket\s*/i', '', $c->counter_number)])
             ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
             ->toArray();
 
@@ -286,12 +289,15 @@ class ReportController extends Controller
             'service_description' => $queue->service_description,
             'queue_status' => $queue->queue_status,
             'counter_name' => $queue->counter
-                ? 'Loket ' . $queue->counter->counter_number
+                ? 'Loket ' . preg_replace('/^Loket\s*/i', '', $queue->counter->counter_number)
                 : '-',
             'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {
                 $path = $photo->photo_path;
-                return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
+                if (str_starts_with($path, 'http')) {
+                    return $path;
+                }
+                return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
             })->toArray(),
         ]);
     }

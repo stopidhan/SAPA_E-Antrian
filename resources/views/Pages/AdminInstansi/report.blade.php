@@ -58,7 +58,7 @@
                 </div>
 
                 <form method="GET" action="{{ route('reports.index', ['instance_slug' => $instanceSlug]) }}"
-                    class="space-y-4">
+                    class="space-y-4" @submit="cleanFilters">
 
                     {{-- Row 1: Search & Dates --}}
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -423,6 +423,24 @@
                     } finally {
                         this.detailLoading = false;
                     }
+                },
+                cleanFilters(e) {
+                    const form = e.target;
+                    const inputs = form.querySelectorAll('input, select');
+                    const defaultDate = '{{ date('Y-m-d') }}';
+                    
+                    inputs.forEach(input => {
+                        if (!input.value || input.value === 'all') {
+                            input.disabled = true;
+                        } else if ((input.name === 'start_date' || input.name === 'end_date') && input.value === defaultDate) {
+                            input.disabled = true;
+                        }
+                    });
+
+                    // Re-enable inputs after submission so the form remains usable if the user navigates back
+                    setTimeout(() => {
+                        inputs.forEach(input => input.disabled = false);
+                    }, 500);
                 }
             };
         }
