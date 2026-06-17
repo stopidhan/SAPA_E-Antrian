@@ -8,7 +8,8 @@ use App\Models\Traits\BelongsToInstance;
 
 class Queue extends Model
 {
-    use HasFactory, BelongsToInstance;
+    use HasFactory;
+    use BelongsToInstance;
 
     protected $fillable = [
         'instance_id',
@@ -59,14 +60,8 @@ class Queue extends Model
         return $this->belongsTo(ServiceCounter::class, 'service_counter_id');
     }
 
-    public function logs()
-    {
-        return $this->hasMany(QueueLog::class);
-    }
-
     public function photos()
     {
         return $this->hasMany(QueuePhoto::class);
     }
 }
-
