@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,6 +17,11 @@ class RoleMiddleware
         }
 
         if (!in_array(Auth::user()->role, $roles)) {
+            // Allow super_admin to bypass role checks if they are impersonating an instance
+            if (Auth::user()->isSuperAdmin() && Session::has('impersonate_instance_id')) {
+                return $next($request);
+            }
+            
             abort(403, 'Unauthorized');
         }
 

@@ -42,6 +42,28 @@
         ],
     ];
 
+    $user = Auth::user();
+    if ($user && in_array($user->role, ['super_admin', 'admin_instansi'])) {
+        $navMenuItems[] = [
+            'label' => 'Staff Konten',
+            'url' => route('content.index', $instanceSlug),
+            'active' => 'content.*',
+            'icon' => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>',
+        ];
+        $navMenuItems[] = [
+            'label' => 'Supervisor',
+            'url' => route('supervisor.dashboard', $instanceSlug),
+            'active' => 'supervisor.*',
+            'icon' => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>',
+        ];
+        $navMenuItems[] = [
+            'label' => 'Operator',
+            'url' => route('operator.dashboard', $instanceSlug),
+            'active' => 'operator.*',
+            'icon' => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.896-1.596-5.48-4.18-7.076-7.076l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>',
+        ];
+    }
+
     $activeItem = collect($navMenuItems)->first(function ($item) {
         return request()->routeIs($item['active']);
     });
@@ -154,6 +176,19 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
+                @if(Session::has('impersonate_instance_id'))
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200 shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                        </span>
+                        <span class="text-sm font-semibold whitespace-nowrap">Impersonating: {{ Session::get('impersonate_instance_slug') }}</span>
+                        <form action="{{ route('developer.stop-impersonating') }}" method="POST" class="inline border-l border-yellow-300 pl-2 ml-1">
+                            @csrf
+                            <button type="submit" class="text-xs font-bold hover:text-yellow-900 transition-colors">Exit</button>
+                        </form>
+                    </div>
+                @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
@@ -211,6 +246,27 @@
                         <span class="text-sm font-semibold whitespace-nowrap">{{ $instanceName }}</span>
                     </div>
                 @endif --}}
+                @if(Session::has('impersonate_instance_id'))
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200 shadow-sm">
+                        <span class="flex h-2 w-2 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                        </span>
+                        <span class="text-sm font-semibold whitespace-nowrap">Impersonating: {{ Session::get('impersonate_instance_slug') }}</span>
+                        <form action="{{ route('developer.stop-impersonating') }}" method="POST" class="inline border-l border-yellow-300 pl-2 ml-1">
+                            @csrf
+                            <button type="submit" class="text-xs font-bold hover:text-yellow-900 transition-colors">Exit</button>
+                        </form>
+                    </div>
+                @endif
+                @if (Auth::user() && in_array(Auth::user()->role, ['super_admin', 'admin_instansi']))
+                    @if(request()->routeIs('content.*') || request()->routeIs('supervisor.*') || request()->routeIs('operator.*'))
+                        <a href="{{ route('admininstance.dashboard', $instanceSlug) }}" class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg border border-gray-200 shadow-sm text-sm font-semibold transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                            Kembali ke Admin
+                        </a>
+                    @endif
+                @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
