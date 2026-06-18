@@ -49,7 +49,11 @@ class OperatorController extends Controller
         $queuesQuery = Queue::with('service')
             ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
-            ->where('queue_status', 'waiting');
+            ->where('queue_status', 'waiting')
+            ->where(function ($query) {
+                $query->where('queue_source', '!=', 'online')
+                      ->orWhereNotNull('check_in_time');
+            });
 
         if ($serviceId) {
             $queuesQuery->where('service_id', $serviceId);
@@ -208,7 +212,11 @@ class OperatorController extends Controller
         $queuesQuery = Queue::with('service')
             ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
-            ->where('queue_status', 'waiting');
+            ->where('queue_status', 'waiting')
+            ->where(function ($query) {
+                $query->where('queue_source', '!=', 'online')
+                      ->orWhereNotNull('check_in_time');
+            });
 
         if ($serviceId) {
             $queuesQuery->where('service_id', $serviceId);
@@ -277,6 +285,7 @@ class OperatorController extends Controller
                     'call_time'          => now(),
                     'service_counter_id' => $counterId,
                     'user_id'            => $userId,
+                    'service_start_time' => null, // Reset timer — hanya berjalan saat Mulai Layani
                 ]);
 
             if ($berhasilUpdate === 0) {
@@ -392,7 +401,11 @@ class OperatorController extends Controller
     {
         $queue = Queue::where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())->findOrFail($id);
 
-        $startTime = $queue->service_start_time ? \Carbon\Carbon::parse($queue->service_start_time) : now();
+        // Jika service_start_time belum diisi (operator tidak klik Mulai Layani),
+        // gunakan call_time sebagai fallback agar durasi tetap tercatat.
+        $startTime = $queue->service_start_time
+            ? \Carbon\Carbon::parse($queue->service_start_time)
+            : (\Carbon\Carbon::parse($queue->call_time ?? $queue->updated_at));
         $endTime = now();
 
         $request->validate([
