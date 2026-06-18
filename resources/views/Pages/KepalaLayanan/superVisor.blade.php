@@ -10,13 +10,15 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <template x-if="wsConnected">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <span
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                             <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                             Live — Real-time
                         </span>
                     </template>
                     <template x-if="!wsConnected">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                        <span
+                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
                             <span class="w-2 h-2 bg-red-500 rounded-full"></span>
                             Offline — Reconnecting...
                         </span>
@@ -316,8 +318,9 @@
 
                             const newOperator = doc.getElementById('live-operator-performance');
                             const newCounter = doc.getElementById('live-counter-status');
-                            
-                            console.log('[Supervisor] Live Partial Parsed. Found Operator:', !!newOperator, 'Found Counter:', !!newCounter);
+
+                            console.log('[Supervisor] Live Partial Parsed. Found Operator:', !!newOperator,
+                                'Found Counter:', !!newCounter);
 
                             if (operatorContainer && newOperator) {
                                 operatorContainer.innerHTML = newOperator.innerHTML;
@@ -358,6 +361,28 @@
                     } finally {
                         this.detailLoading = false;
                     }
+                },
+
+                cleanFilters(e) {
+                    const form = e.target;
+                    const inputs = form.querySelectorAll('input, select');
+                    const defaultDate = '{{ date('Y-m-d') }}';
+                    
+                    inputs.forEach(input => {
+                        // Skip 'tab' hidden input to ensure tab stays active
+                        if (input.name === 'tab') return;
+                        
+                        if (!input.value || input.value === 'all') {
+                            input.disabled = true;
+                        } else if ((input.name === 'start_date' || input.name === 'end_date') && input.value === defaultDate) {
+                            input.disabled = true;
+                        }
+                    });
+
+                    // Re-enable inputs after submission so the form remains usable if the user navigates back
+                    setTimeout(() => {
+                        inputs.forEach(input => input.disabled = false);
+                    }, 500);
                 },
 
                 destroy() {

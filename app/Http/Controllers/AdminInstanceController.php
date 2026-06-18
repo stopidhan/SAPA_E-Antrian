@@ -58,8 +58,8 @@ class AdminInstanceController extends Controller
     {
         $validated = $request->validate([
             'tts_enabled' => ['required', 'boolean'],
-            'max_online_bookings_per_day' => ['required', 'integer', 'min:1', 'max:2000'],
-            'max_offline_bookings_per_day' => ['required', 'integer', 'min:1', 'max:2000'],
+            'max_online_bookings_per_day' => ['required', 'integer', 'min:1', 'max:100'],
+            'max_offline_bookings_per_day' => ['required', 'integer', 'min:1', 'max:200'],
             'operational_hours' => ['nullable', 'array'],
             'tts_language' => ['nullable', 'string', 'max:20'],
             'timezone' => ['nullable', 'string', 'max:50'],

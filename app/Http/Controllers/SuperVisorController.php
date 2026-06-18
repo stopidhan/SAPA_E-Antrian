@@ -277,10 +277,10 @@ class SuperVisorController extends Controller
                         });
                 });
             })
-            ->when($request->start_date, function ($query, $date) {
+            ->when($request->input('start_date', date('Y-m-d')), function ($query, $date) {
                 $query->whereDate('queue_date', '>=', $date);
             })
-            ->when($request->end_date, function ($query, $date) {
+            ->when($request->input('end_date', date('Y-m-d')), function ($query, $date) {
                 $query->whereDate('queue_date', '<=', $date);
             })
             ->when($request->service_id && $request->service_id !== 'all', function ($query) use ($request) {
@@ -340,7 +340,7 @@ class SuperVisorController extends Controller
 
         $counterOptions = ServiceCounter::where('instance_id', $instanceId)
             ->get(['id', 'counter_number'])
-            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => $c->counter_number])
+            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => 'Loket ' . preg_replace('/^Loket\s*/i', '', $c->counter_number)])
             ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
             ->toArray();
 
@@ -376,7 +376,7 @@ class SuperVisorController extends Controller
                     : Carbon::parse($queue->queue_date)->translatedFormat('d M Y'),
                 'counter_id' => $queue->service_counter_id,
                 'counter_name' => $queue->counter
-                    ? $queue->counter->counter_number
+                    ? 'Loket ' . preg_replace('/^Loket\s*/i', '', $queue->counter->counter_number)
                     : '-',
                 'operator_name' => $queue->user?->name ?? '-',
                 'photo_path' => $queue->photos->isNotEmpty()
@@ -384,7 +384,8 @@ class SuperVisorController extends Controller
                     : null,
                 'photos' => $queue->photos->map(function ($photo) {
                     $path = $photo->photo_path;
-                    return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
+                    if (str_starts_with($path, 'http')) return $path;
+                    return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
                 })->toArray(),
             ];
         });
@@ -470,12 +471,13 @@ class SuperVisorController extends Controller
             'service_description' => $queue->service_description,
             'queue_status' => $queue->queue_status,
             'counter_name' => $queue->counter
-                ? $queue->counter->counter_number
+                ? 'Loket ' . preg_replace('/^Loket\s*/i', '', $queue->counter->counter_number)
                 : '-',
             'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {
                 $path = $photo->photo_path;
-                return str_starts_with($path, 'http') ? $path : asset('uploads/' . $path);
+                if (str_starts_with($path, 'http')) return $path;
+                return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
             })->toArray(),
         ]);
     }

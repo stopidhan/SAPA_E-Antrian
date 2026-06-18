@@ -19,13 +19,12 @@
                             value="{{ old('title') }}" required class="mb-4" />
 
                         <x-input-number name="duration" label="Durasi Tampil (detik)" placeholder="10" min="1"
-                            max="300" value="{{ old('duration', 10) }}" class="mb-4" />
+                            max="300" value="{{ old('duration') }}" required class="mb-4" />
 
                         <div class="mb-4 flex items-center gap-3">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="is_active" value="1"
-                                    {{ old('is_active') ? 'checked' : '' }}
-                                    class="sr-only peer">
+                                    {{ old('is_active') ? 'checked' : '' }} class="sr-only peer">
                                 <div
                                     class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                                 </div>
@@ -102,85 +101,93 @@
                     <div class="flex justify-between items-center">
                         <h3 class="text-lg font-semibold">Daftar Konten</h3>
                         <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded border border-gray-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                             </svg>
                             Drag & Drop untuk mengatur urutan
                         </span>
                     </div>
 
                     <div id="content-list" class="flex flex-col gap-4">
-                    @forelse($contents as $content)
-                        <div class="space-y-4 sortable-item cursor-move" data-id="{{ $content->id }}">
-                            <div class="border border-gray-300 p-4 rounded-lg bg-white hover:border-blue-400 transition-colors">
-                                <div class="flex flex-row gap-4 items-center">
-                                    <div class="flex-shrink-0 text-gray-400 px-2 cursor-move hidden sm:block">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-shrink-0">
-                                        @if ($content->media_type === 'image')
-                                            <img src="{{ Storage::url($content->file_path) }}" alt="{{ $content->title }}"
-                                                class="w-16 h-16 object-cover rounded" />
-                                        @elseif ($content->media_type === 'video')
-                                            <video width="320" height="180" controls class="rounded">
-                                                <source src="{{ Storage::url($content->file_path) }}" type="video/mp4">
-                                                Your browser does not support the video tag.
-                                            </video>
-                                        @endif
-                                    </div>
-
-                                    <div class="space-y-3 flex-grow">
-                                        <h4 class="font-medium">{{ $content->title }}</h4>
-                                        <p class="text-sm text-gray-600">
-                                            {{ ucfirst($content->media_type) }}
-                                            @if ($content->duration)
-                                                • {{ $content->duration }}s
-                                            @endif
-                                        </p>
-                                        <p class="text-sm text-gray-500">
-                                            Diupload: {{ $content->created_at->format('d M Y, H:i') }}
-                                        </p>
-                                        <div class="flex items-center gap-3">
-                                            <label class="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" class="sr-only peer toggle-content"
-                                                    data-id="{{ $content->id }}"
-                                                    {{ $content->is_active ? 'checked' : '' }}>
-                                                <div
-                                                    class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                                </div>
-                                            </label>
-                                            <label class="text-sm font-medium text-black">Tampilkan di TV Monitor</label>
+                        @forelse($contents as $content)
+                            <div class="space-y-4 sortable-item cursor-move" data-id="{{ $content->id }}">
+                                <div
+                                    class="border border-gray-300 p-4 rounded-lg bg-white hover:border-blue-400 transition-colors">
+                                    <div class="flex flex-row gap-4">
+                                        <div
+                                            class="flex-shrink-0 text-gray-400 px-2 cursor-move hidden sm:block self-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 8h16M4 16h16" />
+                                            </svg>
                                         </div>
-                                    </div>
-
-                                    <div class="ml-auto flex flex-col justify-between items-end">
-                                        <div class="mb-2" id="status-label-{{ $content->id }}">
-                                            @if ($content->is_active)
-                                                <span
-                                                    class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
-                                                    Aktif
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">
-                                                    Nonaktif
-                                                </span>
+                                        <div class="flex-shrink-0 self-center">
+                                            @if ($content->media_type === 'image')
+                                                <img src="{{ Storage::url($content->file_path) }}"
+                                                    alt="{{ $content->title }}" class="w-16 h-16 object-cover rounded" />
+                                            @elseif ($content->media_type === 'video')
+                                                <video width="320" height="180" controls class="rounded">
+                                                    <source src="{{ Storage::url($content->file_path) }}"
+                                                        type="video/mp4">
+                                                    Your browser does not support the video tag.
+                                                </video>
                                             @endif
                                         </div>
 
-                                        <x-action-buttons :editAction="'openEditModal(' . $content->id . ')'" :deleteAction="'openDeleteModal(' . $content->id . ')'" />
+                                        <div class="space-y-3 flex-grow py-1">
+                                            <h4 class="font-medium">{{ $content->title }}</h4>
+                                            <p class="text-sm text-gray-600">
+                                                {{ ucfirst($content->media_type) }}
+                                                @if ($content->duration)
+                                                    • {{ $content->duration }}s
+                                                @endif
+                                            </p>
+                                            <p class="text-sm text-gray-500">
+                                                Diupload: {{ $content->created_at->format('d M Y, H:i') }}
+                                            </p>
+                                            <div class="flex items-center gap-3">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" class="sr-only peer toggle-content"
+                                                        data-id="{{ $content->id }}"
+                                                        {{ $content->is_active ? 'checked' : '' }}>
+                                                    <div
+                                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                                    </div>
+                                                </label>
+                                                <label class="text-sm font-medium text-black">Tampilkan di TV
+                                                    Monitor</label>
+                                            </div>
+                                        </div>
 
+                                        <div class="ml-auto flex flex-col justify-between items-end py-1">
+                                            <div class="mb-2" id="status-label-{{ $content->id }}">
+                                                @if ($content->is_active)
+                                                    <span
+                                                        class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">
+                                                        Aktif
+                                                    </span>
+                                                @else
+                                                    <span
+                                                        class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">
+                                                        Nonaktif
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            <x-action-buttons :editAction="'openEditModal(' . $content->id . ')'" :deleteAction="'openDeleteModal(' . $content->id . ')'" />
+
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-8 text-gray-500 w-full">
-                            <p>Belum ada konten yang diupload.</p>
-                        </div>
-                    @endforelse
+                        @empty
+                            <div class="text-center py-8 text-gray-500 w-full">
+                                <p>Belum ada konten yang diupload.</p>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -390,14 +397,17 @@
                                 } else {
                                     console.log(data.message);
                                 }
-                                
+
                                 // Update status badge dynamically
-                                const statusLabel = document.getElementById(`status-label-${contentId}`);
+                                const statusLabel = document.getElementById(
+                                    `status-label-${contentId}`);
                                 if (statusLabel) {
                                     if (data.is_active) {
-                                        statusLabel.innerHTML = `<span class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">Aktif</span>`;
+                                        statusLabel.innerHTML =
+                                            `<span class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">Aktif</span>`;
                                     } else {
-                                        statusLabel.innerHTML = `<span class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">Nonaktif</span>`;
+                                        statusLabel.innerHTML =
+                                            `<span class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">Nonaktif</span>`;
                                     }
                                 }
                             } else {
@@ -419,7 +429,7 @@
                         });
                 });
             });
-            
+
             // Sortable JS for Drag and Drop Ordering
             const contentList = document.getElementById('content-list');
             if (contentList && contentList.children.length > 0) {
@@ -427,10 +437,10 @@
                     animation: 150,
                     ghostClass: 'opacity-50',
                     handle: '.sortable-item',
-                    onEnd: function (evt) {
+                    onEnd: function(evt) {
                         const items = contentList.querySelectorAll('.sortable-item');
                         const newOrder = [];
-                        
+
                         items.forEach((item, index) => {
                             newOrder.push({
                                 id: item.getAttribute('data-id'),
@@ -440,37 +450,39 @@
 
                         // Send AJAX request to update order
                         fetch(`{{ route('content.updateOrder', ['instance_slug' => request()->route('instance_slug')]) }}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({ order: newOrder })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                if (typeof showToast === 'function') {
-                                    showToast(data.message, 'success');
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    order: newOrder
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (typeof showToast === 'function') {
+                                        showToast(data.message, 'success');
+                                    } else {
+                                        console.log(data.message);
+                                    }
                                 } else {
-                                    console.log(data.message);
+                                    if (typeof showToast === 'function') {
+                                        showToast('Gagal mengubah urutan', 'error');
+                                    } else {
+                                        alert('Gagal mengubah urutan');
+                                    }
                                 }
-                            } else {
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
                                 if (typeof showToast === 'function') {
-                                    showToast('Gagal mengubah urutan', 'error');
+                                    showToast('Terjadi kesalahan', 'error');
                                 } else {
-                                    alert('Gagal mengubah urutan');
+                                    alert('Terjadi kesalahan');
                                 }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            if (typeof showToast === 'function') {
-                                showToast('Terjadi kesalahan', 'error');
-                            } else {
-                                alert('Terjadi kesalahan');
-                            }
-                        });
+                            });
                     }
                 });
             }
