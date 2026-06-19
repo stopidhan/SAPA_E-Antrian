@@ -143,20 +143,28 @@
 
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div x-data="{ color: '{{ $instance->brand_color ?? '#3B82F6' }}' }">
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Utama (Primary)</label>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Utama
+                                                    (Primary)</label>
                                                 <div class="flex items-center gap-3">
-                                                    <input type="color" name="brand_color" x-model="color" @input="markChanged"
+                                                    <input type="color" name="brand_color" x-model="color"
+                                                        @input="markChanged"
                                                         class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-blue-500">
-                                                    <span class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border" x-text="color.toUpperCase()"></span>
+                                                    <span
+                                                        class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border"
+                                                        x-text="color.toUpperCase()"></span>
                                                 </div>
                                             </div>
 
                                             <div x-data="{ color: '{{ $instance->secondary_color ?? '#10B981' }}' }">
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Sekunder (Secondary)</label>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Sekunder
+                                                    (Secondary)</label>
                                                 <div class="flex items-center gap-3">
-                                                    <input type="color" name="secondary_color" x-model="color" @input="markChanged"
+                                                    <input type="color" name="secondary_color" x-model="color"
+                                                        @input="markChanged"
                                                         class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-blue-500">
-                                                    <span class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border" x-text="color.toUpperCase()"></span>
+                                                    <span
+                                                        class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border"
+                                                        x-text="color.toUpperCase()"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -178,8 +186,8 @@
                                                 value="{{ $instance->email ?? '' }}" type="email" />
                                         </div>
 
-                                        <x-input-text name="website" label="Website" placeholder="https://instansi.go.id"
-                                            value="{{ $instance->website ?? '' }}" type="url" />
+                                        {{-- <x-input-text name="website" label="Website" placeholder="https://instansi.go.id"
+                                            value="{{ $instance->website ?? '' }}" type="url" /> --}}
 
                                         <x-input-textarea name="address" label="Alamat Lengkap"
                                             placeholder="Jalan, nomor, RT/RW" value="{{ $instance->address ?? '' }}"
