@@ -82,7 +82,7 @@ class BookingOnlineController extends Controller
         $today = now()->toDateString();
         
         foreach($layanans as $svc) {
-            $totalTerisi += $svc->queues->where('queue_date', $today)->count();
+            $totalTerisi += $svc->queues->where('queue_date', $today)->where('queue_source', 'online')->count();
         }
         $sisaKuota = max(0, $totalKuota - $totalTerisi);
 
@@ -272,6 +272,20 @@ class BookingOnlineController extends Controller
         }
 
         $today = now()->toDateString();
+        
+        $instance = \App\Models\Instance::find($service->instance_id);
+        $totalKuota = $instance ? (int) $instance->max_online_bookings_per_day : 0;
+        $totalTerisi = \App\Models\Queue::where('instance_id', $service->instance_id)
+            ->whereDate('queue_date', $today)
+            ->where('queue_source', 'online')
+            ->count();
+
+        if ($totalTerisi >= $totalKuota && $totalKuota > 0) {
+            return back()
+                ->withErrors(['limit_booking' => 'Mohon maaf, kuota antrean online hari ini sudah penuh.'])
+                ->withInput();
+        }
+        
         $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
 
         // Mencegah Race Condition dengan Atomic Lock (maksimal proses 10 detik, menunggu lock 5 detik)

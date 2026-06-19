@@ -19,7 +19,20 @@ class KioskController extends Controller
     {
         $instance = app(\App\Services\TenantManager::class)->getInstance();
         $services = Service::where('instance_id', $instance->id)->where('is_active', true)->get();
-        return view('Pages.On-siteUser.KioskHome', compact('services', 'instance'));
+
+        $totalKuotaOffline = (int) ($instance->max_offline_bookings_per_day ?? 0);
+        $totalTerisiOffline = 0;
+        $sisaKuotaOffline = 0;
+
+        if ($totalKuotaOffline > 0) {
+            $totalTerisiOffline = \App\Models\Queue::where('instance_id', $instance->id)
+                ->whereDate('queue_date', now()->toDateString())
+                ->where('queue_source', 'onsite')
+                ->count();
+            $sisaKuotaOffline = max(0, $totalKuotaOffline - $totalTerisiOffline);
+        }
+
+        return view('Pages.On-siteUser.KioskHome', compact('services', 'instance', 'totalKuotaOffline', 'totalTerisiOffline', 'sisaKuotaOffline'));
     }
 
     /**
@@ -66,6 +79,19 @@ class KioskController extends Controller
 
         if (!$service) {
             return back()->withErrors(['layanan' => 'Layanan tidak ditemukan atau sedang tidak aktif.']);
+        }
+
+        $today = now()->toDateString();
+        $totalKuotaOffline = $instance->max_offline_bookings_per_day ?? 0;
+        if ($totalKuotaOffline > 0) {
+            $totalTerisiOffline = \App\Models\Queue::where('instance_id', $instance->id)
+                ->whereDate('queue_date', $today)
+                ->where('queue_source', 'onsite')
+                ->count();
+            
+            if ($totalTerisiOffline >= $totalKuotaOffline) {
+                return back()->withErrors(['layanan' => 'Mohon maaf, kuota antrean onsite (kiosk) hari ini sudah penuh.']);
+            }
         }
 
         // Buat atau cari customer guest/offline (bisa dengan nomor hp kosong)
