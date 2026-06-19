@@ -62,22 +62,12 @@
 
                                 {{-- Maksimal Booking per Hari --}}
                                 <div class="grid grid-cols-2 gap-4">
-                                    <x-input-number 
-                                        label="Booking Online / Hari" 
-                                        name="maxOnlineBookingsPerDay" 
-                                        placeholder="5" 
-                                        min="1" 
-                                        max="2000" 
-                                        x-model.number="config.maxOnlineBookingsPerDay" 
-                                    />
-                                    <x-input-number 
-                                        label="Booking Offline / Hari" 
-                                        name="maxOfflineBookingsPerDay" 
-                                        placeholder="100" 
-                                        min="1" 
-                                        max="2000" 
-                                        x-model.number="config.maxOfflineBookingsPerDay" 
-                                    />
+                                    <x-input-number label="Booking Online / Hari" name="maxOnlineBookingsPerDay"
+                                        placeholder="5" min="1" max="2000"
+                                        x-model.number="config.maxOnlineBookingsPerDay" />
+                                    <x-input-number label="Booking Offline / Hari" name="maxOfflineBookingsPerDay"
+                                        placeholder="100" min="1" max="2000"
+                                        x-model.number="config.maxOfflineBookingsPerDay" />
                                 </div>
 
                                 {{-- Zona Waktu --}}
@@ -101,27 +91,36 @@
                                         <p class="text-sm text-gray-500">Atur jadwal buka dan tutup instansi Anda setiap
                                             harinya.</p>
                                     </div>
-                                    
-                                    <div class="border border-gray-200 rounded-xl overflow-hidden bg-white max-w-2xl shadow-sm">
+
+                                    <div
+                                        class="border border-gray-200 rounded-xl overflow-hidden bg-white max-w-2xl shadow-sm">
                                         {{-- Header --}}
-                                        <div class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+                                        <div
+                                            class="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center justify-between">
                                             <span class="text-sm font-semibold text-gray-700">Hari & Status</span>
                                             <span class="text-sm font-semibold text-gray-700 mr-8">Jam Layanan</span>
                                         </div>
-                                        
+
                                         {{-- List of Days --}}
                                         <div class="divide-y divide-gray-100">
-                                            <template x-for="(day, index) in config.operationalHours" :key="index">
+                                            <template x-for="(day, index) in config.operationalHours"
+                                                :key="index">
                                                 <div class="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/50 transition-colors"
-                                                     :class="!day.isOpen ? 'bg-gray-50/50' : ''">
-                                                    
+                                                    :class="!day.isOpen ? 'bg-gray-50/50' : ''">
+
                                                     {{-- Toggle & Day Name --}}
                                                     <div class="flex items-center gap-4 w-1/3">
-                                                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                                            <input type="checkbox" x-model="day.isOpen" class="sr-only peer">
-                                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                                        <label
+                                                            class="relative inline-flex items-center cursor-pointer shrink-0">
+                                                            <input type="checkbox" x-model="day.isOpen"
+                                                                class="sr-only peer">
+                                                            <div
+                                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                                            </div>
                                                         </label>
-                                                        <span class="font-medium" :class="day.isOpen ? 'text-gray-900' : 'text-gray-400'" x-text="day.name"></span>
+                                                        <span class="font-medium"
+                                                            :class="day.isOpen ? 'text-gray-900' : 'text-gray-400'"
+                                                            x-text="day.name"></span>
                                                     </div>
 
                                                     {{-- Time Range --}}
@@ -138,7 +137,8 @@
                                                             </div>
                                                         </div>
                                                         <div x-show="!day.isOpen" class="w-[245px] flex justify-end pr-2">
-                                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
+                                                            <span
+                                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-600 border border-red-100">
                                                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                                                 Tutup / Libur
                                                             </span>
@@ -300,9 +300,6 @@
                     {{-- RIGHT COLUMN: Summary & Actions --}}
                     <div class="space-y-6">
 
-                        {{-- Quick Action (Tautan Publik) --}}
-                        <x-quick-action />
-
                         {{-- Summary Card --}}
                         <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
                             <h3 class="text-lg font-bold">Ringkasan Konfigurasi</h3>
@@ -323,11 +320,13 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Online</p>
-                                    <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxOnlineBookingsPerDay"></p>
+                                    <p class="text-3xl font-bold text-blue-600"
+                                        x-text="savedConfig.maxOnlineBookingsPerDay"></p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Offline</p>
-                                    <p class="text-3xl font-bold text-blue-600" x-text="savedConfig.maxOfflineBookingsPerDay"></p>
+                                    <p class="text-3xl font-bold text-blue-600"
+                                        x-text="savedConfig.maxOfflineBookingsPerDay"></p>
                                 </div>
                             </div>
                             <hr class="border-gray-100">
