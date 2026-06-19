@@ -1,6 +1,6 @@
 @extends('layouts.testes')
 
-@section('title', 'Admin Dashboard - SAPA')
+@section('title', 'Konfigurasi Sistem - SAPA')
 
 @php
     $withSidebar = true;

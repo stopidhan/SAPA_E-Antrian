@@ -49,38 +49,77 @@ class SuperVisorController extends Controller
             ->whereNotNull('service_duration')
             ->avg('service_duration');
 
-        $avgFormatted = $avgDuration !== null ? round($avgDuration) . 'm' : '0m';
+        $avgServiceFormatted = $avgDuration !== null ? round($avgDuration) . 'm' : '0m';
+
+        // Menghitung Rata-rata Waktu Tunggu yang Akurat
+        $avgWaitTime = (clone $baseQuery)->whereNotNull('service_start_time')
+            ->get()
+            ->filter(function ($q) {
+                // Abaikan antrean online yang anomali (tidak punya check_in_time tapi dilayani)
+                if ($q->queue_source === 'online' && empty($q->check_in_time)) {
+                    return false;
+                }
+                return true;
+            })
+            ->map(function ($q) {
+                // Tentukan waktu mulai mengantre berdasarkan sumber antrean
+                if ($q->queue_source === 'online' && !empty($q->check_in_time)) {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->check_in_time);
+                } else {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->taken_time);
+                }
+
+                $servedAt = \Carbon\Carbon::parse($q->service_start_time);
+
+                // Pastikan tidak minus (jika ada anomali data)
+                $diff = $startWaitingAt->diffInMinutes($servedAt);
+                return $diff > 0 ? $diff : 0;
+            })->avg() ?? 0;
+
+        $avgWaitFormatted = $avgWaitTime !== null ? round($avgWaitTime) . 'm' : '0m';
 
         return [
             [
                 'label' => 'Total Antrean',
                 'value' => $total,
                 'color' => 'text-gray-800',
+                'sub' => 'Total tiket antrean hari ini',
                 'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM15 20H9m6 0h6M9 20H3" /></svg>',
-            ],
-            [
-                'label' => 'Selesai',
-                'value' => $completed,
-                'color' => 'text-green-600',
-                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
-            ],
-            [
-                'label' => 'Sedang Dilayani',
-                'value' => $serving,
-                'color' => 'text-blue-600',
-                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
             ],
             [
                 'label' => 'Menunggu',
                 'value' => $waiting,
                 'color' => 'text-orange-600',
+                'sub' => 'Pelanggan belum dipanggil',
                 'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
             ],
             [
-                'label' => 'Avg. Waktu',
-                'value' => $avgFormatted,
+                'label' => 'Sedang Dilayani',
+                'value' => $serving,
+                'color' => 'text-blue-600',
+                'sub' => 'Sedang diproses di loket',
+                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>',
+            ],
+            [
+                'label' => 'Selesai',
+                'value' => $completed,
+                'color' => 'text-green-600',
+                'sub' => 'Layanan telah selesai',
+                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+            ],
+            [
+                'label' => 'Avg. Waktu Tunggu',
+                'value' => $avgWaitFormatted,
                 'color' => 'text-purple-600',
-                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3l-4 4m0 4l4 4v-7m8-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+                'sub' => 'Rata-rata pelanggan menunggu',
+                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+            ],
+            [
+                'label' => 'Avg. Waktu Pelayanan',
+                'value' => $avgServiceFormatted,
+                'color' => 'text-pink-600',
+                'sub' => 'Rata-rata proses di loket',
+                'icon' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>',
             ],
         ];
     }
@@ -432,11 +471,13 @@ class SuperVisorController extends Controller
         $operatorPerformance = $this->getOperatorPerformance($instanceId);
         $counters = $this->getCounterStatuses($instanceId);
         $registrationTypes = $this->getRegistrationTypes($instanceId);
+        $statCards = $this->getStatCards($instanceId);
 
         return view('Pages.KepalaLayanan.liveTracking', compact(
             'operatorPerformance',
             'counters',
-            'registrationTypes'
+            'registrationTypes',
+            'statCards'
         ))->render();
     }
 

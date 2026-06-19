@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DeveloperController;
 
 // ==========================================
-// Organization Selection (Root)
+// Instance Selection (Root)
 // ==========================================
 Route::get('/', function () {
     $instances = \App\Models\Instance::all();

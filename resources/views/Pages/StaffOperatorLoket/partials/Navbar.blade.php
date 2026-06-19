@@ -22,16 +22,6 @@
 
         {{-- Kanan: Profil + Logout --}}
         <div class="flex items-center gap-3">
-            <template x-if="!counterId">
-                <button type="button" @click="showLoketModal = true"
-                    class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 text-sm font-semibold rounded-lg hover:bg-blue-100 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    Buka Sesi
-                </button>
-            </template>
-
             <template x-if="counterId">
                 <button type="button" @click="$dispatch('open-modal', 'confirm-close-session')"
                     class="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-semibold rounded-lg hover:bg-amber-100 transition">

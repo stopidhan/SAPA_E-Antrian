@@ -71,7 +71,7 @@ class KioskController extends Controller
         // Buat atau cari customer guest/offline (bisa dengan nomor hp kosong)
         $customer = Customer::create([
             'instance_id' => $service->instance_id,
-            'name' => $validated['nama'] . ' (On-Site)',
+            'name' => $validated['nama'],
             'phone' => '-', // Tidak ada nomor HP untuk registrasi langsung kiosk ini
             'is_verified' => true,
         ]);

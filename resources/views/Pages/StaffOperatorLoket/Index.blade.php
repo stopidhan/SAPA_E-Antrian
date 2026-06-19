@@ -174,9 +174,7 @@
                     }
 
                     // Ambil data pertama kali saat halaman dimuat
-                    if (this.counterId) {
-                        this.fetchQueues();
-                    }
+                    this.fetchQueues();
 
                     // Pre-load Web Speech API Voices
                     if ('speechSynthesis' in window) {
@@ -193,11 +191,11 @@
                     window.Echo.channel('queues.{{ auth()->user()->instance_id }}')
                         .listen('QueueUpdated', (e) => {
                             console.log('[WebSocket] Antrean terupdate:', e);
-                            if (this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         })
                         .listen('QueueCheckedIn', (e) => {
                             console.log('[WebSocket] Ada antrean baru datang:', e);
-                            if (this.counterId) this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
+                            this.fetchQueues(); // Perbarui daftar antrean seketika tanpa reload
                         });
                 },
 

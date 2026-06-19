@@ -1,6 +1,13 @@
 {{-- ===== TAB: LIVE TRACKING ===== --}}
 <div x-show="activeTab === 'live'" class="space-y-6">
 
+    {{-- Performa Pelayanan Rata-rata --}}
+    <div id="performance-stats-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @if(isset($statCards))
+            <x-card :cards="array_slice($statCards, 4, 2)" />
+        @endif
+    </div>
+
     {{-- Operator Performance --}}
     <div class="bg-white rounded-2xl border shadow-sm" id="live-operator-performance">
         <div class="p-6 border-b">

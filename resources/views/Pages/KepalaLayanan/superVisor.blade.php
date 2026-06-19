@@ -32,9 +32,9 @@
 
         <main class="container mx-auto max-w-7xl px-4 py-6">
 
-            {{-- ===== TOP STATS (5 cards) ===== --}}
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                <x-card :cards="$statCards" />
+            {{-- ===== TOP STATS (4 cards) ===== --}}
+            <div id="top-stats-container" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <x-card :cards="array_slice($statCards, 0, 4)" />
             </div>
 
             {{-- ===== CHARTS TABS ===== --}}
@@ -257,14 +257,21 @@
 
                         // Update stat cards
                         if (data.statCards) {
-                            const cardEls = document.querySelectorAll(
-                                '.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-5 .bg-white');
-                            data.statCards.forEach((card, i) => {
-                                if (cardEls[i]) {
-                                    const valueEl = cardEls[i].querySelector('.text-3xl');
-                                    if (valueEl) valueEl.textContent = card.value;
+                            const topCardEls = document.querySelectorAll('#top-stats-container .bg-white');
+                            for (let i = 0; i < 4; i++) {
+                                if (topCardEls[i] && data.statCards[i]) {
+                                    const valueEl = topCardEls[i].querySelector('.text-3xl');
+                                    if (valueEl) valueEl.textContent = data.statCards[i].value;
                                 }
-                            });
+                            }
+
+                            const perfCardEls = document.querySelectorAll('#performance-stats-container .bg-white');
+                            for (let i = 0; i < 2; i++) {
+                                if (perfCardEls[i] && data.statCards[i + 4]) {
+                                    const valueEl = perfCardEls[i].querySelector('.text-3xl');
+                                    if (valueEl) valueEl.textContent = data.statCards[i + 4].value;
+                                }
+                            }
                         }
 
                         // Update Registration Types Doughnut Chart
