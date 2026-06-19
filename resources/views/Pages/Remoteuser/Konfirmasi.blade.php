@@ -100,7 +100,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Estimasi Waktu</span>
-                        <span class="text-xs font-bold text-gray-900">± 15 menit</span>
+                        <span class="text-xs font-bold text-gray-900">± {{ $estimasiWaktu }} menit</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Tanggal</span>

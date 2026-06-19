@@ -141,12 +141,13 @@ class BookingOnlineController extends Controller
         $today = now()->toDateString();
         $queuePrefix = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
         
-        $lastQueue = \App\Models\Queue::query()
+        $allQueues = \App\Models\Queue::query()
             ->where('instance_id', $service->instance_id)
             ->where('service_id', $service->id)
             ->whereDate('queue_date', $today)
-            ->latest('id')
-            ->first();
+            ->get();
+
+        $lastQueue = $allQueues->sortByDesc('id')->first();
 
         if ($lastQueue) {
             $parts = explode('-', $lastQueue->queue_number);
@@ -158,11 +159,48 @@ class BookingOnlineController extends Controller
 
         $estimatedQueueNumber = $queuePrefix . '-' . str_pad((string) $todayQueueSequence, 3, '0', STR_PAD_LEFT);
 
+        // Menghitung Rata-rata Waktu Tunggu yang Akurat
+        $avgWaitTime = $allQueues->whereNotNull('service_start_time')
+            ->filter(function ($q) {
+                // Abaikan antrean online yang anomali (tidak punya check_in_time tapi dilayani)
+                if ($q->queue_source === 'online' && empty($q->check_in_time)) {
+                    return false;
+                }
+                return true;
+            })
+            ->map(function ($q) {
+                // Tentukan waktu mulai mengantre berdasarkan sumber antrean
+                if ($q->queue_source === 'online' && !empty($q->check_in_time)) {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->check_in_time);
+                } else {
+                    $startWaitingAt = \Carbon\Carbon::parse($q->taken_time);
+                }
+        
+                $servedAt = \Carbon\Carbon::parse($q->service_start_time);
+        
+                // Pastikan tidak minus (jika ada anomali data)
+                $diff = $startWaitingAt->diffInMinutes($servedAt);
+                return $diff > 0 ? $diff : 0;
+            })->avg() ?? 0;
+
+        // Hitung berapa antrean di depan (yang waiting dan sudah di-scan)
+        $waitingCount = $allQueues->filter(function ($q) {
+            if ($q->queue_status !== 'waiting') return false;
+            if ($q->queue_source === 'online' && empty($q->check_in_time)) return false;
+            return true;
+        })->count();
+
+        // Estimasi waktu
+        $defaultTime = 10; // Default 10 menit jika belum ada data
+        $avgWaitTime = $avgWaitTime > 0 ? $avgWaitTime : $defaultTime;
+        $estimasiWaktu = round($avgWaitTime * max(1, $waitingCount));
+
         return view('Pages.Remoteuser.Konfirmasi', [
             'service' => $service,
             'customer' => $authCustomer,
             'slug' => $slug,
-            'estimatedQueueNumber' => $estimatedQueueNumber
+            'estimatedQueueNumber' => $estimatedQueueNumber,
+            'estimasiWaktu' => $estimasiWaktu
         ]);
     }
 
