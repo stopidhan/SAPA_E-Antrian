@@ -89,10 +89,15 @@
         </div>
 
         {{-- ====== MODAL PILIH LOKET ====== --}}
-        <div x-show="!counterId" x-cloak
+        <div x-show="showLoketModal" x-cloak
             class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
-                <h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Pilih Loket / Buka Sesi</h2>
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl relative" @click.away="showLoketModal = false">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800 text-center w-full">Pilih Loket / Buka Sesi</h2>
+                    <button @click="showLoketModal = false" class="text-gray-400 hover:text-gray-600 absolute top-4 right-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
                     @foreach ($availableCounters as $c)
                         <button @click="openSession({{ $c->id }})"
@@ -122,6 +127,7 @@
     <script>
         function operatorDashboard() {
             return {
+                showLoketModal: false,
                 loket: '{{ $namaLoket }}',
                 counterId: '{{ $idLoket }}',
                 timerDisplay: '00:00',

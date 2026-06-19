@@ -53,7 +53,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 return route('booking.dashboard', ['instance_slug' => $instance]);
             }
 
-            return route('dashboard', ['instance_slug' => $instance]);
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if ($user) {
+                if ($user->role === 'admin_instansi') {
+                    return route('admininstance.dashboard', ['instance_slug' => $instance]);
+                } elseif ($user->role === 'kepala_layanan') {
+                    return route('supervisor.dashboard', ['instance_slug' => $instance]);
+                } elseif ($user->role === 'staff_operator') {
+                    return route('operator.dashboard', ['instance_slug' => $instance]);
+                } elseif ($user->role === 'staff_konten') {
+                    return route('content.index', ['instance_slug' => $instance]);
+                } elseif ($user->role === 'super_admin') {
+                    return route('developer.instances.index');
+                }
+            }
+
+            return route('select.instance');
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

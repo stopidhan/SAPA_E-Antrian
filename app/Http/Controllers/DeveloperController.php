@@ -30,6 +30,7 @@ class DeveloperController extends Controller
             'instance_name' => 'required|string|max:255',
             'instance_code' => 'required|uuid|unique:instances,instance_code',
             'instance_slug' => 'required|string|max:255|unique:instances,instance_slug',
+            'whatsapp_number' => 'required|string|max:255',
             'admin_name'    => 'required|string|max:255',
             'admin_email'   => 'required|email|unique:users,email',
             'admin_password' => 'required|string|min:8',
@@ -40,6 +41,7 @@ class DeveloperController extends Controller
                 'instance_name' => $request->instance_name,
                 'instance_code' => $request->instance_code,
                 'instance_slug' => $request->instance_slug,
+                'whatsapp_number' => $request->whatsapp_number,
                 'is_active'     => true,
             ]);
 
@@ -76,6 +78,7 @@ class DeveloperController extends Controller
         $request->validate([
             'instance_name'  => 'required|string|max:255',
             'instance_slug'  => ['required', 'string', 'max:255', Rule::unique('instances')->ignore($instance->id)],
+            'whatsapp_number' => 'required|string|max:255',
             'is_active'      => 'boolean',
             'admin_name'     => 'nullable|string|max:255',
             'admin_email'    => $adminEmailRule,
@@ -86,6 +89,7 @@ class DeveloperController extends Controller
             $instance->update([
                 'instance_name' => $request->instance_name,
                 'instance_slug' => $request->instance_slug,
+                'whatsapp_number' => $request->whatsapp_number,
                 'is_active'     => $request->boolean('is_active'),
             ]);
 
