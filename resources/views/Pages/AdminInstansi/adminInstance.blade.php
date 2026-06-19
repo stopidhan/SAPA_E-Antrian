@@ -300,6 +300,9 @@
                     {{-- RIGHT COLUMN: Summary & Actions --}}
                     <div class="space-y-6">
 
+                        {{-- Quick Action (Tautan Publik) --}}
+                        <x-quick-action />
+
                         {{-- Summary Card --}}
                         <div class="bg-white rounded-2xl border shadow-sm p-6 space-y-4">
                             <h3 class="text-lg font-bold">Ringkasan Konfigurasi</h3>
