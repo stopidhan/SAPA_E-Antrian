@@ -1,15 +1,15 @@
 <x-developer-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Organizations Management') }}
+            {{ __('Manajemen Organisasi') }}
         </h2>
     </x-slot>
 
     <div class="max-w-7xl mx-auto">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Instances</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola semua instance dan level aksesnya.</p>
+                <h1 class="text-2xl font-bold text-gray-900">Instansi</h1>
+                <p class="text-sm text-gray-500 mt-1">Kelola semua instansi dan level aksesnya.</p>
             </div>
             <a href="{{ route('developer.instances.create') }}"
                 class="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-lg shadow-sm transition-colors flex items-center">
@@ -17,7 +17,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Tambah Instance
+                Tambah Instansi
             </a>
         </div>
 
@@ -40,7 +40,7 @@
                         <tr class="bg-gray-50">
                             <th scope="col"
                                 class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                Instance Info</th>
+                                Info Instansi</th>
                             <th scope="col"
                                 class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                                 Slug / Domain</th>
@@ -49,10 +49,10 @@
                                 Status</th>
                             <th scope="col"
                                 class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                Users</th>
+                                Pengguna</th>
                             <th scope="col"
                                 class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
-                                Actions</th>
+                                Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
@@ -88,13 +88,13 @@
                                         <span
                                             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                             <span class="w-1.5 h-1.5 bg-blue-600 rounded-full mr-1.5"></span>
-                                            Active
+                                            Aktif
                                         </span>
                                     @else
                                         <span
                                             class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                             <span class="w-1.5 h-1.5 bg-red-600 rounded-full mr-1.5"></span>
-                                            Suspended
+                                            Ditangguhkan
                                         </span>
                                     @endif
                                 </td>
@@ -125,7 +125,7 @@
                                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                                                     </path>
                                                 </svg>
-                                                Impersonate
+                                                Impersonasi
                                             </button>
                                         </form>
                                         <a href="{{ route('developer.instances.edit', $instance->id) }}"

@@ -40,7 +40,7 @@ class MonitorController extends Controller
             ->orderBy('updated_at', 'desc')
             ->first();
 
-        $counters = ServiceCounter::with(['queues' => function($query) {
+        $counters = ServiceCounter::with(['service', 'currentSession', 'queues' => function($query) {
             $query->whereDate('queue_date', today())
                   ->whereIn('queue_status', ['called', 'serving'])
                   ->orderBy('updated_at', 'desc');
@@ -68,7 +68,7 @@ class MonitorController extends Controller
                     $iconBg = 'bg-emerald-600';
                 }
             } else {
-                if (!$c->is_active) {
+                if (!$c->is_active || !$c->currentSession) {
                     $statusName = 'Tutup';
                     $statusBg = 'bg-red-50';
                     $iconBg = 'bg-red-600';
@@ -78,6 +78,7 @@ class MonitorController extends Controller
             return [
                 'id' => $c->id,
                 'counter_number' => $c->counter_number,
+                'service_name' => $c->service ? $c->service->service_name : 'Umum',
                 'status' => $statusName,
                 'queue_number' => $queueNumber,
                 'status_bg' => $statusBg,
@@ -85,7 +86,10 @@ class MonitorController extends Controller
             ];
         });
 
-        $activeCounters = ServiceCounter::where('instance_id', $instanceId)->where('is_active', true)->count();
+        $activeCounters = ServiceCounter::where('instance_id', $instanceId)
+            ->where('is_active', true)
+            ->whereHas('currentSession')
+            ->count();
         $totalCounters = ServiceCounter::where('instance_id', $instanceId)->count();
 
         // Cari jam operasional hari ini
@@ -121,6 +125,7 @@ class MonitorController extends Controller
                     'type' => $media->media_type,
                     'url' => asset('storage/' . $media->file_path),
                     'duration' => ($media->duration ?? 10) * 1000,
+                    'fit_mode' => $media->fit_mode ?? 'object-cover',
                 ];
             });
 

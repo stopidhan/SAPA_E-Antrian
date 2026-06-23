@@ -9,7 +9,7 @@
                 </svg>
             </a>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight flex items-center">
-                {{ __('Edit Instance: ') }} <span
+                {{ __('Edit Instansi: ') }} <span
                     class="text-blue-600 ml-2 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 font-bold">{{ $instance->instance_name }}</span>
             </h2>
         </div>
@@ -18,20 +18,20 @@
     <div class="max-w-4xl mx-auto">
         <div class="mb-6 flex justify-between items-end">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Instance Settings</h1>
-                <p class="text-sm text-gray-500 mt-1">Manage instance details, access, and administration.</p>
+                <h1 class="text-2xl font-bold text-gray-900">Pengaturan Instansi</h1>
+                <p class="text-sm text-gray-500 mt-1">Kelola detail instansi, akses, dan administrasi.</p>
             </div>
             @if ($instance->is_active)
                 <span
                     class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800 shadow-sm">
                     <span class="w-2.5 h-2.5 bg-blue-600 rounded-full mr-2"></span>
-                    Active Instance
+                    Instansi Aktif
                 </span>
             @else
                 <span
                     class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold bg-red-100 text-red-800 shadow-sm">
                     <span class="w-2.5 h-2.5 bg-red-600 rounded-full mr-2"></span>
-                    Suspended Instance
+                    Instansi Ditangguhkan
                 </span>
             @endif
         </div>
@@ -47,8 +47,8 @@
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-medium text-red-800">There were {{ count($errors->all()) }} errors with
-                            your submission</h3>
+                        <h3 class="text-sm font-medium text-red-800">Terdapat {{ count($errors->all()) }} kesalahan pada
+                            pengiriman Anda</h3>
                         <div class="mt-2 text-sm text-red-700">
                             <ul class="list-disc pl-5 space-y-1">
                                 @foreach ($errors->all() as $error)
@@ -76,19 +76,19 @@
                                 </path>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900">Instance Details</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Detail Instansi</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Name</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nama Instansi</label>
                             <input type="text" name="instance_name"
                                 value="{{ old('instance_name', $instance->instance_name) }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Slug (URL Prefix)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Slug Instansi (Awalan URL)</label>
                             <div class="flex rounded-md shadow-sm">
                                 <span
                                     class="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-gray-200 bg-gray-100 text-gray-500 sm:text-sm">
@@ -101,14 +101,14 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp Number</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nomor WhatsApp</label>
                             <input type="text" name="whatsapp_number"
                                 value="{{ old('whatsapp_number', $instance->whatsapp_number) }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Code (UUID)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Kode Instansi (UUID)</label>
                             <input type="text" value="{{ $instance->instance_code }}"
                                 class="block w-full rounded-lg border-gray-200 bg-gray-100 text-gray-500 focus:ring-0 sm:text-sm px-4 py-3 cursor-not-allowed"
                                 readonly>
@@ -125,22 +125,22 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">Admin Account Recovery</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Fill these fields only if you need to create a new
-                                admin or reset password.</p>
+                            <h3 class="text-lg font-bold text-gray-900">Pemulihan Akun Admin Instansi</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">Isi kolom ini hanya jika Anda perlu membuat
+                                admin baru atau mereset kata sandi.</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Admin Name</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nama Admin</label>
                             <input type="text" name="admin_name" value="{{ old('admin_name', $admin->name ?? '') }}"
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors">
                         </div>
 
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Admin Email</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Email Admin</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
@@ -157,8 +157,9 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">New Password (Leave blank to
-                                    keep current)</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Kata Sandi Baru (Kosongkan
+                                    jika
+                                    tidak ingin mengubah)</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
@@ -186,9 +187,9 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">Global Access</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Control whether this instance can access the
-                                system.</p>
+                            <h3 class="text-lg font-bold text-gray-900">Akses Global</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">Kontrol apakah instansi ini dapat mengakses
+                                sistem.</p>
                         </div>
                     </div>
 
@@ -202,9 +203,10 @@
                                     class="focus:ring-blue-500 h-5 w-5 text-blue-600 border-gray-300 rounded transition-colors cursor-pointer">
                             </div>
                             <div class="ml-4 text-sm">
-                                <label class="font-bold text-gray-900 text-base">Instance is Active</label>
-                                <p class="text-gray-500 mt-1 leading-relaxed">When unchecked, the instance is
-                                    suspended. No users (including admins) will be able to log in or use the system.</p>
+                                <label class="font-bold text-gray-900 text-base">Instansi Aktif</label>
+                                <p class="text-gray-500 mt-1 leading-relaxed">Jika tidak dicentang, instansi akan
+                                    ditangguhkan. Tidak ada pengguna (termasuk admin) yang dapat login atau menggunakan
+                                    sistem.</p>
                             </div>
                         </div>
                     </div>
@@ -219,13 +221,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Last updated {{ $instance->updated_at->diffForHumans() }}
+                            Terakhir diperbarui {{ $instance->updated_at->diffForHumans() }}
                         </span>
                     </div>
                     <div class="flex items-center space-x-3">
                         <a href="{{ route('developer.instances.index') }}"
                             class="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
-                            Cancel
+                            Batal
                         </a>
                         <button type="submit"
                             class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm flex items-center">
@@ -233,7 +235,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
-                            Save Changes
+                            Simpan Perubahan
                         </button>
                     </div>
                 </div>

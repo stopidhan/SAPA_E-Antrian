@@ -81,10 +81,10 @@
                                          class="absolute inset-0 w-full h-full flex items-center justify-center bg-black">
                                          
                                          <template x-if="media.type === 'image'">
-                                             <img :src="media.url" class="w-full h-full object-cover" />
+                                             <img :src="media.url" class="w-full h-full" :class="media.fit_mode || 'object-cover'" />
                                          </template>
                                          <template x-if="media.type === 'video'">
-                                             <video :id="'media-video-' + index" :src="media.url" class="w-full h-full object-cover" muted playsinline></video>
+                                             <video :id="'media-video-' + index" :src="media.url" class="w-full h-full" :class="media.fit_mode || 'object-cover'" muted playsinline></video>
                                          </template>
                                     </div>
                                 </template>
@@ -175,42 +175,72 @@
                             <h3 class="text-white text-sm font-bold uppercase tracking-widest text-center">Status Loket
                             </h3>
                         </div>
-                        {{-- Body: Daftar Loket --}}
-                        <div class="flex-1 flex flex-col divide-y divide-gray-100">
-
-                            <template x-for="counter in counters" :key="counter.id">
-                                <div class="flex items-center justify-between px-6 py-5" :class="counter.status_bg">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                                            :class="counter.icon_bg">
-                                            <span class="text-white text-sm font-black"
-                                                x-text="counter.counter_number.replace(/loket/gi, '').trim()"></span>
-                                        </div>
-                                        <span class="text-base font-bold text-gray-900"
-                                            x-text="counter.counter_number.toLowerCase().includes('loket') ? counter.counter_number : 'Loket ' + counter.counter_number"></span>
+                        {{-- Body: Daftar Loket (Carousel > 4) --}}
+                        <div class="flex-1 flex flex-col relative overflow-hidden bg-white" x-data="{ 
+                            page: 0, 
+                            initCarousel() {
+                                setInterval(() => {
+                                    let total = Math.ceil(this.counters.length / 4);
+                                    if(total > 1) {
+                                        this.page = (this.page + 1) % total;
+                                    } else {
+                                        this.page = 0;
+                                    }
+                                }, 6000); // Slide setiap 6 detik
+                            }
+                        }" x-init="initCarousel()">
+                            
+                            <div class="flex-1 flex transition-transform duration-700 ease-in-out w-full" :style="`transform: translateX(-${page * 100}%)`">
+                                
+                                <template x-for="p in Math.ceil(counters.length / 4)" :key="p">
+                                    <div class="w-full flex-shrink-0 flex flex-col divide-y divide-gray-100">
+                                        <template x-for="counter in counters.slice((p-1)*4, p*4)" :key="counter.id">
+                                            <div class="flex items-center justify-between px-6 py-5" :class="counter.status_bg">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                                        :class="counter.icon_bg">
+                                                        <span class="text-white text-sm font-black"
+                                                            x-text="counter.counter_number.replace(/loket/gi, '').trim()"></span>
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-base font-bold text-gray-900 leading-tight"
+                                                            x-text="counter.counter_number.toLowerCase().includes('loket') ? counter.counter_number : 'Loket ' + counter.counter_number"></span>
+                                                        <span class="text-xs font-semibold text-gray-500 mt-0.5" x-text="counter.service_name"></span>
+                                                    </div>
+                                                </div>
+                                                <span class="text-xl font-black"
+                                                    :class="counter.queue_number == '-' ? 'text-gray-300' : 'text-gray-900'"
+                                                    x-text="counter.queue_number"></span>
+                                                <span
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full"
+                                                    :class="{
+                                                        'bg-blue-100 text-blue-700': counter.status === 'Memanggil',
+                                                        'bg-emerald-100 text-emerald-700': counter.status === 'Dilayani',
+                                                        'bg-red-100 text-red-700': counter.status === 'Tutup',
+                                                        'border border-gray-300 text-gray-400': counter.status === 'Menunggu'
+                                                    }">
+                                                    <span class="w-2 h-2 rounded-full"
+                                                        :class="{
+                                                            'bg-blue-500': counter.status === 'Memanggil',
+                                                            'bg-emerald-500': counter.status === 'Dilayani',
+                                                            'bg-red-500': counter.status === 'Tutup',
+                                                            'border-2 border-gray-300': counter.status === 'Menunggu'
+                                                        }"></span>
+                                                    <span x-text="counter.status"></span>
+                                                </span>
+                                            </div>
+                                        </template>
                                     </div>
-                                    <span class="text-xl font-black"
-                                        :class="counter.queue_number == '-' ? 'text-gray-300' : 'text-gray-900'"
-                                        x-text="counter.queue_number"></span>
-                                    <span
-                                        class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full"
-                                        :class="{
-                                            'bg-blue-100 text-blue-700': counter.status === 'Memanggil',
-                                            'bg-emerald-100 text-emerald-700': counter.status === 'Dilayani',
-                                            'bg-red-100 text-red-700': counter.status === 'Tutup',
-                                            'border border-gray-300 text-gray-400': counter.status === 'Menunggu'
-                                        }">
-                                        <span class="w-2 h-2 rounded-full"
-                                            :class="{
-                                                'bg-blue-500': counter.status === 'Memanggil',
-                                                'bg-emerald-500': counter.status === 'Dilayani',
-                                                'bg-red-500': counter.status === 'Tutup',
-                                                'border-2 border-gray-300': counter.status === 'Menunggu'
-                                            }"></span>
-                                        <span x-text="counter.status"></span>
-                                    </span>
-                                </div>
-                            </template>
+                                </template>
+
+                                <template x-if="counters.length === 0">
+                                    <div class="w-full flex items-center justify-center p-6 text-gray-400 font-bold">
+                                        Belum ada data loket
+                                    </div>
+                                </template>
+
+                            </div>
+
                         </div>
 
                     </div>

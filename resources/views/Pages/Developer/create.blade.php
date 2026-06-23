@@ -9,15 +9,15 @@
                 </svg>
             </a>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Onboard New Instance') }}
+                {{ __('Tambahkan Instansi Baru') }}
             </h2>
         </div>
     </x-slot>
 
     <div class="max-w-4xl mx-auto">
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-900">Create Instace</h1>
-            <p class="text-sm text-gray-500 mt-1">Set up a new instance and its primary administrator account.</p>
+            <h1 class="text-2xl font-bold text-gray-900">Buat Instansi</h1>
+            <p class="text-sm text-gray-500 mt-1">Siapkan instansi baru dan akun administrator utamanya.</p>
         </div>
 
         @if ($errors->any())
@@ -31,8 +31,8 @@
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-medium text-red-800">There were {{ count($errors->all()) }} errors with
-                            your submission</h3>
+                        <h3 class="text-sm font-medium text-red-800">Terdapat {{ count($errors->all()) }} kesalahan pada
+                            pengiriman Anda</h3>
                         <div class="mt-2 text-sm text-red-700">
                             <ul class="list-disc pl-5 space-y-1">
                                 @foreach ($errors->all() as $error)
@@ -58,19 +58,19 @@
                                 </path>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900">Instance Details</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Detail Instansi</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Name</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nama Instansi</label>
                             <input type="text" name="instance_name" value="{{ old('instance_name') }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors"
-                                placeholder="e.g. RSUD Jakarta">
+                                placeholder="cth. RSUD Jakarta">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Slug (URL Prefix)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Slug Instansi (Awalan URL)</label>
                             <div class="flex rounded-md shadow-sm">
                                 <span
                                     class="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-gray-200 bg-gray-100 text-gray-500 sm:text-sm">
@@ -85,12 +85,12 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Only letters, numbers, and dashes.
+                                Hanya huruf, angka, dan strip.
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp Number</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nomor WhatsApp</label>
                             <input type="text" name="whatsapp_number" value="{{ old('whatsapp_number') }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors"
                                 placeholder="6281234567890">
@@ -99,12 +99,12 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                For sending OTPs to customers.
+                                Untuk mengirimkan OTP ke pelanggan.
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Instance Code (UUID)</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Kode Instansi (UUID)</label>
                             <input type="text" name="instance_code"
                                 value="{{ old('instance_code', Str::uuid()->toString()) }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-100 text-gray-500 focus:ring-0 sm:text-sm px-4 py-3 cursor-not-allowed"
@@ -119,20 +119,20 @@
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-900">Primary Admin Account</h3>
+                        <h3 class="text-lg font-bold text-gray-900">Akun Admin Instansi</h3>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Admin Name</label>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nama Admin</label>
                             <input type="text" name="admin_name" value="{{ old('admin_name') }}" required
                                 class="block w-full rounded-lg border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-4 py-3 transition-colors"
-                                placeholder="Admin Full Name">
+                                placeholder="Nama Lengkap Admin">
                         </div>
 
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Admin Email</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Email Admin</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
@@ -150,7 +150,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Admin Password</label>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Kata Sandi Admin</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
@@ -172,7 +172,7 @@
                 <div class="px-8 py-5 bg-gray-50 border-t border-gray-100 flex items-center justify-end space-x-3">
                     <a href="{{ route('developer.instances.index') }}"
                         class="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-colors">
-                        Cancel
+                        Batal
                     </a>
                     <button type="submit"
                         class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm flex items-center">
@@ -180,7 +180,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
                             </path>
                         </svg>
-                        Create Instance
+                        Buat Instansi
                     </button>
                 </div>
             </form>

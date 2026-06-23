@@ -40,7 +40,6 @@
             {{-- ===== CHARTS TABS ===== --}}
             <x-tab :tabs="[
                 ['id' => 'live', 'label' => 'Live Tracking'],
-                ['id' => 'analytics', 'label' => 'Analitik'],
                 ['id' => 'history', 'label' => 'Riwayat Layanan'],
             ]" :activeTab="request('tab', 'live')">
                 @slot('header')
@@ -93,9 +92,6 @@
                 {{-- ===== TAB: LIVE TRACKING ===== --}}
                 @include('Pages.KepalaLayanan.liveTracking')
 
-                {{-- ===== TAB: ANALYTICS ===== --}}
-                @include('Pages.KepalaLayanan.analytics')
-
                 {{-- ===== TAB: HISTORY ===== --}}
                 @include('Pages.KepalaLayanan.history')
             </x-tab>
@@ -115,13 +111,51 @@
                 detailData: null,
                 detailLoading: false,
                 liveRegChart: null,
+                serviceChart: null,
+                hourlyChart: null,
                 wsConnected: false,
                 lastUpdate: null,
                 fetchInProgress: false,
+                counterPage: 0,
+                isHovered: false,
 
                 init() {
                     this.renderLiveRegChart();
+                    this.renderAnalyticsCharts();
                     this.initWebSocket();
+                    
+                    setInterval(() => {
+                        if (this.isHovered) return;
+                        const container = document.getElementById('carousel-inner');
+                        if (container) {
+                            const total = parseInt(container.getAttribute('data-total-pages') || 1);
+                            if (total > 1) {
+                                this.counterPage = (this.counterPage + 1) % total;
+                            } else {
+                                this.counterPage = 0;
+                            }
+                        }
+                    }, 6000);
+                },
+
+                nextPage() {
+                    const container = document.getElementById('carousel-inner');
+                    if (container) {
+                        const total = parseInt(container.getAttribute('data-total-pages') || 1);
+                        if (total > 1) {
+                            this.counterPage = (this.counterPage + 1) % total;
+                        }
+                    }
+                },
+
+                prevPage() {
+                    const container = document.getElementById('carousel-inner');
+                    if (container) {
+                        const total = parseInt(container.getAttribute('data-total-pages') || 1);
+                        if (total > 1) {
+                            this.counterPage = (this.counterPage - 1 + total) % total;
+                        }
+                    }
                 },
 
                 /**
@@ -233,6 +267,72 @@
                     }
                 },
 
+                renderAnalyticsCharts() {
+                    const barCanvas = document.getElementById('chart-service-distribution');
+                    if (barCanvas) {
+                        const serviceData = @json($chartData['service'] ?? []);
+                        this.serviceChart = new Chart(barCanvas.getContext('2d'), {
+                            type: 'bar',
+                            data: {
+                                labels: serviceData.map(d => d.name),
+                                datasets: [{
+                                        label: 'Selesai',
+                                        data: serviceData.map(d => d.completed),
+                                        backgroundColor: '#10B981',
+                                        borderRadius: 4,
+                                    },
+                                    {
+                                        label: 'Menunggu',
+                                        data: serviceData.map(d => d.waiting),
+                                        backgroundColor: '#F59E0B',
+                                        borderRadius: 4,
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { position: 'top' } },
+                                scales: {
+                                    x: { grid: { display: false } },
+                                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+                                }
+                            }
+                        });
+                    }
+
+                    const lineCanvas = document.getElementById('chart-hourly-trend');
+                    if (lineCanvas) {
+                        const hourlyData = @json($chartData['hourly'] ?? []);
+                        this.hourlyChart = new Chart(lineCanvas.getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels: hourlyData.map(d => d.hour),
+                                datasets: [{
+                                    label: 'Jumlah Pengunjung',
+                                    data: hourlyData.map(d => d.count),
+                                    borderColor: '#3B82F6',
+                                    backgroundColor: 'rgba(59,130,246,0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.4,
+                                    fill: true,
+                                    pointRadius: 4,
+                                    pointBackgroundColor: '#3B82F6',
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { position: 'top' } },
+                                scales: {
+                                    x: { grid: { display: false } },
+                                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } }
+                                }
+                            }
+                        });
+                    }
+                },
+
                 /**
                  * Fetch JSON stats and update stat cards + chart.
                  */
@@ -284,6 +384,25 @@
                             // to prevent Chart.js fullSize layout error
                             if (this.liveRegChart.canvas && this.liveRegChart.canvas.offsetParent !== null) {
                                 this.liveRegChart.update();
+                            }
+                        }
+
+                        // Update Service Distribution Chart
+                        if (data.chartData && data.chartData.service && this.serviceChart) {
+                            this.serviceChart.data.labels = data.chartData.service.map(d => d.name);
+                            this.serviceChart.data.datasets[0].data = data.chartData.service.map(d => d.completed);
+                            this.serviceChart.data.datasets[1].data = data.chartData.service.map(d => d.waiting);
+                            if (this.serviceChart.canvas && this.serviceChart.canvas.offsetParent !== null) {
+                                this.serviceChart.update();
+                            }
+                        }
+
+                        // Update Hourly Trend Chart
+                        if (data.chartData && data.chartData.hourly && this.hourlyChart) {
+                            this.hourlyChart.data.labels = data.chartData.hourly.map(d => d.hour);
+                            this.hourlyChart.data.datasets[0].data = data.chartData.hourly.map(d => d.count);
+                            if (this.hourlyChart.canvas && this.hourlyChart.canvas.offsetParent !== null) {
+                                this.hourlyChart.update();
                             }
                         }
                     } catch (err) {

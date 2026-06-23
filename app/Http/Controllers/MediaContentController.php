@@ -51,8 +51,9 @@ class MediaContentController extends Controller
             [
                 "title" => "required|string|max:255",
                 "file" =>
-                    "required|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:51200", // 50MB max
+                "required|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:51200", // 50MB max
                 "duration" => "required|integer|min:1|max:300",
+                "fit_mode" => "nullable|string|in:object-cover,object-contain,object-fill,object-none",
                 "is_active" => "boolean",
             ],
             [
@@ -67,6 +68,13 @@ class MediaContentController extends Controller
         );
 
         if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first() ?? 'Gagal menambahkan konten.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()
                 ->withErrors($validator)
                 ->withInput()
@@ -103,11 +111,20 @@ class MediaContentController extends Controller
                 "file_path" => $filePath,
                 "duration" =>
                     $request->duration ?? ($mediaType === "image" ? 10 : null),
+                "fit_mode" => $request->fit_mode ?? "object-cover",
                 "sort_order" => $maxSortOrder !== null ? $maxSortOrder + 1 : 0,
                 "is_active" => $request->has("is_active") ? true : false,
             ]);
 
             broadcast(new MediaUpdated(app(\App\Services\TenantManager::class)->getInstanceId()));
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Konten berhasil ditambahkan!',
+                    'data' => $content ?? null
+                ]);
+            }
 
             return redirect()
                 ->route("content.index")
@@ -127,6 +144,9 @@ class MediaContentController extends Controller
     {
         // Ensure user can only update their own instance's content
         if ($content->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses untuk mengedit konten ini.'], 403);
+            }
             return back()->with(
                 "error",
                 "Anda tidak memiliki akses untuk mengedit konten ini.",
@@ -140,6 +160,7 @@ class MediaContentController extends Controller
                 "file" =>
                     "nullable|file|mimes:jpg,jpeg,png,gif,mp4,avi,mov|max:51200",
                 "duration" => "required|integer|min:1|max:300",
+                "fit_mode" => "nullable|string|in:object-cover,object-contain,object-fill,object-none",
                 "is_active" => "boolean",
             ],
             [
@@ -153,6 +174,13 @@ class MediaContentController extends Controller
         );
 
         if ($validator->fails()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $validator->errors()->first() ?? 'Gagal mengupdate konten.',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return back()
                 ->withErrors($validator)
                 ->withInput()
@@ -163,6 +191,7 @@ class MediaContentController extends Controller
             $data = [
                 "title" => $request->title,
                 "duration" => $request->duration,
+                "fit_mode" => $request->fit_mode ?? "object-cover",
                 "is_active" => $request->has("is_active") ? true : false,
             ];
 
@@ -207,6 +236,13 @@ class MediaContentController extends Controller
 
             broadcast(new MediaUpdated($content->instance_id));
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Konten berhasil diperbarui!'
+                ]);
+            }
+
             return redirect()
                 ->route("content.index")
                 ->with("success", "Konten berhasil diperbarui!");
@@ -248,10 +284,13 @@ class MediaContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $instanceSlug, MediaContent $content)
+    public function destroy(Request $request, string $instanceSlug, MediaContent $content)
     {
         // Ensure user can only delete their own instance's content
         if ($content->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki akses untuk menghapus konten ini.'], 403);
+            }
             return back()->with(
                 "error",
                 "Anda tidak memiliki akses untuk menghapus konten ini.",
@@ -271,6 +310,13 @@ class MediaContentController extends Controller
 
             broadcast(new MediaUpdated($content->instance_id));
 
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Konten berhasil dihapus!'
+                ]);
+            }
+
             return redirect()
                 ->route("content.index")
                 ->with("success", "Konten berhasil dihapus!");
@@ -281,6 +327,7 @@ class MediaContentController extends Controller
             );
         }
     }
+
     /**
      * Update the display order of media content.
      */
@@ -298,12 +345,18 @@ class MediaContentController extends Controller
                     ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
                     ->update(['sort_order' => $item['sort_order']]);
             }
-            
+
             broadcast(new MediaUpdated(app(\App\Services\TenantManager::class)->getInstanceId()));
 
-            return response()->json(['success' => true, 'message' => 'Urutan berhasil diperbarui']);
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Urutan berhasil diperbarui']);
+            }
+            return redirect()->route('content.index')->with('success', 'Urutan berhasil diperbarui');
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+            return redirect()->route('content.index')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }

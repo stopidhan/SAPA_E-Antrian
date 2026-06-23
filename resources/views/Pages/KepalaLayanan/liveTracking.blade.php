@@ -183,44 +183,69 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- Counter Status --}}
-        <div class="bg-white rounded-2xl border shadow-sm" id="live-counter-status">
-            <div class="p-5 border-b">
-                <h3 class="font-bold">Status Loket Real-time</h3>
-                <p class="text-sm text-gray-500 mt-0.5">Monitoring kinerja per loket</p>
-            </div>
-            <div class="p-5 space-y-4">
-                @forelse ($counters as $counter)
-                    <div class="border rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                                    {{ str_replace('Loket ', '', $counter->name) }}
-                                </div>
-                                <div>
-                                    <div class="font-semibold">{{ $counter->name }}</div>
-                                    <div class="text-sm text-gray-500">
-                                        {{ $counter->operatorName ?? 'Tidak ada operator' }}</div>
-                                </div>
-                            </div>
-                            <span
-                                class="px-3 py-1 rounded-full text-xs font-semibold
-                                {{ $counter->status === 'serving' ? 'bg-green-100 text-green-700' : ($counter->status === 'calling' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500') }}">
-                                {{ $counter->status === 'serving' ? 'Melayani' : ($counter->status === 'calling' ? 'Memanggil' : 'Idle') }}
-                            </span>
-                        </div>
-                        @if ($counter->current_queue)
-                            <div class="bg-blue-50 rounded-lg p-3 text-center">
-                                <div class="text-xs text-gray-500 mb-1">Antrean Saat Ini</div>
-                                <div class="text-2xl font-bold text-blue-600">{{ $counter->current_queue }}</div>
-                            </div>
-                        @endif
+        <div class="bg-white rounded-2xl border shadow-sm overflow-hidden" id="live-counter-status"
+            @mouseenter="isHovered = true" @mouseleave="isHovered = false">
+            <div class="p-5 border-b flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold">Status Loket Real-time</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">Monitoring kinerja per loket</p>
+                </div>
+                @if (ceil(count($counters) / 4) > 1)
+                    <div class="flex items-center gap-2">
+                        <button @click="prevPage()" type="button" class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors" title="Sebelumnya">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button @click="nextPage()" type="button" class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors" title="Selanjutnya">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
                     </div>
-                @empty
+                @endif
+            </div>
+            <div class="p-5">
+                @if (count($counters) > 0)
+                    <div class="overflow-hidden relative" id="carousel-inner" data-total-pages="{{ ceil(count($counters) / 4) }}">
+                        <div class="flex transition-transform duration-700 ease-in-out w-full" :style="`transform: translateX(-${counterPage * 100}%)`">
+                            @for ($p = 0; $p < ceil(count($counters) / 4); $p++)
+                                <div class="w-full flex-shrink-0 flex flex-col space-y-4 px-1">
+                                    @foreach (array_slice($counters, $p * 4, 4) as $counter)
+                                        <div class="border rounded-xl p-4">
+                                            <div class="flex items-center justify-between mb-3">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+                                                        {{ str_replace('Loket ', '', $counter->name) }}
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <div class="font-semibold flex items-baseline gap-1">
+                                                            {{ $counter->name }}
+                                                            <span class="font-normal text-xs text-gray-500">({{ $counter->serviceName }})</span>
+                                                        </div>
+                                                        <div class="text-sm text-gray-500">
+                                                            {{ $counter->operatorName ?? 'Tidak ada operator' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                                    {{ $counter->status === 'serving' ? 'bg-green-100 text-green-700' : ($counter->status === 'calling' ? 'bg-blue-100 text-blue-700' : ($counter->status === 'menunggu' ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-700')) }}">
+                                                    {{ $counter->status === 'serving' ? 'Melayani' : ($counter->status === 'calling' ? 'Memanggil' : ($counter->status === 'menunggu' ? 'Menunggu' : 'Tutup')) }}
+                                                </span>
+                                            </div>
+                                            @if ($counter->current_queue)
+                                                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                                                    <div class="text-xs text-gray-500 mb-1">Antrean Saat Ini</div>
+                                                    <div class="text-2xl font-bold text-blue-600">{{ $counter->current_queue }}</div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
+                @else
                     <div class="text-center py-10 text-gray-400">
                         <p>Belum ada loket aktif</p>
                     </div>
-                @endforelse
+                @endif
             </div>
         </div>
 
@@ -237,6 +262,35 @@
             </div>
         </div>
 
+    </div>
+
+    {{-- Analytics Charts Merged --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- Service Distribution Bar Chart --}}
+        <div class="bg-white rounded-2xl border shadow-sm">
+            <div class="p-5 border-b">
+                <h3 class="font-bold">Distribusi per Layanan</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Total antrean per jenis layanan</p>
+            </div>
+            <div class="p-5">
+                <div style="height:300px" class="relative flex justify-center w-full">
+                    <canvas id="chart-service-distribution"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hourly Trend Line Chart --}}
+        <div class="bg-white rounded-2xl border shadow-sm">
+            <div class="p-5 border-b">
+                <h3 class="font-bold">Tren Per Jam</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Jumlah pengunjung per jam</p>
+            </div>
+            <div class="p-5">
+                <div style="height:300px" class="relative flex justify-center w-full">
+                    <canvas id="chart-hourly-trend"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>

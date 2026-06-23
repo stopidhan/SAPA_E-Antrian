@@ -68,14 +68,14 @@ class ActivityLogController extends Controller
             ];
         });
 
-        // Calculate stats based on today for the current instance
-        $todayQuery = Activity::where('instance_id', $instanceId)->whereDate('created_at', today());
+        // Calculate stats based on filtered query
+        $statsQuery = clone $query;
         
-        $totalLogs = $todayQuery->count();
-        $successCount = (clone $todayQuery)->whereJsonContains('properties->status', 'success')->count();
-        $warningCount = (clone $todayQuery)->whereJsonContains('properties->status', 'warning')->count();
-        $errorCount = (clone $todayQuery)->whereJsonContains('properties->status', 'error')->count();
-        $infoCount = (clone $todayQuery)->whereJsonContains('properties->status', 'info')->count();
+        $totalLogs = $statsQuery->count();
+        $successCount = (clone $statsQuery)->whereJsonContains('properties->status', 'success')->count();
+        $warningCount = (clone $statsQuery)->whereJsonContains('properties->status', 'warning')->count();
+        $errorCount = (clone $statsQuery)->whereJsonContains('properties->status', 'error')->count();
+        $infoCount = (clone $statsQuery)->whereJsonContains('properties->status', 'info')->count();
         $successRate = $totalLogs > 0 ? round(($successCount / $totalLogs) * 100) : 0;
 
         return view('Pages.AdminInstansi.activityLog', compact(

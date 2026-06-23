@@ -206,25 +206,31 @@
                                     <div class="space-y-4">
                                         <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Sosial Media</h3>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div class="flex items-center">
-                                                <span
-                                                    class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                                                    @
-                                                </span>
-                                                <input type="text" name="instagram"
-                                                    value="{{ $instance->instagram ?? '' }}"
-                                                    class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                    placeholder="username_ig">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                                                <div class="flex items-center">
+                                                    <span
+                                                        class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                                        @
+                                                    </span>
+                                                    <input type="text" name="instagram"
+                                                        value="{{ $instance->instagram ?? '' }}"
+                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                        placeholder="username_ig">
+                                                </div>
                                             </div>
-                                            <div class="flex items-center">
-                                                <span
-                                                    class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                                                    fb.com/
-                                                </span>
-                                                <input type="text" name="facebook"
-                                                    value="{{ $instance->facebook ?? '' }}"
-                                                    class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                    placeholder="halaman_fb">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                                                <div class="flex items-center">
+                                                    <span
+                                                        class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                                        fb.com/
+                                                    </span>
+                                                    <input type="text" name="facebook"
+                                                        value="{{ $instance->facebook ?? '' }}"
+                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                        placeholder="halaman_fb">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

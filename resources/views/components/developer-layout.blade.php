@@ -70,7 +70,7 @@
                 <span class="text-xl font-bold tracking-wider">DEV PORTAL</span>
             </div>
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                <p class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Management</p>
+                <p class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2">Manajemen</p>
                 <a href="{{ route('developer.instances.index') }}"
                     class="flex items-center px-4 py-3 {{ request()->routeIs('developer.instances.*') ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white' }} rounded-lg transition-colors font-medium">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
                         </path>
                     </svg>
-                    Instance
+                    Instansi
                 </a>
 
                 @php
@@ -133,7 +133,7 @@
 
                 <div class="hidden md:block flex-1">
                     <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                        Instance Management
+                        Manajemen Instansi
                     </h2>
                 </div>
 
@@ -146,13 +146,13 @@
                                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
                             </span>
-                            <span class="mr-3">Impersonating:
+                            <span class="mr-3">Mengimpersonasi:
                                 <strong>{{ Session::get('impersonate_instance_slug') }}</strong></span>
                             <form action="{{ route('developer.stop-impersonating') }}" method="POST"
                                 class="inline border-l border-yellow-300 pl-3">
                                 @csrf
                                 <button type="submit"
-                                    class="text-yellow-700 hover:text-yellow-900 font-bold transition-colors">Exit</button>
+                                    class="text-yellow-700 hover:text-yellow-900 font-bold transition-colors">Keluar</button>
                             </form>
                         </div>
                     @endif

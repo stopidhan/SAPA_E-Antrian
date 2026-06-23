@@ -154,13 +154,6 @@ class UserManagementController extends Controller
         }
 
         try {
-            if ($user->role === 'super_admin') {
-                $message = 'Tidak dapat menonaktifkan Super Admin.';
-                return $request->wantsJson()
-                    ? response()->json(['success' => false, 'message' => $message], 403)
-                    : back()->with('error', $message);
-            }
-
             if ($user->id === auth()->id()) {
                 $message = 'Anda tidak dapat menonaktifkan akun Anda sendiri.';
                 return $request->wantsJson()

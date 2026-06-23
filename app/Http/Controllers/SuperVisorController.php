@@ -203,7 +203,7 @@ class SuperVisorController extends Controller
     {
         $counters = ServiceCounter::where('instance_id', $instanceId)
             ->where('is_active', true)
-            ->with(['currentSession.user'])
+            ->with(['currentSession.user', 'service'])
             ->get();
 
         $statuses = [];
@@ -216,18 +216,19 @@ class SuperVisorController extends Controller
                 ->orderBy('updated_at', 'desc')
                 ->first();
 
-            $status = 'idle';
+            $status = 'menunggu';
             $currentQueue = null;
 
             if ($activeQueue) {
                 $status = $activeQueue->queue_status === 'serving' ? 'serving' : 'calling';
                 $currentQueue = $activeQueue->queue_number;
             } elseif (!$counter->currentSession) {
-                $status = 'offline';
+                $status = 'tutup';
             }
 
             $statuses[] = (object) [
                 'name' => $counter->counter_number,
+                'serviceName' => $counter->service->service_name ?? 'Umum',
                 'operatorName' => $counter->currentSession->user->name ?? null,
                 'status' => $status,
                 'current_queue' => $currentQueue,
@@ -456,6 +457,7 @@ class SuperVisorController extends Controller
             'operatorPerformance' => $this->getOperatorPerformance($instanceId),
             'counters' => $this->getCounterStatuses($instanceId),
             'registrationTypes' => $this->getRegistrationTypes($instanceId),
+            'chartData' => $this->getChartData($instanceId),
         ]);
     }
 
@@ -472,12 +474,14 @@ class SuperVisorController extends Controller
         $counters = $this->getCounterStatuses($instanceId);
         $registrationTypes = $this->getRegistrationTypes($instanceId);
         $statCards = $this->getStatCards($instanceId);
+        $chartData = $this->getChartData($instanceId);
 
         return view('Pages.KepalaLayanan.liveTracking', compact(
             'operatorPerformance',
             'counters',
             'registrationTypes',
-            'statCards'
+            'statCards',
+            'chartData'
         ))->render();
     }
 
