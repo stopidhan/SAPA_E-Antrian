@@ -18,7 +18,15 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
-        'is_active'
+        'slot_duration',   // Durasi per slot (menit) — diatur Admin Instansi
+        'slot_capacity',   // Kapasitas per slot (orang) — diatur Admin Instansi
+        'is_active',
+    ];
+
+    protected $casts = [
+        'slot_duration' => 'integer',
+        'slot_capacity' => 'integer',
+        'is_active'     => 'boolean',
     ];
 
     public function instance()
