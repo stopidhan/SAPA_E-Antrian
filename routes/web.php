@@ -78,6 +78,9 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
             Route::get('/dashboard', [BookingOnlineController::class, 'halamanDashboard'])->name('booking.dashboard');
             Route::post('/ambil-antrean', [BookingOnlineController::class, 'prosesAmbilAntrean'])->name('booking.ambil-antrean');
 
+            // API: Ambil daftar slot waktu tersedia (dipakai modal Alpine.js)
+            Route::get('/api/slots', [BookingOnlineController::class, 'getSlots'])->name('booking.api.slots');
+
             Route::get('/konfirmasi', [BookingOnlineController::class, 'halamanKonfirmasi'])->name('booking.konfirmasi');
 
             Route::get('/tiket', [BookingOnlineController::class, 'halamanTiket'])->name('booking.tiket');

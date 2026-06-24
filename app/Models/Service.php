@@ -20,13 +20,17 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
+        'slot_duration',   // Durasi per slot (menit) — diatur Admin Instansi
+        'slot_capacity',   // Kapasitas per slot (orang) — diatur Admin Instansi
+        'performance_standards',
         'is_active',
-        'performance_standards'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'slot_duration' => 'integer',
+        'slot_capacity' => 'integer',
         'performance_standards' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function instance()
