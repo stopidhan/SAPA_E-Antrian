@@ -121,6 +121,8 @@ class AdminInstanceController extends Controller
             ],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
+            'fast_max' => ['required', 'integer', 'min:1'],
+            'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
             'counters' => ['nullable', 'array'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
         ]);
@@ -132,6 +134,11 @@ class AdminInstanceController extends Controller
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
                 'is_active' => $validated['is_active'] ?? true,
+                'performance_standards' => [
+                    'fast' => ['max' => (int) $validated['fast_max']],
+                    'normal' => ['min' => (int) $validated['fast_max'] + 1, 'max' => (int) $validated['normal_max']],
+                    'slow' => ['min' => (int) $validated['normal_max'] + 1]
+                ],
             ]);
 
             // Create counters untuk service ini
@@ -195,6 +202,8 @@ class AdminInstanceController extends Controller
             ],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
+            'fast_max' => ['required', 'integer', 'min:1'],
+            'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
             'counters' => ['nullable', 'array'],
             'counters.*.id' => ['nullable', 'exists:service_counters,id'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
@@ -206,6 +215,11 @@ class AdminInstanceController extends Controller
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
                 'is_active' => $validated['is_active'] ?? true,
+                'performance_standards' => [
+                    'fast' => ['max' => (int) $validated['fast_max']],
+                    'normal' => ['min' => (int) $validated['fast_max'] + 1, 'max' => (int) $validated['normal_max']],
+                    'slow' => ['min' => (int) $validated['normal_max'] + 1]
+                ],
             ]);
 
             // Sync counters

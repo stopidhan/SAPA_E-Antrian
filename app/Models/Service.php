@@ -9,7 +9,9 @@ use App\Models\Traits\LogsActivity;
 
 class Service extends Model
 {
-    use HasFactory, BelongsToInstance, LogsActivity;
+    use HasFactory;
+    use BelongsToInstance;
+    use LogsActivity;
 
     protected $table = 'services';
 
@@ -18,7 +20,13 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
-        'is_active'
+        'is_active',
+        'performance_standards'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'performance_standards' => 'array',
     ];
 
     public function instance()

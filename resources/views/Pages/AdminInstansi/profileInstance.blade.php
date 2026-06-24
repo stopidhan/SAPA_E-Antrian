@@ -186,9 +186,6 @@
                                                 value="{{ $instance->email ?? '' }}" type="email" />
                                         </div>
 
-                                        {{-- <x-input-text name="website" label="Website" placeholder="https://instansi.go.id"
-                                            value="{{ $instance->website ?? '' }}" type="url" /> --}}
-
                                         <x-input-textarea name="address" label="Alamat Lengkap"
                                             placeholder="Jalan, nomor, RT/RW" value="{{ $instance->address ?? '' }}"
                                             rows="3" />
@@ -207,7 +204,8 @@
                                         <h3 class="text-sm font-bold text-gray-900 border-b pb-2">Sosial Media</h3>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
                                                 <div class="flex items-center">
                                                     <span
                                                         class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
@@ -220,7 +218,8 @@
                                                 </div>
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                                                <label
+                                                    class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
                                                 <div class="flex items-center">
                                                     <span
                                                         class="inline-flex items-center px-3 h-10 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">

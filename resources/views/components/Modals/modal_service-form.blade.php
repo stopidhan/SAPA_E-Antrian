@@ -28,6 +28,15 @@
                 <x-input-textarea id="description" name="description" label="Deskripsi"
                     placeholder="Deskripsi layanan (opsional)" x-model="serviceForm.description" rows="3" />
 
+                <!-- Performance Standards -->
+                <div class="grid grid-cols-2 gap-4">
+                    <x-input-text id="fast_max" name="fast_max" type="number" label="Target Waktu Cepat (Menit)"
+                        placeholder="Contoh: 2" x-model="serviceForm.fast_max" required min="1" max="60" />
+
+                    <x-input-text id="normal_max" name="normal_max" type="number" label="Target Waktu Normal (Menit)"
+                        placeholder="Contoh: 5" x-model="serviceForm.normal_max" required min="2" max="120" />
+                </div>
+
                 <hr class="border-gray-200">
 
                 <!-- Service Counters Section -->

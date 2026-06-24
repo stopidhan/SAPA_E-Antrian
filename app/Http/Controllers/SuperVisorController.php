@@ -155,33 +155,58 @@ class SuperVisorController extends Controller
                 ->whereNotNull('service_duration')
                 ->avg('service_duration') ?? 0;
 
-            // Service time distribution (based on service_duration in minutes)
-            $fastServices = Queue::where('user_id', $operator->id)
-                ->where('queue_status', 'completed')
-                ->whereNotNull('service_duration')
-                ->where('service_duration', '<=', 2)
+            // Service time distribution (based on service_duration and dynamic performance_standards)
+            $baseQuery = Queue::join('services', 'queues.service_id', '=', 'services.id')
+                ->where('queues.user_id', $operator->id)
+                ->where('queues.queue_status', 'completed')
+                ->whereNotNull('queues.service_duration');
+
+            $fastServices = (clone $baseQuery)
+                ->whereRaw('queues.service_duration <= COALESCE(JSON_EXTRACT(services.performance_standards, "$.fast.max"), 2)')
                 ->count();
 
-            $mediumServices = Queue::where('user_id', $operator->id)
-                ->where('queue_status', 'completed')
-                ->whereNotNull('service_duration')
-                ->whereBetween('service_duration', [3, 5])
+            $mediumServices = (clone $baseQuery)
+                ->whereRaw('queues.service_duration > COALESCE(JSON_EXTRACT(services.performance_standards, "$.fast.max"), 2)')
+                ->whereRaw('queues.service_duration <= COALESCE(JSON_EXTRACT(services.performance_standards, "$.normal.max"), 5)')
                 ->count();
 
-            $slowServices = Queue::where('user_id', $operator->id)
-                ->where('queue_status', 'completed')
-                ->whereNotNull('service_duration')
-                ->where('service_duration', '>=', 6)
+            $slowServices = (clone $baseQuery)
+                ->whereRaw('queues.service_duration > COALESCE(JSON_EXTRACT(services.performance_standards, "$.normal.max"), 5)')
                 ->count();
 
             // Find current active session to get the counter name, or N/A
             $session = $operator->activeCounterSession;
             $counterName = $session ? $session->counter->counter_number : 'Offline';
+            $serviceName = 'Tidak Ada Data';
+
+            // Get target standards to display in UI
+            $fastTarget = 2;
+            $normalTarget = 5;
+            
+            if ($session && $session->counter->service) {
+                $serviceName = $session->counter->service->service_name;
+                $stds = $session->counter->service->performance_standards;
+                if (is_array($stds)) {
+                    $fastTarget = $stds['fast']['max'] ?? 2;
+                    $normalTarget = $stds['normal']['max'] ?? 5;
+                }
+            } else {
+                $lastQueue = Queue::where('user_id', $operator->id)->whereNotNull('service_end_time')->latest('service_end_time')->first();
+                if ($lastQueue && $lastQueue->service) {
+                    $serviceName = $lastQueue->service->service_name;
+                    $stds = $lastQueue->service->performance_standards;
+                    if (is_array($stds)) {
+                        $fastTarget = $stds['fast']['max'] ?? 2;
+                        $normalTarget = $stds['normal']['max'] ?? 5;
+                    }
+                }
+            }
 
             // Only include if they have served something today or are currently online
             if ($todayServed > 0 || $session) {
                 $performance[] = (object) [
                     'counter_name' => $counterName,
+                    'service_name' => $serviceName,
                     'operator_name' => $operator->name,
                     'avg_service_time' => round($avgServiceTime, 1),
                     'total_served' => $totalServed,
@@ -189,6 +214,8 @@ class SuperVisorController extends Controller
                     'fast_services' => $fastServices,
                     'medium_services' => $mediumServices,
                     'slow_services' => $slowServices,
+                    'fast_target' => $fastTarget,
+                    'normal_target' => $normalTarget,
                 ];
             }
         }
