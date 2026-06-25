@@ -37,6 +37,15 @@
                         placeholder="Contoh: 5" x-model="serviceForm.normal_max" required min="2" max="120" />
                 </div>
 
+                <!-- Slot and Capacity -->
+                <div class="grid grid-cols-2 gap-4">
+                    <x-input-text id="slot_duration" name="slot_duration" type="number" label="Durasi Slot (Menit)"
+                        placeholder="Contoh: 15" x-model="serviceForm.slot_duration" required min="1" max="120" />
+
+                    <x-input-text id="slot_capacity" name="slot_capacity" type="number" label="Kapasitas per Slot"
+                        placeholder="Contoh: 1" x-model="serviceForm.slot_capacity" required min="1" max="50" />
+                </div>
+
                 <hr class="border-gray-200">
 
                 <!-- Service Counters Section -->

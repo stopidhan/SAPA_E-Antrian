@@ -553,8 +553,10 @@
                             queue_prefix: service.queue_prefix,
                             description: service.description,
                             is_active: service.is_active,
-                            fast_max: service.performance_standards?.fast?.max ?? 2,
-                            normal_max: service.performance_standards?.normal?.max ?? 5,
+                            fast_max: service.performance_standards?.fast?.max ?? 5,
+                            normal_max: service.performance_standards?.normal?.max ?? 10,
+                            slot_duration: service.slot_duration ?? 120,
+                            slot_capacity: service.slot_capacity ?? 10,
                         };
                         this.countersList = JSON.parse(JSON.stringify(service.counters || []));
                     } else {
@@ -566,6 +568,8 @@
                             is_active: true,
                             fast_max: 2,
                             normal_max: 5,
+                            slot_duration: 15,
+                            slot_capacity: 1,
                         };
                         this.countersList = [];
                     }

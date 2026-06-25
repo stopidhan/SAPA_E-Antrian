@@ -123,6 +123,8 @@ class AdminInstanceController extends Controller
             'is_active' => ['boolean'],
             'fast_max' => ['required', 'integer', 'min:1'],
             'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
+            'slot_duration' => ['required', 'integer', 'min:1'],
+            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
         ]);
@@ -133,6 +135,8 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
+                'slot_duration' => (int) $validated['slot_duration'],
+                'slot_capacity' => (int) $validated['slot_capacity'],
                 'is_active' => $validated['is_active'] ?? true,
                 'performance_standards' => [
                     'fast' => ['max' => (int) $validated['fast_max']],
@@ -204,6 +208,8 @@ class AdminInstanceController extends Controller
             'is_active' => ['boolean'],
             'fast_max' => ['required', 'integer', 'min:1'],
             'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
+            'slot_duration' => ['required', 'integer', 'min:1'],
+            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.id' => ['nullable', 'exists:service_counters,id'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
@@ -214,6 +220,8 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
+                'slot_duration' => (int) $validated['slot_duration'],
+                'slot_capacity' => (int) $validated['slot_capacity'],
                 'is_active' => $validated['is_active'] ?? true,
                 'performance_standards' => [
                     'fast' => ['max' => (int) $validated['fast_max']],

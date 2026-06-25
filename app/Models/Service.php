@@ -20,8 +20,8 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
-        'slot_duration',   // Durasi per slot (menit) — diatur Admin Instansi
-        'slot_capacity',   // Kapasitas per slot (orang) — diatur Admin Instansi
+        'slot_duration',
+        'slot_capacity',
         'performance_standards',
         'is_active',
     ];
