@@ -16,10 +16,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('queues', function (Blueprint $table) {
-            $table->date('scheduled_date')->nullable()->after('queue_date')
-                  ->comment('Tanggal booking slot — diisi untuk antrean online');
-            $table->string('scheduled_slot', 5)->nullable()->after('scheduled_date')
-                  ->comment('Jam slot booking (HH:MM) — diisi untuk antrean online');
+            if (!Schema::hasColumn('queues', 'scheduled_date')) {
+                $table->date('scheduled_date')->nullable()->after('queue_date')
+                      ->comment('Tanggal booking slot — diisi untuk antrean online');
+            }
+            if (!Schema::hasColumn('queues', 'scheduled_slot')) {
+                $table->string('scheduled_slot', 5)->nullable()->after('scheduled_date')
+                      ->comment('Jam slot booking (HH:MM) — diisi untuk antrean online');
+            }
         });
     }
 

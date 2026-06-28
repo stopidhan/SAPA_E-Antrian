@@ -66,7 +66,8 @@ class OperatorController extends Controller
                     'id'      => $q->id,
                     'nomor'   => $q->queue_number,
                     'layanan' => $q->service ? $q->service->service_name : 'Lainnya',
-                    'tipe'    => $q->queue_source ?? 'onsite'
+                    'tipe'    => $q->queue_source ?? 'onsite',
+                    'limit_duration' => $q->service ? $q->service->slot_duration : 10
                 ];
             });
 
@@ -110,7 +111,8 @@ class OperatorController extends Controller
                     'nomor'   => $activeQueueRaw->queue_number,
                     'layanan' => $activeQueueRaw->service ? $activeQueueRaw->service->service_name : 'Lainnya',
                     'tipe'    => $activeQueueRaw->queue_source ?? 'onsite',
-                    'status'  => $activeQueueRaw->queue_status
+                    'status'  => $activeQueueRaw->queue_status,
+                    'limit_duration' => $activeQueueRaw->service ? $activeQueueRaw->service->slot_duration : 10
                 ];
 
                 if ($activeQueueRaw->queue_status === 'serving' && $activeQueueRaw->service_start_time) {
@@ -229,7 +231,8 @@ class OperatorController extends Controller
                     'id'      => $q->id,
                     'nomor'   => $q->queue_number,
                     'layanan' => $q->service ? $q->service->service_name : 'Lainnya',
-                    'tipe'    => $q->queue_source ?? 'onsite'
+                    'tipe'    => $q->queue_source ?? 'onsite',
+                    'limit_duration' => $q->service ? $q->service->slot_duration : 10
                 ];
             });
 

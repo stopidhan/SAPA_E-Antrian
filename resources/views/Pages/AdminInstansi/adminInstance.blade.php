@@ -214,6 +214,14 @@
                                                 <div>
                                                     <div class="font-semibold" x-text="service.service_name"></div>
                                                     <p class="text-sm text-gray-500" x-text="service.description"></p>
+                                                    <div class="flex items-center gap-2 mt-1.5">
+                                                        <span class="inline-flex items-center text-[10px] font-bold bg-gray-50 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
+                                                            ⏱️ Target: <span class="ml-0.5" x-text="service.slot_duration || 10"></span> mnt
+                                                        </span>
+                                                        <span class="inline-flex items-center text-[10px] font-bold bg-gray-50 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
+                                                            👥 Kuota: <span class="ml-0.5" x-text="service.slot_capacity || 5"></span> / slot
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -424,6 +432,7 @@
                 isToggling: false,
                 serviceForm: {},
                 countersList: [],
+                slotsList: [],
                 showServiceDialog: false,
 
                 config: {
@@ -552,6 +561,8 @@
                             service_name: service.service_name,
                             queue_prefix: service.queue_prefix,
                             description: service.description,
+                            slot_duration: service.slot_duration ?? 60,
+                            slot_capacity: service.slot_capacity ?? 5,
                             is_active: service.is_active,
                         };
                         this.countersList = JSON.parse(JSON.stringify(service.counters || []));
@@ -561,6 +572,8 @@
                             service_name: '',
                             queue_prefix: '',
                             description: '',
+                            slot_duration: 60,
+                            slot_capacity: 5,
                             is_active: true,
                         };
                         this.countersList = [];

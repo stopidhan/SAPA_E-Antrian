@@ -167,8 +167,18 @@
 
                     <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                         <span class="shrink-0 text-sm">⚠️</span>
-                        <p class="text-[11px] text-red-700 leading-relaxed">Anda memiliki antrean aktif. <strong>Selesaikan dulu</strong> sebelum mengambil nomor baru.</p>
+                        <p class="text-[11px] text-red-700 leading-relaxed">Anda memiliki antrean aktif yang sedang berjalan. <strong>Selesaikan pelayanan Anda di loket terlebih dahulu</strong> sebelum mengambil antrean baru.</p>
                     </div>
+                </div>
+            @endif
+
+            {{-- Info Limit Harian Habis --}}
+            @if ($bookingTodayCount >= 2)
+                <div class="mb-5 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 shadow-sm">
+                    <span class="shrink-0 text-sm">ℹ️</span>
+                    <p class="text-[11px] text-amber-800 leading-relaxed">
+                        Limit antrean harian Anda hari ini telah habis (**Maksimal 2 antrean per hari**). Silakan kembali esok hari.
+                    </p>
                 </div>
             @endif
 
@@ -180,7 +190,7 @@
 
             {{-- ====== DAFTAR LAYANAN (ACCORDION) ====== --}}
             @php
-                $isDisabled = $hasActiveQueue;
+                $isDisabled = $hasActiveQueue || ($bookingTodayCount >= 2);
             @endphp
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -379,7 +389,7 @@
                                         'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed': slot.full
                                     }"
                                     class="flex flex-col items-center py-3 px-2 rounded-xl border-2 transition text-xs font-semibold">
-                                    <span class="font-black text-sm" x-text="slot.slot"></span>
+                                    <span class="font-black text-sm" x-text="slot.display || slot.slot"></span>
                                     <span class="text-[10px] mt-0.5 opacity-70"
                                         :class="slot.full ? 'text-red-400 opacity-100' : ''"
                                         x-text="slot.full ? 'Penuh' : 'Sisa ' + slot.sisa + ' tempat'"></span>

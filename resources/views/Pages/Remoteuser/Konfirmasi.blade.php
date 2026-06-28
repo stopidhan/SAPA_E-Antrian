@@ -95,16 +95,28 @@
                         <span class="text-xs font-bold text-gray-900">{{ $service->service_name }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Estimasi Nomor Antrean</span>
+                        <span class="text-xs text-gray-500">Est. Nomor Antrean</span>
                         <span class="text-xs font-bold {{ $c['text'] }}">{{ $estimatedQueueNumber }}</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Estimasi Waktu</span>
-                        <span class="text-xs font-bold text-gray-900">± {{ $estimasiWaktu }} menit</span>
+                    <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-2 mt-2">
+                        <span class="text-xs text-gray-500">Tanggal Booking</span>
+                        <span class="text-xs font-bold text-gray-900">
+                            {{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('l, d M Y') }}
+                        </span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Tanggal</span>
-                        <span class="text-xs font-bold text-gray-900">{{ now()->format('d M Y') }}</span>
+                        <span class="text-xs text-gray-500">Slot Waktu Pelayanan</span>
+                        <span class="text-xs font-bold text-gray-900">{{ $selectedSlot }} – {{ $slotEndTime }}</span>
+                    </div>
+                    <div class="flex items-center justify-between bg-amber-50 p-2 rounded-lg border border-amber-200 mt-2">
+                        <span class="text-xs font-semibold text-amber-800">Wajib Hadir Sebelum</span>
+                        <span class="text-xs font-black text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
+                            {{ $arrivalLimitTime }}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Durasi Slot</span>
+                        <span>{{ $slotDuration }} menit</span>
                     </div>
                 </div>
             </div>
@@ -161,10 +173,12 @@
             <form action="{{ route('booking.ambil-antrean') }}" method="POST">
                 @csrf
                 <input type="hidden" name="layanan" value="{{ $slug }}">
+                <input type="hidden" name="tanggal" value="{{ $selectedDate }}">
+                <input type="hidden" name="slot" value="{{ $selectedSlot }}">
                 <button type="submit"
                         class="w-full flex items-center justify-center gap-1.5 py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                    Ya, Saya Datang
+                    Ya, Konfirmasi Kedatangan
                 </button>
             </form>
         </div>

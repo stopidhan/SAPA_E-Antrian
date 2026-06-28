@@ -119,6 +119,53 @@
         {{-- ====== MODAL CONFIRMATION ====== --}}
         <x-modals.modal-confirmation name="confirm-logout" variant="logout" />
         <x-modals.modal-confirmation name="confirm-close-session" variant="close-session" />
+
+        <!-- Force Complete Service Modal -->
+        <div x-show="state === 'serving' && timerSeconds >= (currentQueue?.limit_duration || 10) * 60" x-cloak
+            class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl border-2 border-red-500 relative">
+                <div class="text-center mb-6">
+                    <span class="inline-flex items-center justify-center w-16 h-16 bg-red-100 text-red-600 rounded-full text-3xl mb-3">
+                        ⏰
+                    </span>
+                    <h3 class="text-xl font-bold text-red-600">Waktu Pelayanan Habis!</h3>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Batas waktu pelayanan ideal (<span class="font-bold" x-text="currentQueue?.limit_duration || 10"></span> menit) telah tercapai. Harap isi ringkasan laporan pelayanan di bawah untuk menyelesaikan antrean.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    {{-- Dropdown Kategori Layanan --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Kategori Layanan <span class="text-red-500">*</span></label>
+                        <select x-model="serviceCategory" class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition outline-none appearance-none cursor-pointer">
+                            <option value="" disabled selected>Pilih kategori layanan</option>
+                            @foreach($services as $svc)
+                                <option value="{{ $svc->service_name }}">{{ $svc->service_name }}</option>
+                            @endforeach
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    {{-- Textarea Catatan / Deskripsi --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Deskripsi / Catatan Layanan <span class="text-red-500">*</span></label>
+                        <textarea x-model="serviceDescription" rows="3"
+                                  placeholder="Tuliskan tindakan yang dilakukan, keluhan, atau laporan..."
+                                  class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-sm text-gray-700 focus:border-red-500 focus:ring-4 focus:ring-red-100 transition outline-none resize-none placeholder:text-gray-300"></textarea>
+                    </div>
+
+                    {{-- Tombol Aksi --}}
+                    <div class="pt-2">
+                        <button type="button" @click="stopServing()"
+                                class="w-full flex items-center justify-center gap-2 py-4 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-base font-bold rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            Selesaikan & Tutup Antrean
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
@@ -476,6 +523,15 @@
                         const min = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
                         const sec = String(this.timerSeconds % 60).padStart(2, '0');
                         this.timerDisplay = min + ':' + sec;
+
+                        // Warning Check (1 menit sebelum batas ideal pelayanan)
+                        const limitMinutes = this.currentQueue?.limit_duration || 10;
+                        const limitSeconds = limitMinutes * 60;
+                        const warningSeconds = limitSeconds - 60;
+
+                        if (this.timerSeconds === warningSeconds) {
+                            this.showNotif('Peringatan: Waktu pelayanan mendekati batas ideal (' + limitMinutes + ' menit)! Harap segera diselesaikan.', 'skip');
+                        }
                     }, 1000);
                 },
 

@@ -30,6 +30,59 @@
 
                 <hr class="border-gray-200">
 
+                <!-- Konfigurasi Batas Waktu & Kuota Booking Online -->
+                <div>
+                    <div class="mb-4">
+                        <h4 class="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Batas Waktu Pelayanan & Kuota Booking Online
+                        </h4>
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            Atur batas waktu pelayanan loket (yang juga menjadi interval durasi slot booking online) serta kuota kustomer per slot.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Target Waktu Pelayanan (SLA) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Target Waktu Pelayanan
+                                <span class="ml-1 text-xs text-gray-400 font-normal">(menit)</span>
+                            </label>
+                            <input
+                                type="number"
+                                x-model.number="serviceForm.slot_duration"
+                                min="1" max="480" step="1"
+                                placeholder="10"
+                                required
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                            <p class="text-[11px] text-gray-400 mt-1">
+                                Batas waktu pelayanan loket sekaligus interval slot booking (contoh: 30 menit).
+                            </p>
+                        </div>
+                        <!-- Kuota Booking per Slot -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Kuota Booking per Slot
+                                <span class="ml-1 text-xs text-gray-400 font-normal">(orang)</span>
+                            </label>
+                            <input
+                                type="number"
+                                x-model.number="serviceForm.slot_capacity"
+                                min="1" max="500" step="1"
+                                placeholder="5"
+                                required
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                            <p class="text-[11px] text-gray-400 mt-1">
+                                Jumlah kustomer online maksimal yang boleh mendaftar di setiap slot waktu.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Service Counters Section -->
                 <div>
                     <div class="flex items-center justify-between mb-4">

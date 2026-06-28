@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Models\ServiceCounter;
+use App\Models\ServiceSlot;
 use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,7 +29,7 @@ class AdminInstanceController extends Controller
             'timezone' => $instance->timezone ?? 'Asia/Jakarta',
         ];
 
-        $services = $instance->services()->with('counters')->latest()->get();
+        $services = $instance->services()->with(['counters', 'slots'])->latest()->get();
 
         return view('Pages.AdminInstansi.adminInstance', compact('config', 'services'));
     }
@@ -97,7 +98,7 @@ class AdminInstanceController extends Controller
     {
         $services = app(\App\Services\TenantManager::class)->getInstance()
             ->services()
-            ->with('counters')
+            ->with(['counters', 'slots'])
             ->latest()
             ->get();
 
@@ -120,6 +121,8 @@ class AdminInstanceController extends Controller
                 Rule::unique('services', 'queue_prefix')->where('instance_id', $instanceId),
             ],
             'description' => ['nullable', 'string', 'max:500'],
+            'slot_duration' => ['required', 'integer', 'min:1', 'max:480'],
+            'slot_capacity' => ['required', 'integer', 'min:1', 'max:500'],
             'is_active' => ['boolean'],
             'counters' => ['nullable', 'array'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
@@ -131,6 +134,8 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
+                'slot_duration' => $validated['slot_duration'] ?? 60,
+                'slot_capacity' => $validated['slot_capacity'] ?? 5,
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
@@ -146,7 +151,7 @@ class AdminInstanceController extends Controller
                 }
             }
 
-            $service->load('counters');
+            $service->load(['counters', 'slots']);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -194,6 +199,8 @@ class AdminInstanceController extends Controller
                     ->ignore($service->id),
             ],
             'description' => ['nullable', 'string', 'max:500'],
+            'slot_duration' => ['required', 'integer', 'min:1', 'max:480'],
+            'slot_capacity' => ['required', 'integer', 'min:1', 'max:500'],
             'is_active' => ['boolean'],
             'counters' => ['nullable', 'array'],
             'counters.*.id' => ['nullable', 'exists:service_counters,id'],
@@ -205,6 +212,8 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
+                'slot_duration' => $validated['slot_duration'] ?? $service->slot_duration ?? 1,
+                'slot_capacity' => $validated['slot_capacity'] ?? $service->slot_capacity ?? 10,
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
@@ -237,7 +246,10 @@ class AdminInstanceController extends Controller
                 $service->counters()->delete();
             }
 
-            $service->load('counters');
+            // Hapus semua slot kustom jika ada karena sekarang dinamis di background
+            $service->slots()->delete();
+
+            $service->load(['counters', 'slots']);
 
             if ($request->wantsJson()) {
                 return response()->json([

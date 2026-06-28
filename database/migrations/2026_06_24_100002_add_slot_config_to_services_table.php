@@ -16,10 +16,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->unsignedSmallInteger('slot_duration')->default(60)->after('description')
-                  ->comment('Durasi per slot waktu dalam menit (diatur Admin Instansi)');
-            $table->unsignedSmallInteger('slot_capacity')->default(10)->after('slot_duration')
-                  ->comment('Kapasitas maksimal booking per slot (diatur Admin Instansi)');
+            if (!Schema::hasColumn('services', 'slot_duration')) {
+                $table->unsignedSmallInteger('slot_duration')->default(1)->after('description')
+                      ->comment('Durasi per slot waktu dalam menit (diatur Admin Instansi)');
+            }
+            if (!Schema::hasColumn('services', 'slot_capacity')) {
+                $table->unsignedSmallInteger('slot_capacity')->default(10)->after('slot_duration')
+                      ->comment('Kapasitas maksimal booking per slot (diatur Admin Instansi)');
+            }
         });
     }
 

@@ -43,4 +43,9 @@ class Service extends Model
     {
         return $this->hasMany(Queue::class);
     }
+
+    public function slots()
+    {
+        return $this->hasMany(ServiceSlot::class);
+    }
 }

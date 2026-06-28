@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Queue;
 use App\Models\Service;
+use App\Models\ServiceSlot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,7 +19,7 @@ class BookingOnlineController extends Controller
     private const ONLINE_TICKET_EXPIRATION_MINUTES = 30;
 
     // Default fallback jika Admin belum isi kolom di service
-    private const DEFAULT_SLOT_DURATION_MINUTES = 60;
+    private const DEFAULT_SLOT_DURATION_MINUTES = 1;
     private const DEFAULT_SLOT_CAPACITY          = 10;
 
     // Berapa hari ke depan yang bisa dipilih saat booking
@@ -91,9 +92,15 @@ class BookingOnlineController extends Controller
             'shadow' => 'shadow-gray-100',
         ];
 
-        // Cek antrean aktif hari ini (belum di-scan)
+        // Cek antrean aktif hari ini (untuk lock tombol di dashboard)
         $today = now()->toDateString();
+        $hasActiveQueue = Queue::query()
+            ->where('customer_id', $authCustomer->id ?? 0)
+            ->whereDate('queue_date', $today)
+            ->whereIn('queue_status', ['waiting', 'called', 'serving'])
+            ->exists();
 
+        // Cek antrean aktif hari ini yang belum di-scan (untuk tampilkan QR tiket di dashboard)
         $activeQueue = Queue::query()
             ->where('customer_id', $authCustomer->id ?? 0)
             ->whereDate('queue_date', $today)
@@ -102,7 +109,12 @@ class BookingOnlineController extends Controller
             ->with('service')
             ->first();
 
-        $hasActiveQueue = (bool) $activeQueue;
+        // Hitung total booking hari ini (maksimal 2)
+        $bookingTodayCount = Queue::query()
+            ->where('customer_id', $authCustomer->id ?? 0)
+            ->whereDate('queue_date', $today)
+            ->count();
+
         $nomorAntrean   = $activeQueue ? $activeQueue->queue_number : '-';
         $kodeBooking    = $activeQueue ? 'BKG-' . str_pad((string) $activeQueue->id, 8, '0', STR_PAD_LEFT) : '-';
 
@@ -113,6 +125,7 @@ class BookingOnlineController extends Controller
             'layanans',
             'namaUser',
             'hasActiveQueue',
+            'bookingTodayCount',
             'nomorAntrean',
             'kodeBooking',
             'activeQueue',
@@ -224,8 +237,11 @@ class BookingOnlineController extends Controller
         }
         $estimatedQueueNumber = $queuePrefix . '-' . str_pad((string) ($urutan + 1), 3, '0', STR_PAD_LEFT);
 
-        // Hitung sisa kapasitas slot
         $slotCapacity = $this->getSlotCapacity($service);
+        $slotDuration = $this->getSlotDuration($service); // SLA Pelayanan & durasi slot (misal 30 mnt)
+        $slotEndTime  = Carbon::createFromFormat('H:i', $selectedSlot)->addMinutes($slotDuration)->format('H:i'); // Mengikuti durasi pelayanan
+
+        // Hitung sisa kapasitas slot
         $slotFilled   = Queue::query()
             ->where('service_id', $service->id)
             ->where('queue_source', 'online')
@@ -235,10 +251,9 @@ class BookingOnlineController extends Controller
             ->count();
         $slotSisa = max(0, $slotCapacity - $slotFilled);
 
-        // Hitung jam akhir slot
-        $slotDuration = $this->getSlotDuration($service);
-        $slotEndTime  = Carbon::createFromFormat('H:i', $selectedSlot)
-            ->addMinutes($slotDuration)
+        // Batas waktu check-in (hadir) = waktu mulai slot + 30 menit grace period
+        $arrivalLimitTime = Carbon::createFromFormat('H:i', $selectedSlot)
+            ->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
             ->format('H:i');
 
         return view('Pages.Remoteuser.Konfirmasi', [
@@ -248,6 +263,7 @@ class BookingOnlineController extends Controller
             'selectedDate'         => $dateStr,
             'selectedSlot'         => $selectedSlot,
             'slotEndTime'          => $slotEndTime,
+            'arrivalLimitTime'     => $arrivalLimitTime,
             'slotDuration'         => $slotDuration,
             'slotSisa'             => $slotSisa,
             'estimatedQueueNumber' => $estimatedQueueNumber,
@@ -275,17 +291,28 @@ class BookingOnlineController extends Controller
                 ->withErrors(['booking_register' => 'Silakan login terlebih dahulu.']);
         }
 
-        // Cek antrean aktif yang belum discan
+        // 1. Cek limit 2 antrean per hari
+        $bookingTodayCount = Queue::query()
+            ->where('customer_id', $authCustomer->id)
+            ->whereDate('queue_date', $validated['tanggal'])
+            ->count();
+
+        if ($bookingTodayCount >= 2) {
+            return back()->withErrors([
+                'limit_booking' => 'Limit antrean Anda telah habis. Maksimal 2 kali pengambilan antrean online per hari.',
+            ])->withInput();
+        }
+
+        // 2. Cek jika ada antrean aktif yang sedang berjalan (waiting, called, serving)
         $activeQueue = Queue::query()
             ->where('customer_id', $authCustomer->id)
             ->whereDate('queue_date', now()->toDateString())
             ->whereIn('queue_status', ['waiting', 'called', 'serving'])
-            ->whereNull('check_in_time')
             ->exists();
 
         if ($activeQueue) {
             return back()->withErrors([
-                'limit_booking' => 'Anda masih memiliki antrean aktif yang belum di-scan. Selesaikan terlebih dahulu.',
+                'limit_booking' => 'Anda masih memiliki antrean aktif yang sedang berjalan. Selesaikan terlebih dahulu sebelum mengambil antrean baru.',
             ])->withInput();
         }
 
@@ -305,6 +332,7 @@ class BookingOnlineController extends Controller
         }
 
         $slotCapacity = $this->getSlotCapacity($service);
+
         $lockKey = 'slot_lock_' . $service->id . '_' . $validated['tanggal'] . '_' . $validated['slot'];
 
         $queue = Cache::lock($lockKey, 10)->block(5, function () use ($service, $authCustomer, $validated, $slotCapacity) {
@@ -631,14 +659,14 @@ class BookingOnlineController extends Controller
     }
 
     /**
-     * Bangun daftar slot waktu untuk tanggal & service tertentu
+     * Bangun daftar slot waktu secara dinamis berdasarkan operational hours instansi (Selalu per jam)
      */
     private function buildSlots(Service $service, Carbon $date): array
     {
-        $duration = $this->getSlotDuration($service);
+        $duration = $this->getSlotDuration($service); // Mengikuti durasi waktu pelayanan dari admin (misal 30 mnt)
         $capacity = $this->getSlotCapacity($service);
 
-        // Ambil jam operasional dari instance (default 08:00–16:00)
+        // Ambil jam operasional dari instance
         $instance  = \App\Models\Instance::find($service->instance_id);
         $openTime  = '08:00';
         $closeTime = '16:00';
@@ -667,27 +695,54 @@ class BookingOnlineController extends Controller
             ->groupBy('scheduled_slot')
             ->map(fn($g) => $g->count());
 
-        $slots      = [];
-        $current    = Carbon::createFromFormat('H:i', $openTime, config('app.timezone', 'Asia/Jakarta'));
-        $close      = Carbon::createFromFormat('H:i', $closeTime, config('app.timezone', 'Asia/Jakarta'));
-
-        // Jangan tampilkan slot yang sudah lewat (untuk hari ini)
-        $now = now();
+        $slots   = [];
+        $current = Carbon::createFromFormat('H:i', $openTime, config('app.timezone', 'Asia/Jakarta'));
+        $close   = Carbon::createFromFormat('H:i', $closeTime, config('app.timezone', 'Asia/Jakarta'));
+        $now     = now();
 
         while ($current->copy()->addMinutes($duration)->lte($close)) {
-            $slotKey  = $current->format('H:i');
-            $filled   = $existingCounts->get($slotKey, 0);
-            $sisa     = max(0, $capacity - $filled);
-            $isFull   = $sisa === 0;
+            $startStr = $current->format('H:i');
+            $endStr   = $current->copy()->addMinutes($duration)->format('H:i');
 
-            // Lewati slot yang sudah lewat (hanya untuk hari ini)
-            $isPast = $date->isToday() && $current->lte($now);
+            // Jam Istirahat:
+            // Senin - Kamis: 12:00 - 13:00 (720 s/d 780 menit dari midnight)
+            // Jumat: 11:30 - 13:00 (690 s/d 780 menit dari midnight)
+            $isRestTime = false;
+            $timeVal    = $current->hour * 60 + $current->minute;
+            
+            if ($date->isFriday()) {
+                if ($timeVal >= 690 && $timeVal < 780) {
+                    $isRestTime = true;
+                }
+            } else {
+                if ($timeVal >= 720 && $timeVal < 780) {
+                    $isRestTime = true;
+                }
+            }
+
+            if ($isRestTime) {
+                $current->addMinutes($duration);
+                continue;
+            }
+
+            $filled = $existingCounts->get($startStr, 0);
+            $sisa   = max(0, $capacity - $filled);
+            $isFull = $sisa === 0;
+
+            // Cek apakah slot sudah lewat (hanya untuk hari ini)
+            try {
+                $slotTime = Carbon::createFromFormat('Y-m-d H:i', $date->toDateString() . ' ' . $startStr, config('app.timezone', 'Asia/Jakarta'));
+                $isPast   = $date->isToday() && $slotTime->lte($now);
+            } catch (\Exception $e) {
+                $isPast   = false;
+            }
 
             if (!$isPast) {
                 $slots[] = [
-                    'slot'  => $slotKey,
-                    'sisa'  => $sisa,
-                    'full'  => $isFull,
+                    'slot'    => $startStr,
+                    'display' => $startStr . ' - ' . $endStr,
+                    'sisa'    => $sisa,
+                    'full'    => $isFull,
                 ];
             }
 
