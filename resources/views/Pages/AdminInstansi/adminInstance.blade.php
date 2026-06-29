@@ -721,7 +721,7 @@
                     if (!this.selectedService || this.isToggling) return;
                     this.isToggling = true;
                     try {
-                        const response = await fetch(`{{ route('services.toggle', ':id') }}`.replace(':id', this
+                        const response = await fetch(`{{ route('services.toggle', ['service' => 999999]) }}`.replace('999999', this
                             .selectedService.id), {
                             method: 'PATCH',
                             headers: {
@@ -749,7 +749,7 @@
                     this.selectedService = service;
                     const form = document.getElementById('deleteForm-delete-service-modal');
                     if (form) {
-                        form.action = `{{ route('services.destroy', ':id') }}`.replace(':id', service.id);
+                        form.action = `{{ route('services.destroy', ['service' => 999999]) }}`.replace('999999', service.id);
                     }
                     const nameEl = document.getElementById('delete-item-name-delete-service-modal');
                     if (nameEl) {
@@ -839,7 +839,7 @@
                 openDeleteSlotModal(slot) {
                     const form = document.getElementById('deleteForm-delete-slot-modal');
                     if (form) {
-                        form.action = `{{ url('instance/slots') }}/${slot.id}`;
+                        form.action = `{{ route('instance.slots.destroy', ['slot' => 999999]) }}`.replace('999999', slot.id);
                     }
                     const nameEl = document.getElementById('delete-item-name-delete-slot-modal');
                     if (nameEl) {

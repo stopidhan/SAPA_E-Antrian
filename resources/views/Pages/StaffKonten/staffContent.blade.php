@@ -257,7 +257,7 @@
             if (!form) return;
 
             form.reset();
-            form.action = isEdit ? `{{ route('content.update', ':id') }}`.replace(':id', content.id) :
+            form.action = isEdit ? `{{ route('content.update', ['content' => 999999]) }}`.replace('999999', content.id) :
                 `{{ route('content.store') }}`;
             el('modal-content-title').textContent = isEdit ? 'Edit Konten' : 'Tambah Konten';
             el('submit-btn-text').textContent = isEdit ? 'Simpan Perubahan' : 'Upload Konten';
@@ -296,7 +296,7 @@
         function openDeleteModal(id) {
             const c = contentData.find(x => x.id === id);
             if (!c) return;
-            if (el('deleteForm')) el('deleteForm').action = `{{ route('content.destroy', ':id') }}`.replace(':id', id);
+            if (el('deleteForm')) el('deleteForm').action = `{{ route('content.destroy', ['content' => 999999]) }}`.replace('999999', id);
             if (el('delete-item-name')) el('delete-item-name').textContent = c.title;
             openModal('delete-content');
         }
@@ -314,7 +314,7 @@
                 toggle.addEventListener('change', function() {
                     const contentId = this.getAttribute('data-id'),
                         isChecked = this.checked;
-                    fetch(`{{ route('content.toggle', ':id') }}`.replace(':id', contentId), {
+                    fetch(`{{ route('content.toggle', ['content' => 999999]) }}`.replace('999999', contentId), {
                             method: 'PATCH',
                             headers: {
                                 'Content-Type': 'application/json',

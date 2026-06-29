@@ -79,7 +79,9 @@
                             <p class="text-[8px] text-amber-500 font-semibold -mt-0.5">Dtk</p>
                         </div>
                     </div>
-                    <p class="text-[10px] text-amber-600 mt-2 leading-relaxed" x-show="!expired">Segera menuju instansi sebelum waktu habis</p>
+                    <p class="text-[10px] text-amber-600 mt-2 leading-relaxed text-center font-semibold" x-show="!expired">
+                        Wajib hadir di lokasi sebelum jam: <span class="bg-amber-200 px-1.5 py-0.5 rounded text-amber-900 font-extrabold text-[11px]">{{ \Carbon\Carbon::parse($batasWaktu)->format('H:i') }} WIB</span>
+                    </p>
                     <p class="text-[10px] text-red-600 font-bold mt-2" x-show="expired" x-cloak>Waktu kedatangan habis. Tiket hangus dan tidak bisa dipakai lagi.</p>
                 </div>
             </div>

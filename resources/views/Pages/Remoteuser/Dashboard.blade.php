@@ -18,6 +18,16 @@
     <style>
         [x-cloak] { display: none !important }
         body { font-family: 'Figtree', sans-serif }
+        /* Style to overlay native picker indicator so clicking anywhere on date input opens calendar */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -26,7 +36,10 @@
     <div class="w-full max-w-screen-2xl mx-auto min-h-screen bg-gray-50 relative flex flex-col"
          x-data="slotPicker(
              '{{ route('booking.api.slots') }}',
-             '{{ route('booking.konfirmasi') }}'
+             '{{ route('booking.konfirmasi') }}',
+             '{{ json_encode($operationalHours) }}',
+             '{{ json_encode($dayAvailability) }}',
+             {{ $hasSlotsConfigured ? 'true' : 'false' }}
          )">
 
         {{-- ====== TOP BAR ====== --}}
@@ -43,7 +56,13 @@
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
                     <a href="{{ route('booking.inventory') }}"
-                        class="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition">
+                        class="relative flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition">
+                        @if ($hasActiveQueue)
+                            <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                            </span>
+                        @endif
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
                         </svg>
@@ -88,97 +107,30 @@
 
             {{-- ====== STATE 1: ADA ANTREAN AKTIF ====== --}}
             @if ($hasActiveQueue)
-                <div class="mb-5 space-y-3">
-                    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 shadow-lg shadow-blue-200/50">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Antrean Aktif</p>
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 text-white text-[10px] font-semibold rounded-full">
-                                <span class="w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse"></span> Menunggu
-                            </span>
-                        </div>
-                        <p class="text-white text-3xl font-black tracking-tight mb-1">{{ $nomorAntrean }}</p>
-                        @if ($activeQueue->scheduled_slot && $activeQueue->scheduled_date)
-                            <p class="text-blue-200 text-xs mb-3">
-                                {{ $activeQueue->service->service_name ?? 'Layanan' }} &middot;
-                                Slot: {{ \Carbon\Carbon::createFromFormat('H:i', $activeQueue->scheduled_slot)->format('H:i') }} —
-                                Tiba sebelum batas waktu!
-                            </p>
-                        @else
-                            <p class="text-blue-200 text-xs mb-3">{{ $activeQueue->service->service_name ?? 'Layanan' }} &middot; Segera datang ke lokasi</p>
-                        @endif
-
-                        {{-- Countdown Timer --}}
-                        @php
-                            $expiry = $activeQueue->scheduled_date && $activeQueue->scheduled_slot
-                                ? \Carbon\Carbon::parse($activeQueue->scheduled_date->toDateString() . ' ' . $activeQueue->scheduled_slot)->addMinutes(30)->toIso8601String()
-                                : now()->addMinutes(30)->toIso8601String();
-                        @endphp
-                        <div class="bg-white/15 rounded-xl px-3 py-2.5 mb-3" x-data="countdown('{{ $expiry }}')" x-init="startTimer()">
-                            <p class="text-[10px] text-blue-200 font-semibold text-center mb-1.5" x-show="!expired">Segera menuju instansi dalam</p>
-                            <p class="text-[10px] text-red-300 font-bold text-center mb-1.5" x-show="expired" x-cloak>Waktu kedatangan habis!</p>
-                            <div class="flex items-center justify-center gap-1.5" x-show="!expired">
-                                <div class="bg-white/20 rounded-lg px-2 py-1 min-w-[34px] text-center">
-                                    <p class="text-sm font-black text-white" x-text="hours">00</p>
-                                    <p class="text-[7px] text-blue-200 font-semibold -mt-0.5">Jam</p>
-                                </div>
-                                <span class="text-white/50 font-black text-sm">:</span>
-                                <div class="bg-white/20 rounded-lg px-2 py-1 min-w-[34px] text-center">
-                                    <p class="text-sm font-black text-white" x-text="minutes">00</p>
-                                    <p class="text-[7px] text-blue-200 font-semibold -mt-0.5">Mnt</p>
-                                </div>
-                                <span class="text-white/50 font-black text-sm">:</span>
-                                <div class="bg-white/20 rounded-lg px-2 py-1 min-w-[34px] text-center">
-                                    <p class="text-sm font-black" :class="seconds <= 10 ? 'text-red-300' : 'text-white'" x-text="seconds">00</p>
-                                    <p class="text-[7px] text-blue-200 font-semibold -mt-0.5">Dtk</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <a href="{{ route('booking.tiket') }}"
-                            class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition">
-                            <span>👁️</span> Lihat Tiket & QR Code
-                        </a>
-                    </div>
-
-                    {{-- Mini QR Preview --}}
-                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border-b border-emerald-100">
-                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p class="text-[11px] font-semibold text-emerald-700">Tiket Tersimpan — Siap Scan di Kiosk</p>
-                        </div>
-                        <div class="p-4 flex items-center gap-4">
-                            <a href="{{ route('booking.tiket') }}" class="shrink-0">
-                                <div class="w-28 h-28 bg-white rounded-2xl border-2 border-gray-100 flex items-center justify-center hover:border-blue-300 transition overflow-hidden p-2 shadow-sm">
-                                    {!! QrCode::size(100)->generate($kodeBooking) !!}
-                                </div>
-                            </a>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs font-bold text-gray-900 mb-0.5">{{ $nomorAntrean }}</p>
-                                <p class="text-[11px] text-gray-400 mb-2">BKG: {{ $kodeBooking }}</p>
-                                <a href="{{ route('booking.tiket') }}"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
-                                    Buka QR untuk Scan
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                        <span class="shrink-0 text-sm">⚠️</span>
-                        <p class="text-[11px] text-red-700 leading-relaxed">Anda memiliki antrean aktif yang sedang berjalan. <strong>Selesaikan pelayanan Anda di loket terlebih dahulu</strong> sebelum mengambil antrean baru.</p>
+                <div class="mb-5 flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 shadow-sm">
+                    <svg class="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    <div>
+                        <p class="text-xs font-bold text-red-950 mb-0.5">Antrean Aktif Sedang Berjalan</p>
+                        <p class="text-[11px] text-red-700 leading-relaxed">
+                            Tiket antrean aktif Anda kini berada di menu <a href="{{ route('booking.inventory') }}" class="font-bold text-blue-600 underline hover:text-blue-800">Tiket</a> di atas (ditandai dengan notifikasi merah). Silakan <strong>selesaikan pelayanan Anda di loket terlebih dahulu</strong> sebelum mengambil antrean baru.
+                        </p>
                     </div>
                 </div>
             @endif
 
             {{-- Info Limit Harian Habis --}}
             @if ($bookingTodayCount >= 2)
-                <div class="mb-5 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 shadow-sm">
-                    <span class="shrink-0 text-sm">ℹ️</span>
-                    <p class="text-[11px] text-amber-800 leading-relaxed">
-                        Limit antrean harian Anda hari ini telah habis (**Maksimal 2 antrean per hari**). Silakan kembali esok hari.
-                    </p>
+                <div class="mb-5 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+                    <svg class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                            Limit antrean harian Anda hari ini telah habis (**Maksimal 2 antrean per hari**). Silakan kembali esok hari.
+                        </p>
+                    </div>
                 </div>
             @endif
 
@@ -211,12 +163,6 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h3 class="text-sm font-bold text-gray-900">{{ $svc->service_name }}</h3>
-                                <p class="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Slot {{ $svc->_slot_duration }} menit · Maks. {{ $svc->_slot_capacity }} orang/slot
-                                </p>
                             </div>
                         </div>
 
@@ -248,23 +194,6 @@
                                 </p>
                             </div>
 
-                            <div>
-                                <p class="text-[11px] font-semibold text-gray-700 uppercase tracking-wider mb-2">Persyaratan Umum</p>
-                                <ul class="space-y-1.5">
-                                    <li class="flex items-start gap-2">
-                                        <svg class="w-3.5 h-3.5 {{ $c['text'] }} shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-                                        <span class="text-xs text-gray-600">Warga Negara Indonesia (WNI)</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <svg class="w-3.5 h-3.5 {{ $c['text'] }} shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                        </svg>
-                                        <span class="text-xs text-gray-600">Terdaftar di wilayah instansi terkait</span>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
 
                         {{-- Tombol Pilih Layanan → Buka Modal Slot --}}
@@ -338,26 +267,85 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 min-h-[380px] pb-24">
 
-                    {{-- Step 1: Pilih Tanggal --}}
+                    @if(!$hasSlotsConfigured)
+                        <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm mb-3">
+                            <span class="text-base shrink-0 mt-0.5">⚠️</span>
+                            <div>
+                                <p class="text-xs font-bold text-red-800">Kuota Pelayanan Belum Tersedia</p>
+                                <p class="text-[11px] text-red-600 leading-relaxed mt-0.5">Admin instansi belum mengonfigurasi slot kuota antrean untuk pelayanan ini. Silakan hubungi pihak instansi terkait atau kembali lagi nanti.</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Step 1: Pilih Tanggal (Inline Grid Calendar) --}}
                     <div>
-                        <p class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5">
+                        <p class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
                             <span class="inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full mr-1.5">1</span>
-                            Pilih Tanggal
+                            Pilih Tanggal Kunjungan
                         </p>
-                        <div class="grid grid-cols-2 gap-2">
-                            @foreach ($availableDates as $dateOpt)
-                                <button
-                                    @click="selectDate('{{ $dateOpt['value'] }}')"
-                                    :class="selectedDate === '{{ $dateOpt['value'] }}'
-                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100'
-                                        : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'"
-                                    class="flex flex-col items-center justify-center py-3 px-4 rounded-xl border-2 transition font-semibold text-xs">
-                                    <span class="text-sm font-black">{{ $dateOpt['label'] }}</span>
-                                    <span class="text-[10px] opacity-70">{{ $dateOpt['sublabel'] }}</span>
+                        
+                        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 shadow-inner">
+                            {{-- Header Calendar: Month Year Selector --}}
+                            <div class="flex items-center justify-between mb-4">
+                                <button type="button" @click="prevMonth()" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                    </svg>
                                 </button>
-                            @endforeach
+                                <span class="text-xs font-extrabold text-gray-800 uppercase tracking-wider" x-text="`${monthNames[currentMonth]} ${currentYear}`"></span>
+                                <button type="button" @click="nextMonth()" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-600 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {{-- Weekdays Header --}}
+                            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 uppercase mb-2">
+                                <div>Min</div>
+                                <div>Sen</div>
+                                <div>Sel</div>
+                                <div>Rab</div>
+                                <div>Kam</div>
+                                <div>Jum</div>
+                                <div>Sab</div>
+                            </div>
+
+                            {{-- Days Grid --}}
+                            <div class="grid grid-cols-7 gap-1.5 text-center">
+                                <template x-for="(day, idx) in calendarDays" :key="idx">
+                                    <button type="button"
+                                        @click="day.dateStr && !day.disabled && selectDate(day.dateStr)"
+                                        :disabled="day.disabled || !day.dateStr"
+                                        :class="{
+                                            'bg-blue-600 text-white font-extrabold border-blue-600 shadow-md shadow-blue-100': selectedDate === day.dateStr && day.dateStr,
+                                            
+                                            // Red (sisa === 1)
+                                            'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 hover:border-red-300': selectedDate !== day.dateStr && day.isCurrentMonth && !day.disabled && day.dateStr && day.sisa === 1,
+                                            
+                                            // Yellow (sisa <= capacity / 2)
+                                            'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 hover:border-amber-300': selectedDate !== day.dateStr && day.isCurrentMonth && !day.disabled && day.dateStr && day.sisa > 1 && day.sisa <= (day.capacity / 2),
+                                            
+                                            // Green (sisa > capacity / 2)
+                                            'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300': selectedDate !== day.dateStr && day.isCurrentMonth && !day.disabled && day.dateStr && day.sisa > (day.capacity / 2),
+                                            
+                                            // Disabled / Closed / Full
+                                            'bg-gray-100 text-gray-300 border-gray-100 cursor-not-allowed opacity-50': day.disabled && day.dateStr,
+                                            'opacity-0 pointer-events-none': !day.isCurrentMonth || !day.dateStr
+                                        }"
+                                        class="aspect-square flex items-center justify-center rounded-xl text-xs font-semibold border transition">
+                                        <span x-text="day.day"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Info Jam Operasional Hari terpilih --}}
+                        <div x-show="selectedDate" class="mt-3 flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 text-xs text-blue-700">
+                            <span class="font-semibold leading-none">Jam Operasional:</span>
+                            <span class="font-extrabold leading-none text-right" x-text="getSelectedDateOpHours()"></span>
                         </div>
                     </div>
 
@@ -379,12 +367,12 @@
 
                         {{-- Slot Grid --}}
                         <div x-show="!loadingSlots && slots.length > 0" class="grid grid-cols-2 gap-2">
-                            <template x-for="slot in slots" :key="slot.slot">
+                            <template x-for="(slot, idx) in slots" :key="idx">
                                 <button
                                     @click="!slot.full && selectSlot(slot.slot)"
                                     :disabled="slot.full"
                                     :class="{
-                                        'bg-blue-600 text-white border-blue-600 shadow-md': selectedSlot === slot.slot,
+                                        'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100': selectedSlot === slot.slot,
                                         'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50': selectedSlot !== slot.slot && !slot.full,
                                         'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed': slot.full
                                     }"
@@ -428,24 +416,149 @@
         // =====================================================================
         // Alpine.js: Slot Picker (Modal Tanggal & Slot Waktu)
         // =====================================================================
-        function slotPicker(apiUrl, konfirmasiUrl) {
+        function slotPicker(apiUrl, konfirmasiUrl, operationalHoursJson, dayAvailabilityJson, hasSlotsConfigured) {
             return {
                 modalOpen: false,
+                hasSlotsConfigured: !!hasSlotsConfigured,
                 selectedServiceSlug: '',
                 selectedServiceName: '',
                 selectedDate: '',
                 selectedSlot: '',
                 slots: [],
                 loadingSlots: false,
+                // Calendar Widget State
+                currentYear: new Date().getFullYear(),
+                currentMonth: new Date().getMonth(), // 0-11
+                calendarDays: [],
+                monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+                operationalHours: JSON.parse(operationalHoursJson || '[]'),
+                dayAvailability: JSON.parse(dayAvailabilityJson || '{}'),
+
+                initCalendar() {
+                    const year = this.currentYear;
+                    const month = this.currentMonth;
+
+                    const firstDayIndex = new Date(year, month, 1).getDay();
+                    const totalDays = new Date(year, month + 1, 0).getDate();
+                    const prevTotalDays = new Date(year, month, 0).getDate();
+
+                    const days = [];
+
+                    // Padding hari bulan sebelumnya
+                    for (let i = firstDayIndex - 1; i >= 0; i--) {
+                        days.push({
+                            day: prevTotalDays - i,
+                            isCurrentMonth: false,
+                            dateStr: '',
+                            disabled: true
+                        });
+                    }
+
+                    // Hari bulan sekarang
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const maxDate = new Date();
+                    maxDate.setDate(maxDate.getDate() + 30);
+                    maxDate.setHours(23,59,59,999);
+
+                    const jsDayMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+                    for (let d = 1; d <= totalDays; d++) {
+                        const dateObj = new Date(year, month, d);
+                        const dateString = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                        
+                        const isPast = dateObj < today;
+                        const isTooFar = dateObj > maxDate;
+
+                        // Cek ketersediaan slot harian untuk tanggal ini
+                        const dateAvail = this.dayAvailability[dateString] || { sisa: 10, capacity: 10, full: false };
+                        const sisa = dateAvail.sisa;
+                        const capacity = dateAvail.capacity;
+                        const isFull = dateAvail.full;
+
+                        // Cek hari libur / tutup instansi
+                        const dayName = jsDayMap[dateObj.getDay()];
+                        const opDay = this.operationalHours.find(h => h.name === dayName);
+                        const isClosed = opDay ? !opDay.isOpen : false;
+
+                        // Jika slot harian penuh, maka disabled
+                        const disabled = isPast || isTooFar || isClosed || isFull || !this.hasSlotsConfigured;
+
+                        days.push({
+                            day: d,
+                            isCurrentMonth: true,
+                            dateStr: dateString,
+                            disabled: disabled,
+                            sisa: sisa,
+                            capacity: capacity,
+                            isFull: isFull
+                        });
+                    }
+
+                    // Padding hari bulan berikutnya
+                    const remaining = 42 - days.length;
+                    for (let i = 1; i <= remaining; i++) {
+                        days.push({
+                            day: i,
+                            isCurrentMonth: false,
+                            dateStr: '',
+                            disabled: true
+                        });
+                    }
+
+                    this.calendarDays = days;
+                },
+
+                prevMonth() {
+                    if (this.currentMonth === 0) {
+                        this.currentMonth = 11;
+                        this.currentYear--;
+                    } else {
+                        this.currentMonth--;
+                    }
+                    this.initCalendar();
+                },
+
+                nextMonth() {
+                    if (this.currentMonth === 11) {
+                        this.currentMonth = 0;
+                        this.currentYear++;
+                    } else {
+                        this.currentMonth++;
+                    }
+                    this.initCalendar();
+                },
 
                 openModal(slug, name) {
                     this.selectedServiceSlug = slug;
                     this.selectedServiceName = name;
-                    this.selectedDate = '';
+
+                    this.currentYear = new Date().getFullYear();
+                    this.currentMonth = new Date().getMonth();
+                    this.initCalendar();
+
+                    // Cari hari buka pertama mulai dari hari ini agar tidak memilih hari libur secara default
+                    let defaultDate = '{{ now()->toDateString() }}';
+                    const jsDayMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    for (let i = 0; i < 7; i++) {
+                        const testDate = new Date();
+                        testDate.setDate(testDate.getDate() + i);
+                        const dayName = jsDayMap[testDate.getDay()];
+                        const opDay = this.operationalHours.find(h => h.name === dayName);
+                        if (opDay && opDay.isOpen) {
+                            defaultDate = testDate.getFullYear() + '-' + 
+                                          String(testDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                                          String(testDate.getDate()).padStart(2, '0');
+                            break;
+                        }
+                    }
+
+                    this.selectedDate = defaultDate;
                     this.selectedSlot = '';
                     this.slots = [];
                     this.modalOpen = true;
                     document.body.style.overflow = 'hidden';
+                    this.fetchSlots();
                 },
 
                 closeModal() {
@@ -458,6 +571,18 @@
                     this.selectedSlot = '';
                     this.slots = [];
                     await this.fetchSlots();
+                },
+
+                getSelectedDateOpHours() {
+                    if (!this.selectedDate) return '';
+                    const dateObj = new Date(this.selectedDate);
+                    const jsDayMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const dayName = jsDayMap[dateObj.getDay()];
+                    const opDay = this.operationalHours.find(h => h.name === dayName);
+                    if (opDay && opDay.isOpen) {
+                        return `${opDay.name}: ${opDay.openTime} - ${opDay.closeTime} WIB`;
+                    }
+                    return 'Tutup / Libur';
                 },
 
                 selectSlot(slot) {

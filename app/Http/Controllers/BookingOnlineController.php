@@ -18,12 +18,9 @@ class BookingOnlineController extends Controller
     // Berapa menit grace period setelah jam slot dimulai
     private const ONLINE_TICKET_EXPIRATION_MINUTES = 30;
 
-    // Default fallback jika Admin belum isi kolom di service
-    private const DEFAULT_SLOT_DURATION_MINUTES = 1;
-    private const DEFAULT_SLOT_CAPACITY          = 10;
 
     // Berapa hari ke depan yang bisa dipilih saat booking
-    private const BOOKING_OPEN_DAYS = 2;
+    private const BOOKING_OPEN_DAYS = 7;
 
     // =========================================================================
     // HALAMAN DASHBOARD — Pilih Layanan
@@ -116,6 +113,38 @@ class BookingOnlineController extends Controller
         // Daftar tanggal yang bisa dipilih (hari ini + N hari ke depan)
         $availableDates = $this->buildAvailableDates();
 
+        $instansi = \App\Models\Instance::find($authCustomer->instance_id);
+        $operationalHours = $instansi ? ($instansi->operational_hours ?? []) : [];
+
+        $instanceId = $authCustomer->instance_id ?? 0;
+        $slotsCount = \App\Models\InstanceSlot::where('instance_id', $instanceId)->count();
+        $hasSlotsConfigured = $slotsCount > 0;
+
+        $totalDailyCapacity = \App\Models\InstanceSlot::where('instance_id', $instanceId)->sum('capacity') ?: 0;
+
+        // Hitung antrean per tanggal untuk 30 hari ke depan
+        $dailyBookings = Queue::query()
+            ->where('instance_id', $instanceId)
+            ->where('queue_source', 'online')
+            ->whereIn('queue_status', ['waiting', 'called', 'serving'])
+            ->whereBetween('scheduled_date', [now()->toDateString(), now()->addDays(30)->toDateString()])
+            ->selectRaw('scheduled_date, count(*) as count')
+            ->groupBy('scheduled_date')
+            ->get()
+            ->pluck('count', 'scheduled_date');
+
+        $dayAvailability = [];
+        for ($i = 0; $i <= 30; $i++) {
+            $dStr = now()->addDays($i)->toDateString();
+            $booked = $dailyBookings->get($dStr, 0);
+            $sisa = max(0, $totalDailyCapacity - $booked);
+            $dayAvailability[$dStr] = [
+                'sisa' => $sisa,
+                'capacity' => $totalDailyCapacity,
+                'full' => $sisa === 0
+            ];
+        }
+
         return view('Pages.Remoteuser.Dashboard', compact(
             'layanans',
             'namaUser',
@@ -127,6 +156,9 @@ class BookingOnlineController extends Controller
             'colorMap',
             'defaultColor',
             'availableDates',
+            'operationalHours',
+            'dayAvailability',
+            'hasSlotsConfigured',
         ));
     }
 
@@ -211,6 +243,7 @@ class BookingOnlineController extends Controller
                     'display' => $startStr . ' - ' . $endStr,
                     'sisa'    => $sisa,
                     'full'    => $isFull,
+                    'capacity'=> $capacity,
                 ];
             }
         }
@@ -299,10 +332,15 @@ class BookingOnlineController extends Controller
             ->count();
         $slotSisa = max(0, $slotCapacity - $slotFilled);
 
-        // Batas waktu check-in (hadir) = waktu mulai slot + 30 menit grace period
-        $arrivalLimitTime = Carbon::createFromFormat('H:i', $selectedSlot)
-            ->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
-            ->format('H:i');
+        // Hitung interval rata-rata pelayanan berdasarkan kapasitas slot
+        $interval = $slotCapacity > 0 ? (int) floor($slotDuration / $slotCapacity) : 30;
+
+        // Tentukan urutan kustomer dalam slot ini (customer saat ini menempati indeks ke- $slotFilled)
+        $estimatedServiceStart = Carbon::createFromFormat('H:i', $selectedSlot)
+            ->addMinutes($slotFilled * $interval);
+
+        // Wajib Hadir Sebelum = estimasi mulai pelayanan - 30 menit
+        $arrivalLimitTime = $estimatedServiceStart->copy()->subMinutes(30)->format('H:i');
 
         return view('Pages.Remoteuser.Konfirmasi', [
             'service'              => $service,
@@ -500,8 +538,37 @@ class BookingOnlineController extends Controller
 
         // Batas waktu: jam slot + grace period (atau fallback ke created_at + 30 mnt)
         if ($queue->scheduled_date && $queue->scheduled_slot) {
-            $slotStart  = Carbon::parse($queue->scheduled_date->toDateString() . ' ' . $queue->scheduled_slot);
-            $batasWaktu = $slotStart->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
+            $scheduledDateStr = Carbon::parse($queue->scheduled_date)->toDateString();
+
+            $instanceSlot = \App\Models\InstanceSlot::query()
+                ->where('instance_id', $queue->instance_id)
+                ->where('start_time', $queue->scheduled_slot)
+                ->first();
+
+            if ($instanceSlot) {
+                $slotCapacity = $instanceSlot->capacity;
+                $slotEndTime  = $instanceSlot->end_time;
+                $slotDuration = Carbon::parse($queue->scheduled_slot)->diffInMinutes(Carbon::parse($slotEndTime));
+                $interval     = $slotCapacity > 0 ? (int) floor($slotDuration / $slotCapacity) : 30;
+
+                // Hitung berapa kustomer sebelum kustomer ini dalam slot yang sama
+                $slotFilledBefore = Queue::query()
+                    ->where('instance_id', $queue->instance_id)
+                    ->where('queue_source', 'online')
+                    ->whereDate('scheduled_date', $scheduledDateStr)
+                    ->where('scheduled_slot', $queue->scheduled_slot)
+                    ->where('id', '<', $queue->id)
+                    ->count();
+
+                $estimatedServiceStart = Carbon::parse($scheduledDateStr . ' ' . $queue->scheduled_slot)
+                    ->addMinutes($slotFilledBefore * $interval);
+
+                // Wajib Hadir Sebelum = estimasi mulai pelayanan - 30 menit
+                $batasWaktu = $estimatedServiceStart->copy()->subMinutes(30);
+            } else {
+                $slotStart  = Carbon::parse($scheduledDateStr . ' ' . $queue->scheduled_slot);
+                $batasWaktu = $slotStart->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
+            }
         } else {
             $batasWaktu = $queue->created_at
                 ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)
@@ -591,8 +658,36 @@ class BookingOnlineController extends Controller
 
                 // Hitung batas waktu berdasarkan slot jika ada
                 if ($queue->scheduled_date && $queue->scheduled_slot) {
-                    $slotStart  = Carbon::parse($queue->scheduled_date->toDateString() . ' ' . $queue->scheduled_slot);
-                    $batasWaktu = $slotStart->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)->toIso8601String();
+                    $scheduledDateStr = Carbon::parse($queue->scheduled_date)->toDateString();
+                    $instanceSlot = \App\Models\InstanceSlot::query()
+                        ->where('instance_id', $queue->instance_id)
+                        ->where('start_time', $queue->scheduled_slot)
+                        ->first();
+
+                    if ($instanceSlot) {
+                        $slotCapacity = $instanceSlot->capacity;
+                        $slotEndTime  = $instanceSlot->end_time;
+                        $slotDuration = Carbon::parse($queue->scheduled_slot)->diffInMinutes(Carbon::parse($slotEndTime));
+                        $interval     = $slotCapacity > 0 ? (int) floor($slotDuration / $slotCapacity) : 30;
+
+                        // Hitung berapa kustomer sebelum kustomer ini dalam slot yang sama
+                        $slotFilledBefore = Queue::query()
+                            ->where('instance_id', $queue->instance_id)
+                            ->where('queue_source', 'online')
+                            ->whereDate('scheduled_date', $scheduledDateStr)
+                            ->where('scheduled_slot', $queue->scheduled_slot)
+                            ->where('id', '<', $queue->id)
+                            ->count();
+
+                        $estimatedServiceStart = Carbon::parse($scheduledDateStr . ' ' . $queue->scheduled_slot)
+                            ->addMinutes($slotFilledBefore * $interval);
+
+                        $batasWaktuObj = $estimatedServiceStart->copy()->subMinutes(30);
+                        $batasWaktu = $batasWaktuObj->toIso8601String();
+                    } else {
+                        $slotStart  = Carbon::parse($scheduledDateStr . ' ' . $queue->scheduled_slot);
+                        $batasWaktu = $slotStart->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)->toIso8601String();
+                    }
                 } else {
                     $batasWaktu = $queue->created_at
                         ? $queue->created_at->copy()->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES)->toIso8601String()
@@ -668,7 +763,7 @@ class BookingOnlineController extends Controller
 
         // Hitung batas waktu hangus
         if ($queue->scheduled_date && $queue->scheduled_slot) {
-            $slotStart  = Carbon::parse($queue->scheduled_date->toDateString() . ' ' . $queue->scheduled_slot);
+            $slotStart  = Carbon::parse(Carbon::parse($queue->scheduled_date)->toDateString() . ' ' . $queue->scheduled_slot);
             $expiredAt  = $slotStart->addMinutes(self::ONLINE_TICKET_EXPIRATION_MINUTES);
         } else {
             $expiredAt = $queue->created_at
@@ -706,10 +801,13 @@ class BookingOnlineController extends Controller
         $dates = [];
         for ($i = 0; $i < self::BOOKING_OPEN_DAYS; $i++) {
             $date     = now()->addDays($i);
+            $label    = $i === 0 ? 'Hari Ini' : ($i === 1 ? 'Besok' : $date->translatedFormat('l'));
+            $sublabel = $date->translatedFormat('d M');
+
             $dates[]  = [
                 'value'    => $date->toDateString(),
-                'label'    => $i === 0 ? 'Hari Ini' : 'Besok',
-                'sublabel' => $date->translatedFormat('l, d M'),
+                'label'    => $label,
+                'sublabel' => $sublabel,
             ];
         }
         return $dates;

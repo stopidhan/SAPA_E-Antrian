@@ -273,7 +273,7 @@
                     this.isToggling = true;
 
                     try {
-                        const url = `{{ route('users.toggle', ':id') }}`.replace(':id', this.selectedUser.id);
+                        const url = `{{ route('users.toggle', ['user' => 999999]) }}`.replace('999999', this.selectedUser.id);
                         const response = await fetch(url, {
                             method: 'PATCH',
                             headers: {
@@ -362,7 +362,7 @@
 
                     try {
                         const url = this.isEditMode ?
-                            `{{ route('users.update', ':id') }}`.replace(':id', this.form.id) :
+                            `{{ route('users.update', ['user' => 999999]) }}`.replace('999999', this.form.id) :
                             '{{ route('users.store') }}';
 
                         const payload = {

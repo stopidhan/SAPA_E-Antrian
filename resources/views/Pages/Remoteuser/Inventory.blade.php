@@ -79,23 +79,13 @@
                             <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="text-[10px] font-semibold text-amber-700" x-show="!expired">Sisa waktu datang</span>
                             <span class="text-[10px] font-bold text-red-600" x-show="expired" x-cloak>Tiket hangus!</span>
-                        <div class="w-1.5 h-1.5 rounded-full {{ $ticket->isExpired ? 'bg-red-500' : 'bg-emerald-500 animate-pulse' }}"></div>
-                        <p class="text-[10px] font-bold {{ $ticket->warnaText }}">{{ $ticket->status }}</p>
+                        </div>
+                        <span class="text-[11px] font-black text-amber-800" x-show="!expired" x-text="`${hours}:${minutes}:${seconds}`">00:00:00</span>
                     </div>
-                    <p class="text-[10px] font-medium text-gray-400 capitalize">{{ $ticket->status }}</p>
                 </div>
 
                 {{-- Capture Area Starts Here --}}
                 <div class="bg-white">
-                    {{-- Countdown Timer --}}
-                    <div class="px-3.5 pt-3.5 pb-0" x-data="countdown('{{ $ticket->batasWaktu }}')" x-init="startTimer()">
-                        <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 flex items-center justify-between">
-                            <p class="text-[9px] font-bold text-amber-800">Batas Waktu</p>
-                            <div class="flex gap-1">
-                                <span class="text-[11px] font-black text-amber-700" x-text="`${hours}:${minutes}:${seconds}`">00:00:00</span>
-                            </div>
-                        </div>
-                    </div>
 
                     {{-- Ticket Content --}}
                     <div id="ticket-clean-capture-{{ $ticket->kode }}" class="p-3.5 bg-white">
@@ -124,25 +114,35 @@
 
                 {{-- Action Buttons (EXCLUDED) --}}
                 <div class="px-3.5 pb-3.5 pt-0 no-capture">
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mt-3">
+                    <div class="flex flex-col sm:flex-row gap-2 mt-3">
                         @if(!$ticket->isExpired)
-                            <form action="{{ route('booking.tiket.set') }}" method="POST" class="flex-1 w-full">
+                            <form action="{{ route('booking.tiket.set') }}" method="POST" class="w-full sm:flex-1">
                                 @csrf
                                 <input type="hidden" name="queue_id" value="{{ $ticket->queueId }}">
                                 <button type="submit"
-                                        class="w-full flex items-center justify-center py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
+                                        class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
                                     Buka QR
                                 </button>
                             </form>
                         @else
                             <button type="button" disabled
-                                    class="flex-1 w-full flex items-center justify-center py-2 bg-gray-300 text-white text-[11px] font-bold rounded-lg pointer-events-none cursor-not-allowed">
+                                    class="w-full sm:flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-300 text-white text-[11px] font-bold rounded-lg pointer-events-none cursor-not-allowed">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 Tiket Hangus
                             </button>
                         @endif
 
                         <button onclick="downloadTicketCard('{{ $ticket->kode }}')"
-                                class="flex-1 flex items-center justify-center py-2 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
+                                class="w-full sm:flex-1 flex items-center justify-center gap-1.5 py-2.5 border-2 border-gray-200 text-gray-600 text-[11px] font-bold rounded-lg transition {{ $ticket->isExpired ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50' }}" {{ $ticket->isExpired ? 'disabled' : '' }}>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
                             Unduh QR
                         </button>
                     </div>

@@ -391,23 +391,32 @@ class AdminInstanceController extends Controller
         }
     }
 
-    public function destroySlot(string $instanceSlug, InstanceSlot $slot): JsonResponse
+    public function destroySlot(string $instanceSlug, InstanceSlot $slot): JsonResponse|RedirectResponse
     {
         if ($slot->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            if (request()->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+            return back()->withErrors(['error' => 'Unauthorized']);
         }
 
         try {
             $slot->delete();
-            return response()->json([
-                'success' => true,
-                'message' => 'Slot berhasil dihapus',
-            ]);
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Slot berhasil dihapus',
+                ]);
+            }
+            return back()->with('success', 'Slot berhasil dihapus');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus slot',
-            ], 500);
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus slot',
+                ], 500);
+            }
+            return back()->withErrors(['error' => 'Gagal menghapus slot']);
         }
     }
 }

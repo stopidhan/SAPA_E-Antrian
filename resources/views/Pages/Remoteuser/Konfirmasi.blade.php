@@ -68,7 +68,7 @@
     <div class="flex-1 px-4 sm:px-5 pb-28 relative z-10">
 
         {{-- Judul Konfirmasi --}}
-        <div class="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+        <div class="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-3">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
                     <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
@@ -77,6 +77,24 @@
                     <h2 class="text-sm font-bold text-gray-900">Konfirmasi Kehadiran</h2>
                     <p class="text-[11px] text-gray-400 leading-relaxed mt-0.5">Apakah Anda yakin dapat menghadiri layanan ini sesuai jadwal?</p>
                 </div>
+            </div>
+        </div>
+
+        {{-- High Visibility SLA Warning Banner --}}
+        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 shadow-sm flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <span class="block text-[10px] font-bold text-amber-800 uppercase tracking-widest">Waktu Batas Kedatangan</span>
+                <span class="block text-xs font-extrabold text-amber-950 mt-0.5">
+                    Wajib Hadir Sebelum: <span class="bg-amber-200 px-2 py-0.5 rounded font-black text-amber-950 text-xs tabular-nums">{{ $arrivalLimitTime }} WIB</span>
+                </span>
+                <span class="block text-[10px] text-amber-700/90 mt-1 leading-normal">
+                    Harap tiba di lokasi paling lambat <strong>30 menit sebelum</strong> estimasi pelayanan dimulai.
+                </span>
             </div>
         </div>
 
@@ -101,22 +119,12 @@
                     <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-2 mt-2">
                         <span class="text-xs text-gray-500">Tanggal Booking</span>
                         <span class="text-xs font-bold text-gray-900">
-                            {{ \Carbon\Carbon::parse($selectedDate)->translatedFormat('l, d M Y') }}
+                            {{ \Carbon\Carbon::parse($selectedDate)->locale('id')->translatedFormat('l, d M Y') }}
                         </span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-500">Slot Waktu Pelayanan</span>
                         <span class="text-xs font-bold text-gray-900">{{ $selectedSlot }} – {{ $slotEndTime }}</span>
-                    </div>
-                    <div class="flex items-center justify-between bg-amber-50 p-2 rounded-lg border border-amber-200 mt-2">
-                        <span class="text-xs font-semibold text-amber-800">Wajib Hadir Sebelum</span>
-                        <span class="text-xs font-black text-amber-900 bg-amber-200 px-2 py-0.5 rounded">
-                            {{ $arrivalLimitTime }}
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px] text-gray-400">
-                        <span>Durasi Slot</span>
-                        <span>{{ $slotDuration }} menit</span>
                     </div>
                 </div>
             </div>
