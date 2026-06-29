@@ -3,7 +3,7 @@
 
     {{-- Performa Pelayanan Rata-rata --}}
     <div id="performance-stats-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        @if(isset($statCards))
+        @if (isset($statCards))
             <x-card :cards="array_slice($statCards, 4, 2)" />
         @endif
     </div>
@@ -26,21 +26,31 @@
                     $slowPct = $totalSvc > 0 ? ($perf->slow_services / $totalSvc) * 100 : 0;
                     $efficiency = $totalSvc > 0 ? round(($perf->fast_services / $totalSvc) * 100) : 0;
 
-                    if ($perf->avg_service_time <= 2) {
-                        $bgColor = 'bg-green-50';
-                        $textColor = 'text-green-700';
-                        $badgeBg = 'bg-green-600';
-                        $badgeLabel = 'Sangat Cepat';
-                    } elseif ($perf->avg_service_time <= 5) {
-                        $bgColor = 'bg-yellow-50';
-                        $textColor = 'text-yellow-700';
-                        $badgeBg = 'bg-yellow-600';
-                        $badgeLabel = 'Normal';
+                    if ($totalSvc > 0) {
+                        $fastRatio = $perf->fast_services / $totalSvc;
+                        $goodRatio = ($perf->fast_services + $perf->medium_services) / $totalSvc;
+
+                        if ($fastRatio >= 0.7) {
+                            $bgColor = 'bg-green-50';
+                            $textColor = 'text-green-700';
+                            $badgeBg = 'bg-green-600';
+                            $badgeLabel = 'Sangat Cepat';
+                        } elseif ($goodRatio >= 0.8) {
+                            $bgColor = 'bg-yellow-50';
+                            $textColor = 'text-yellow-700';
+                            $badgeBg = 'bg-yellow-600';
+                            $badgeLabel = 'Normal';
+                        } else {
+                            $bgColor = 'bg-red-50';
+                            $textColor = 'text-red-700';
+                            $badgeBg = 'bg-red-600';
+                            $badgeLabel = 'Perlu Ditingkatkan';
+                        }
                     } else {
-                        $bgColor = 'bg-red-50';
-                        $textColor = 'text-red-700';
-                        $badgeBg = 'bg-red-600';
-                        $badgeLabel = 'Perlu Ditingkatkan';
+                        $bgColor = 'bg-gray-50';
+                        $textColor = 'text-gray-700';
+                        $badgeBg = 'bg-gray-500';
+                        $badgeLabel = 'Belum Ada Data';
                     }
                 @endphp
 
@@ -53,7 +63,8 @@
                             </div>
                             <div>
                                 <div class="font-bold text-lg text-gray-800">{{ $perf->operator_name }}</div>
-                                <div class="text-sm text-gray-500">{{ $perf->counter_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $perf->service_name }} &bull;
+                                    {{ $perf->counter_name }}</div>
                             </div>
                         </div>
                         <span class="px-3 py-1 rounded-full text-white text-xs font-semibold {{ $badgeBg }}">
@@ -118,21 +129,24 @@
                             <div class="flex items-center gap-2">
                                 <div class="w-4 h-4 bg-green-500 rounded flex-shrink-0"></div>
                                 <div class="text-xs">
-                                    <div class="font-semibold text-gray-700">1-2 menit</div>
+                                    <div class="font-semibold text-gray-700">Target Cepat (1-{{ $perf->fast_target }}
+                                        mnt)</div>
                                     <div class="text-gray-500">{{ $perf->fast_services }} layanan</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-4 h-4 bg-yellow-500 rounded flex-shrink-0"></div>
                                 <div class="text-xs">
-                                    <div class="font-semibold text-gray-700">3-5 menit</div>
+                                    <div class="font-semibold text-gray-700">Target Normal
+                                        ({{ $perf->fast_target + 1 }}-{{ $perf->normal_target }} mnt)</div>
                                     <div class="text-gray-500">{{ $perf->medium_services }} layanan</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-4 h-4 bg-red-500 rounded flex-shrink-0"></div>
                                 <div class="text-xs">
-                                    <div class="font-semibold text-gray-700">6-10+ menit</div>
+                                    <div class="font-semibold text-gray-700">Lambat (> {{ $perf->normal_target }} mnt)
+                                    </div>
                                     <div class="text-gray-500">{{ $perf->slow_services }} layanan</div>
                                 </div>
                             </div>
@@ -163,15 +177,18 @@
                     <div class="grid grid-cols-3 gap-3">
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-green-600 rounded-full"></div>
-                            <span class="text-xs text-gray-600"><strong>Sangat Cepat:</strong> 1-2 menit</span>
+                            <span class="text-xs text-gray-600"><strong>Sangat Cepat:</strong> Sesuai Target Cepat
+                                Layanan</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                            <span class="text-xs text-gray-600"><strong>Normal:</strong> 3-5 menit</span>
+                            <span class="text-xs text-gray-600"><strong>Normal:</strong> Sesuai Target Normal
+                                Layanan</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 bg-red-600 rounded-full"></div>
-                            <span class="text-xs text-gray-600"><strong>Perlu Ditingkatkan:</strong> 6-10+ menit</span>
+                            <span class="text-xs text-gray-600"><strong>Perlu Ditingkatkan:</strong> Melebihi Batas
+                                Waktu Layanan</span>
                         </div>
                     </div>
                 </div>
@@ -192,39 +209,54 @@
                 </div>
                 @if (ceil(count($counters) / 4) > 1)
                     <div class="flex items-center gap-2">
-                        <button @click="prevPage()" type="button" class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors" title="Sebelumnya">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        <button @click="prevPage()" type="button"
+                            class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                            title="Sebelumnya">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
                         </button>
-                        <button @click="nextPage()" type="button" class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors" title="Selanjutnya">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        <button @click="nextPage()" type="button"
+                            class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                            title="Selanjutnya">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
                         </button>
                     </div>
                 @endif
             </div>
             <div class="p-5">
                 @if (count($counters) > 0)
-                    <div class="overflow-hidden relative" id="carousel-inner" data-total-pages="{{ ceil(count($counters) / 4) }}">
-                        <div class="flex transition-transform duration-700 ease-in-out w-full" :style="`transform: translateX(-${counterPage * 100}%)`">
+                    <div class="overflow-hidden relative" id="carousel-inner"
+                        data-total-pages="{{ ceil(count($counters) / 4) }}">
+                        <div class="flex transition-transform duration-700 ease-in-out w-full"
+                            :style="`transform: translateX(-${counterPage * 100}%)`">
                             @for ($p = 0; $p < ceil(count($counters) / 4); $p++)
                                 <div class="w-full flex-shrink-0 flex flex-col space-y-4 px-1">
                                     @foreach (array_slice($counters, $p * 4, 4) as $counter)
                                         <div class="border rounded-xl p-4">
                                             <div class="flex items-center justify-between mb-3">
                                                 <div class="flex items-center gap-3">
-                                                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+                                                    <div
+                                                        class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
                                                         {{ str_replace('Loket ', '', $counter->name) }}
                                                     </div>
                                                     <div class="flex flex-col">
                                                         <div class="font-semibold flex items-baseline gap-1">
                                                             {{ $counter->name }}
-                                                            <span class="font-normal text-xs text-gray-500">({{ $counter->serviceName }})</span>
+                                                            <span
+                                                                class="font-normal text-xs text-gray-500">({{ $counter->serviceName }})</span>
                                                         </div>
                                                         <div class="text-sm text-gray-500">
                                                             {{ $counter->operatorName ?? 'Tidak ada operator' }}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                                <span
+                                                    class="px-3 py-1 rounded-full text-xs font-semibold
                                                     {{ $counter->status === 'serving' ? 'bg-green-100 text-green-700' : ($counter->status === 'calling' ? 'bg-blue-100 text-blue-700' : ($counter->status === 'menunggu' ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-700')) }}">
                                                     {{ $counter->status === 'serving' ? 'Melayani' : ($counter->status === 'calling' ? 'Memanggil' : ($counter->status === 'menunggu' ? 'Menunggu' : 'Tutup')) }}
                                                 </span>
@@ -232,7 +264,8 @@
                                             @if ($counter->current_queue)
                                                 <div class="bg-blue-50 rounded-lg p-3 text-center">
                                                     <div class="text-xs text-gray-500 mb-1">Antrean Saat Ini</div>
-                                                    <div class="text-2xl font-bold text-blue-600">{{ $counter->current_queue }}</div>
+                                                    <div class="text-2xl font-bold text-blue-600">
+                                                        {{ $counter->current_queue }}</div>
                                                 </div>
                                             @endif
                                         </div>

@@ -8,7 +8,8 @@ use App\Models\Traits\LogsActivity;
 
 class Instance extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
+    use LogsActivity;
 
     protected $fillable = [
         'instance_code',
@@ -17,7 +18,6 @@ class Instance extends Model
         'address',
         'phone',
         'email',
-        'website',
         'logo',
         'favicon',
         'tts_enabled',

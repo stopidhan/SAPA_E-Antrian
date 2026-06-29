@@ -9,7 +9,9 @@ use App\Models\Traits\LogsActivity;
 
 class Service extends Model
 {
-    use HasFactory, BelongsToInstance, LogsActivity;
+    use HasFactory;
+    use BelongsToInstance;
+    use LogsActivity;
 
     protected $table = 'services';
 
@@ -18,15 +20,17 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
-        'slot_duration',   // Durasi per slot (menit) — diatur Admin Instansi
-        'slot_capacity',   // Kapasitas per slot (orang) — diatur Admin Instansi
+        'slot_duration',
+        'slot_capacity',
+        'performance_standards',
         'is_active',
     ];
 
     protected $casts = [
         'slot_duration' => 'integer',
         'slot_capacity' => 'integer',
-        'is_active'     => 'boolean',
+        'performance_standards' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function instance()

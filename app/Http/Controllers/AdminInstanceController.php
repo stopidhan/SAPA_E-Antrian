@@ -124,6 +124,10 @@ class AdminInstanceController extends Controller
             'slot_duration' => ['required', 'integer', 'min:1', 'max:480'],
             'slot_capacity' => ['required', 'integer', 'min:1', 'max:500'],
             'is_active' => ['boolean'],
+            'fast_max' => ['required', 'integer', 'min:1'],
+            'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
+            'slot_duration' => ['required', 'integer', 'min:1'],
+            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
         ]);
@@ -137,6 +141,11 @@ class AdminInstanceController extends Controller
                 'slot_duration' => $validated['slot_duration'] ?? 60,
                 'slot_capacity' => $validated['slot_capacity'] ?? 5,
                 'is_active' => $validated['is_active'] ?? true,
+                'performance_standards' => [
+                    'fast' => ['max' => (int) $validated['fast_max']],
+                    'normal' => ['min' => (int) $validated['fast_max'] + 1, 'max' => (int) $validated['normal_max']],
+                    'slow' => ['min' => (int) $validated['normal_max'] + 1]
+                ],
             ]);
 
             // Create counters untuk service ini
@@ -202,6 +211,10 @@ class AdminInstanceController extends Controller
             'slot_duration' => ['required', 'integer', 'min:1', 'max:480'],
             'slot_capacity' => ['required', 'integer', 'min:1', 'max:500'],
             'is_active' => ['boolean'],
+            'fast_max' => ['required', 'integer', 'min:1'],
+            'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
+            'slot_duration' => ['required', 'integer', 'min:1'],
+            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.id' => ['nullable', 'exists:service_counters,id'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
@@ -215,6 +228,11 @@ class AdminInstanceController extends Controller
                 'slot_duration' => $validated['slot_duration'] ?? $service->slot_duration ?? 1,
                 'slot_capacity' => $validated['slot_capacity'] ?? $service->slot_capacity ?? 10,
                 'is_active' => $validated['is_active'] ?? true,
+                'performance_standards' => [
+                    'fast' => ['max' => (int) $validated['fast_max']],
+                    'normal' => ['min' => (int) $validated['fast_max'] + 1, 'max' => (int) $validated['normal_max']],
+                    'slow' => ['min' => (int) $validated['normal_max'] + 1]
+                ],
             ]);
 
             // Sync counters
