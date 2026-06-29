@@ -16,13 +16,17 @@ return new class extends Migration
 
             $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_counter_id')->nullable()->constrained();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('customer_id')->nullable()->constrained();
             $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
 
             $table->string('queue_number');
 
             $table->date('queue_date');
+            $table->date('scheduled_date')->nullable()->comment('Tanggal booking slot — diisi untuk antrean online');
+            $table->string('scheduled_slot', 5)->nullable()->comment('Jam slot booking (HH:MM) — diisi untuk antrean online');
 
+            $table->time('check_in_time')->nullable();
             $table->time('taken_time')->nullable();
             $table->time('call_time')->nullable();
             $table->time('service_start_time')->nullable();
@@ -37,7 +41,8 @@ return new class extends Migration
                 'called',
                 'serving',
                 'completed',
-                'skipped'
+                'skipped',
+                'cancelled'
             ])->default('waiting');
 
             $table->enum('queue_source', [

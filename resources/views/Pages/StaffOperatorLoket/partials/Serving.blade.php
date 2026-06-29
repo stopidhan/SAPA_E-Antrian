@@ -39,16 +39,12 @@
         <div class="px-6 pb-6 space-y-4">
 
             {{-- Timer Banner --}}
-            <div class="border rounded-xl px-5 py-3.5 flex items-center justify-between transition-colors duration-300"
-                 :class="timerSeconds >= (currentQueue?.limit_duration || 10) * 60 - 60
-                     ? 'bg-red-50 border-red-200 text-red-700'
-                     : 'bg-emerald-50 border-emerald-200 text-emerald-700'">
+            <div class="border rounded-xl px-5 py-3.5 flex items-center justify-between transition-colors duration-300 bg-emerald-50 border-emerald-200 text-emerald-700">
                 <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4" :class="timerSeconds >= (currentQueue?.limit_duration || 10) * 60 - 60 ? 'text-red-600' : 'text-emerald-600'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span class="text-sm font-semibold">Waktu Pelayanan:</span>
-                    <span class="text-[10px] opacity-75 font-medium" x-text="'(Batas: ' + (currentQueue?.limit_duration || 10) + ' mnt)'"></span>
                 </div>
-                <span class="text-2xl font-black tabular-nums" :class="timerSeconds >= (currentQueue?.limit_duration || 10) * 60 - 60 ? 'text-red-600' : 'text-emerald-600'" x-text="timerDisplay">00:00</span>
+                <span class="text-2xl font-black tabular-nums text-emerald-600" x-text="timerDisplay">00:00</span>
             </div>
 
             {{-- Area Kamera --}}

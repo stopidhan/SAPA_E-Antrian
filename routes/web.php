@@ -188,6 +188,10 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
                 Route::get('/instance-config', [AdminInstanceController::class, "getConfig"])->name("instance.config.show");
                 Route::patch('/instance-config', [AdminInstanceController::class, "updateConfig"])->name("instance.config.update");
 
+                // Manajemen Slot Waktu Online
+                Route::post('/slots', [AdminInstanceController::class, "storeSlot"])->name("instance.slots.store");
+                Route::delete('/slots/{slot}', [AdminInstanceController::class, "destroySlot"])->name("instance.slots.destroy");
+
                 // User Management
                 Route::get('/management-user', [UserManagementController::class, "index"])->name("management.user");
                 Route::post('/users', [UserManagementController::class, "store"])->name("users.store");

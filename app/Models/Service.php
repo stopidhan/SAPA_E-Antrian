@@ -20,15 +20,11 @@ class Service extends Model
         'service_name',
         'queue_prefix',
         'description',
-        'slot_duration',
-        'slot_capacity',
         'performance_standards',
         'is_active',
     ];
 
     protected $casts = [
-        'slot_duration' => 'integer',
-        'slot_capacity' => 'integer',
         'performance_standards' => 'array',
         'is_active' => 'boolean',
     ];
@@ -46,10 +42,5 @@ class Service extends Model
     public function queues()
     {
         return $this->hasMany(Queue::class);
-    }
-
-    public function slots()
-    {
-        return $this->hasMany(ServiceSlot::class);
     }
 }

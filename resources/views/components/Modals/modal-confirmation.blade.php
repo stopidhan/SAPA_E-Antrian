@@ -22,6 +22,11 @@
             'placeholder' => 'Layanan Ini',
             'description' => 'Tindakan ini akan mengubah status keaktifan layanan.',
         ],
+        'slot' => [
+            'title' => 'Hapus Slot Waktu',
+            'placeholder' => 'Slot Ini',
+            'description' => 'Semua data antrean online pada slot ini di masa mendatang mungkin terpengaruh. Tindakan ini tidak dapat dikembalikan.',
+        ],
         'content' => [
             'title' => 'Hapus Konten',
             'placeholder' => 'Konten Ini',
@@ -152,7 +157,7 @@
                     <!-- Other Variants Info -->
                     <div class="bg-gray-50 rounded-lg p-3 text-center">
                         <p class="text-xs text-gray-500 mb-1">Item yang dipilih:</p>
-                        <p class="font-semibold text-gray-900" id="delete-item-name">{{ $displayName }}</p>
+                        <p class="font-semibold text-gray-900" id="delete-item-name-{{ $name }}">{{ $displayName }}</p>
                     </div>
                 @endif
             </div>
@@ -198,7 +203,7 @@
                     <x-button type="button" variant="secondary" @click="closeModal()">
                         Batal
                     </x-button>
-                    <form id="deleteForm" method="POST" action="" class="m-0">
+                    <form id="deleteForm-{{ $name }}" method="POST" action="" class="m-0">
                         @csrf
                         @method('DELETE')
                         <x-button type="submit" variant="primary">

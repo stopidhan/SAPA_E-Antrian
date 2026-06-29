@@ -7,27 +7,27 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Jalankan migrasi pembuatan tabel service_slots.
-     * Tabel ini digunakan untuk menyimpan slot waktu pelayanan kustom
-     * beserta kapasitasnya yang diatur oleh Admin Instansi.
+     * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('service_slots', function (Blueprint $table) {
+        Schema::create('instance_slots', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('instance_id')->constrained('instances')->cascadeOnDelete();
+            
             $table->string('start_time', 5)->comment('Jam mulai slot (format HH:MM, contoh: 08:00)');
             $table->string('end_time', 5)->comment('Jam selesai slot (format HH:MM, contoh: 09:00)');
-            $table->unsignedInteger('capacity')->default(5)->comment('Kapasitas maksimal booking untuk slot ini');
+            $table->unsignedInteger('capacity')->default(10)->comment('Kapasitas maksimal booking online untuk slot ini');
+            
             $table->timestamps();
         });
     }
 
     /**
-     * Batalkan migrasi.
+     * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('service_slots');
+        Schema::dropIfExists('instance_slots');
     }
 };

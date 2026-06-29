@@ -7,7 +7,7 @@
 @endphp
 
 @section('content')
-    <div class="bg-gray-50 flex flex-col" x-data="adminDashboard(@js($config), @js($services))">
+    <div class="bg-gray-50 flex flex-col" x-data="adminDashboard(@js($config), @js($services), @js($slots))">
 
         <main class="flex-1 overflow-auto">
             <div class="container mx-auto px-4 py-8">
@@ -37,10 +37,6 @@
                                 <div class="flex items-center justify-between">
                                     <div class="space-y-1">
                                         <label class="flex items-center gap-2 font-medium text-gray-700">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15.536 8.464a5 5 0 010 7.072M12 6v12m-4.536-9.536a5 5 0 000 7.072" />
-                                            </svg>
                                             Suara TTS Otomatis
                                         </label>
                                         <p class="text-sm text-gray-500">Aktifkan suara pemanggilan otomatis</p>
@@ -61,12 +57,9 @@
                                 </div>
 
                                 {{-- Maksimal Booking per Hari --}}
-                                <div class="grid grid-cols-2 gap-4">
-                                    <x-input-number label="Booking Online / Hari" name="maxOnlineBookingsPerDay"
-                                        placeholder="5" min="1" max="2000"
-                                        x-model.number="config.maxOnlineBookingsPerDay" />
-                                    <x-input-number label="Booking Offline / Hari" name="maxOfflineBookingsPerDay"
-                                        placeholder="100" min="1" max="2000"
+                                <div class="grid grid-cols-1 gap-4">
+                                    <x-input-number label="Maksimal Antrean On-Site (Offline) / Hari"
+                                        name="maxOfflineBookingsPerDay" placeholder="100" min="1" max="2000"
                                         x-model.number="config.maxOfflineBookingsPerDay" />
                                 </div>
 
@@ -153,6 +146,72 @@
                             </form>
                         </div>
 
+                        {{-- Manajemen Slot Antrean Online --}}
+                        <div class="bg-white rounded-2xl border shadow-sm" id="slot-section">
+                            <div class="p-6 border-b flex items-start justify-between sm:items-center gap-4">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <h2 class="text-lg font-bold">Manajemen Slot Antrean Online</h2>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1">Atur kapasitas dan durasi antrean online untuk
+                                        aplikasi pengunjung.</p>
+                                </div>
+                                <x-button type="button" variant="primary" @click="openSlotDialog()"
+                                    icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
+                                    Tambah Slot Antrean
+                                </x-button>
+                            </div>
+
+                            <div class="p-6">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm text-left">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                            <tr>
+                                                <th class="px-6 py-3 font-semibold">Waktu Mulai</th>
+                                                <th class="px-6 py-3 font-semibold">Waktu Selesai</th>
+                                                <th class="px-6 py-3 font-semibold">Kapasitas (Orang)</th>
+                                                <th class="px-6 py-3 font-semibold text-right">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="slot in slots" :key="slot.id">
+                                                <tr class="border-b hover:bg-gray-50/50">
+                                                    <td class="px-6 py-4 font-medium text-gray-900"
+                                                        x-text="slot.start_time"></td>
+                                                    <td class="px-6 py-4 font-medium text-gray-900"
+                                                        x-text="slot.end_time"></td>
+                                                    <td class="px-6 py-4">
+                                                        <span
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                            <span x-text="slot.capacity"></span>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-right">
+                                                        <div class="flex justify-end">
+                                                            <x-action-buttons :edit="true"
+                                                                editAction="openSlotDialog(slot)" :delete="true"
+                                                                deleteAction="openDeleteSlotModal(slot)" />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="slots.length === 0">
+                                                <tr>
+                                                    <td colspan="4" class="px-6 py-8 text-center text-gray-500 italic">
+                                                        Belum ada slot waktu yang dikonfigurasi.</td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Services Management (Integrated with Counters) --}}
                         <div class="bg-white rounded-2xl border shadow-sm">
                             <div class="p-6 border-b flex items-start justify-between sm:items-center gap-4">
@@ -168,7 +227,7 @@
                                     <p class="text-sm text-gray-500 mt-1">Kelola layanan dan Loket yang tersedia di sistem
                                         antrean</p>
                                 </div>
-                                <x-button type="button" variant="success" @click="openServiceDialog()"
+                                <x-button type="button" variant="primary" @click="openServiceDialog()"
                                     icon='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /> </svg>'>
                                     Tambah Layanan
                                 </x-button>
@@ -214,14 +273,6 @@
                                                 <div>
                                                     <div class="font-semibold" x-text="service.service_name"></div>
                                                     <p class="text-sm text-gray-500" x-text="service.description"></p>
-                                                    <div class="flex items-center gap-2 mt-1.5">
-                                                        <span class="inline-flex items-center text-[10px] font-bold bg-gray-50 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
-                                                            ⏱️ Target: <span class="ml-0.5" x-text="service.slot_duration || 10"></span> mnt
-                                                        </span>
-                                                        <span class="inline-flex items-center text-[10px] font-bold bg-gray-50 text-gray-600 px-2 py-0.5 rounded border border-gray-200">
-                                                            👥 Kuota: <span class="ml-0.5" x-text="service.slot_capacity || 5"></span> / slot
-                                                        </span>
-                                                    </div>
                                                 </div>
                                             </div>
 
@@ -329,7 +380,7 @@
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Online</p>
                                     <p class="text-3xl font-bold text-blue-600"
-                                        x-text="savedConfig.maxOnlineBookingsPerDay"></p>
+                                        x-text="slots.reduce((sum, slot) => sum + parseInt(slot.capacity || 0), 0)"></p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Offline</p>
@@ -371,13 +422,20 @@
             'variant' => 'service',
             'name' => 'delete-service-modal',
         ])
+        @include('components.Modals.modal-confirmation', [
+            'variant' => 'slot',
+            'name' => 'delete-slot-modal',
+        ])
+
+        <!-- Slot Form Modal -->
+        @include('components.Modals.modal_slot_booking-form')
 
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        function adminDashboard(initialConfig, initialServices) {
+        function adminDashboard(initialConfig, initialServices, initialSlots) {
             const defaultDays = [{
                     name: 'Senin',
                     isOpen: true,
@@ -426,6 +484,7 @@
 
             return {
                 services: initialServices,
+                slots: initialSlots,
                 isLoadingServices: false,
                 editingService: null,
                 selectedService: null,
@@ -435,9 +494,17 @@
                 slotsList: [],
                 showServiceDialog: false,
 
+                // Slot states
+                editingSlot: null,
+                isSavingSlot: false,
+                slotForm: {
+                    start_time: '08:00',
+                    end_time: '09:00',
+                    capacity: 10
+                },
+
                 config: {
                     ttsEnabled: initialConfig.tts_enabled,
-                    maxOnlineBookingsPerDay: initialConfig.max_online_bookings_per_day,
                     maxOfflineBookingsPerDay: initialConfig.max_offline_bookings_per_day,
                     operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
                     ttsLanguage: initialConfig.tts_language || 'id-ID',
@@ -446,7 +513,6 @@
 
                 savedConfig: {
                     ttsEnabled: initialConfig.tts_enabled,
-                    maxOnlineBookingsPerDay: initialConfig.max_online_bookings_per_day,
                     maxOfflineBookingsPerDay: initialConfig.max_offline_bookings_per_day,
                     operationalHours: (initialOpHours && initialOpHours.length === 7) ? initialOpHours : defaultDays,
                     ttsLanguage: initialConfig.tts_language || 'id-ID',
@@ -505,7 +571,6 @@
                             },
                             body: JSON.stringify({
                                 tts_enabled: this.config.ttsEnabled,
-                                max_online_bookings_per_day: this.config.maxOnlineBookingsPerDay,
                                 max_offline_bookings_per_day: this.config.maxOfflineBookingsPerDay,
                                 operational_hours: this.config.operationalHours,
                                 tts_language: this.config.ttsLanguage,
@@ -515,7 +580,6 @@
                         const result = await response.json();
                         if (result.success) {
                             this.savedConfig.ttsEnabled = this.config.ttsEnabled;
-                            this.savedConfig.maxOnlineBookingsPerDay = this.config.maxOnlineBookingsPerDay;
                             this.savedConfig.maxOfflineBookingsPerDay = this.config.maxOfflineBookingsPerDay;
                             this.savedConfig.operationalHours = this.config.operationalHours;
                             this.savedConfig.ttsLanguage = this.config.ttsLanguage;
@@ -683,11 +747,11 @@
 
                 openDeleteModal(service) {
                     this.selectedService = service;
-                    const form = document.getElementById('deleteForm');
+                    const form = document.getElementById('deleteForm-delete-service-modal');
                     if (form) {
                         form.action = `{{ route('services.destroy', ':id') }}`.replace(':id', service.id);
                     }
-                    const nameEl = document.getElementById('delete-item-name');
+                    const nameEl = document.getElementById('delete-item-name-delete-service-modal');
                     if (nameEl) {
                         nameEl.innerText = service.service_name;
                     }
@@ -696,6 +760,93 @@
 
                 editService(service) {
                     this.openServiceDialog(service);
+                },
+
+                // ============================
+                // Slots
+                // ============================
+                openSlotDialog(slot = null) {
+                    if (slot) {
+                        this.editingSlot = slot;
+                        this.slotForm = {
+                            start_time: slot.start_time.substring(0, 5),
+                            end_time: slot.end_time.substring(0, 5),
+                            capacity: slot.capacity
+                        };
+                    } else {
+                        this.editingSlot = null;
+                        this.slotForm = {
+                            start_time: '08:00',
+                            end_time: '09:00',
+                            capacity: 10
+                        };
+                    }
+                    this.$dispatch('open-modal', 'slot-form');
+                },
+
+                closeSlotDialog() {
+                    this.$dispatch('close-modal', 'slot-form');
+                    setTimeout(() => {
+                        this.editingSlot = null;
+                    }, 300);
+                },
+
+                async saveSlot() {
+                    this.isSavingSlot = true;
+                    try {
+                        const response = await fetch("{{ route('instance.slots.store') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                            },
+                            body: JSON.stringify({
+                                id: this.editingSlot ? this.editingSlot.id : null,
+                                start_time: this.slotForm.start_time,
+                                end_time: this.slotForm.end_time,
+                                capacity: this.slotForm.capacity
+                            }),
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            // Update slot list directly without reload for better UX
+                            if (this.editingSlot) {
+                                const index = this.slots.findIndex(s => s.id === this.editingSlot.id);
+                                if (index !== -1) {
+                                    this.slots[index] = result.data;
+                                }
+                            } else {
+                                this.slots.push(result.data);
+                                // Sort slots by start_time
+                                this.slots.sort((a, b) => a.start_time.localeCompare(b.start_time));
+                            }
+                            this.closeSlotDialog();
+                            showToast(result.message, 'success');
+                        } else {
+                            const errorMsg = result.errors ? Object.values(result.errors).flat().join('\n') : (result
+                                .message || 'Gagal menyimpan slot');
+                            showToast(errorMsg, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error saving slot:', error);
+                        showToast('Terjadi kesalahan saat menyimpan slot', 'error');
+                    } finally {
+                        this.isSavingSlot = false;
+                    }
+                },
+
+                openDeleteSlotModal(slot) {
+                    const form = document.getElementById('deleteForm-delete-slot-modal');
+                    if (form) {
+                        form.action = `{{ url('instance/slots') }}/${slot.id}`;
+                    }
+                    const nameEl = document.getElementById('delete-item-name-delete-slot-modal');
+                    if (nameEl) {
+                        nameEl.innerText =
+                            `${slot.start_time.substring(0,5)} - ${slot.end_time.substring(0,5)} (Kapasitas: ${slot.capacity})`;
+                    }
+                    this.$dispatch('open-modal', 'delete-slot-modal');
                 },
             };
         }

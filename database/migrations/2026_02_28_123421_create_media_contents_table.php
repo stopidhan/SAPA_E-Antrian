@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('file_path');
 
             $table->integer('duration')->nullable();
+            $table->string('fit_mode')->default('object-cover');
+            $table->integer('sort_order')->default(0);
 
             $table->boolean('is_active')->default(true);
 

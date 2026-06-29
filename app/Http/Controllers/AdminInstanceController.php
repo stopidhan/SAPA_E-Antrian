@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Service;
 use App\Models\ServiceCounter;
-use App\Models\ServiceSlot;
+use App\Models\InstanceSlot;
 use App\Models\Activity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,9 +29,10 @@ class AdminInstanceController extends Controller
             'timezone' => $instance->timezone ?? 'Asia/Jakarta',
         ];
 
-        $services = $instance->services()->with(['counters', 'slots'])->latest()->get();
+        $services = $instance->services()->with(['counters'])->latest()->get();
+        $slots = $instance->slots()->orderBy('start_time')->get();
 
-        return view('Pages.AdminInstansi.adminInstance', compact('config', 'services'));
+        return view('Pages.AdminInstansi.adminInstance', compact('config', 'services', 'slots'));
     }
 
     // ==========================================
@@ -46,7 +47,6 @@ class AdminInstanceController extends Controller
             'success' => true,
             'data' => [
                 'tts_enabled' => (bool) $instance->tts_enabled,
-                'max_online_bookings_per_day' => (int) $instance->max_online_bookings_per_day,
                 'max_offline_bookings_per_day' => (int) $instance->max_offline_bookings_per_day,
                 'operational_hours' => $instance->operational_hours,
                 'tts_language' => $instance->tts_language ?? 'id-ID',
@@ -59,7 +59,6 @@ class AdminInstanceController extends Controller
     {
         $validated = $request->validate([
             'tts_enabled' => ['required', 'boolean'],
-            'max_online_bookings_per_day' => ['required', 'integer', 'min:1', 'max:100'],
             'max_offline_bookings_per_day' => ['required', 'integer', 'min:1', 'max:200'],
             'operational_hours' => ['nullable', 'array'],
             'tts_language' => ['nullable', 'string', 'max:20'],
@@ -75,7 +74,6 @@ class AdminInstanceController extends Controller
                 'message' => 'Konfigurasi berhasil disimpan',
                 'data' => [
                     'tts_enabled' => (bool) $instance->tts_enabled,
-                    'max_online_bookings_per_day' => (int) $instance->max_online_bookings_per_day,
                     'max_offline_bookings_per_day' => (int) $instance->max_offline_bookings_per_day,
                     'operational_hours' => $instance->operational_hours,
                     'tts_language' => $instance->tts_language ?? 'id-ID',
@@ -98,7 +96,7 @@ class AdminInstanceController extends Controller
     {
         $services = app(\App\Services\TenantManager::class)->getInstance()
             ->services()
-            ->with(['counters', 'slots'])
+            ->with(['counters'])
             ->latest()
             ->get();
 
@@ -126,8 +124,6 @@ class AdminInstanceController extends Controller
             'is_active' => ['boolean'],
             'fast_max' => ['required', 'integer', 'min:1'],
             'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
-            'slot_duration' => ['required', 'integer', 'min:1'],
-            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
         ]);
@@ -138,8 +134,6 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
-                'slot_duration' => $validated['slot_duration'] ?? 60,
-                'slot_capacity' => $validated['slot_capacity'] ?? 5,
                 'is_active' => $validated['is_active'] ?? true,
                 'performance_standards' => [
                     'fast' => ['max' => (int) $validated['fast_max']],
@@ -160,7 +154,7 @@ class AdminInstanceController extends Controller
                 }
             }
 
-            $service->load(['counters', 'slots']);
+            $service->load(['counters']);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -213,8 +207,6 @@ class AdminInstanceController extends Controller
             'is_active' => ['boolean'],
             'fast_max' => ['required', 'integer', 'min:1'],
             'normal_max' => ['required', 'integer', 'min:2', 'gt:fast_max'],
-            'slot_duration' => ['required', 'integer', 'min:1'],
-            'slot_capacity' => ['required', 'integer', 'min:1'],
             'counters' => ['nullable', 'array'],
             'counters.*.id' => ['nullable', 'exists:service_counters,id'],
             'counters.*.counter_number' => ['required', 'string', 'max:50'],
@@ -225,8 +217,6 @@ class AdminInstanceController extends Controller
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
                 'description' => $validated['description'] ?? null,
-                'slot_duration' => $validated['slot_duration'] ?? $service->slot_duration ?? 1,
-                'slot_capacity' => $validated['slot_capacity'] ?? $service->slot_capacity ?? 10,
                 'is_active' => $validated['is_active'] ?? true,
                 'performance_standards' => [
                     'fast' => ['max' => (int) $validated['fast_max']],
@@ -264,10 +254,7 @@ class AdminInstanceController extends Controller
                 $service->counters()->delete();
             }
 
-            // Hapus semua slot kustom jika ada karena sekarang dinamis di background
-            $service->slots()->delete();
-
-            $service->load(['counters', 'slots']);
+            $service->load(['counters']);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -373,4 +360,54 @@ class AdminInstanceController extends Controller
     }
 
 
+    public function storeSlot(Request $request): JsonResponse
+    {
+        $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
+
+        $validated = $request->validate([
+            'start_time' => ['required', 'string', 'regex:/^\d{2}:\d{2}$/'],
+            'end_time' => ['required', 'string', 'regex:/^\d{2}:\d{2}$/'],
+            'capacity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        try {
+            $slot = InstanceSlot::create([
+                'instance_id' => $instanceId,
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'capacity' => $validated['capacity'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Slot berhasil dibuat',
+                'data' => $slot,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat slot: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function destroySlot(string $instanceSlug, InstanceSlot $slot): JsonResponse
+    {
+        if ($slot->instance_id !== app(\App\Services\TenantManager::class)->getInstanceId()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $slot->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Slot berhasil dihapus',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus slot',
+            ], 500);
+        }
+    }
 }

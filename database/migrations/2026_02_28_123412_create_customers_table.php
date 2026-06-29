@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignId('instance_id')->constrained()->cascadeOnDelete();
 
             $table->string('name')->nullable();
-            $table->string('phone')->nullable();
+            $table->string('phone')->nullable()->index();
+            $table->timestamp('whatsapp_verified_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
 
             $table->timestamps();
         });

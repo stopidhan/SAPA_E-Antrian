@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ServiceSlot extends Model
+class InstanceSlot extends Model
 {
     use HasFactory;
 
-    protected $table = 'service_slots';
+    protected $table = 'instance_slots';
 
     protected $fillable = [
-        'service_id',
+        'instance_id',
         'start_time',
         'end_time',
         'capacity',
@@ -22,11 +22,8 @@ class ServiceSlot extends Model
         'capacity' => 'integer',
     ];
 
-    /**
-     * Relasi ke model Service
-     */
-    public function service()
+    public function instance()
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Instance::class);
     }
 }
