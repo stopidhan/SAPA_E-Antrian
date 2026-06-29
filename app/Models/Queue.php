@@ -19,6 +19,8 @@ class Queue extends Model
         'service_id',
         'queue_number',
         'queue_date',
+        'scheduled_date',
+        'scheduled_slot',
         'taken_time',
         'call_time',
         'service_start_time',
