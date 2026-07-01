@@ -1,4 +1,4 @@
-@extends('layouts.testes')
+@extends('layouts.staff')
 
 @section('title', 'Activity Log - SAPA')
 
@@ -42,9 +42,9 @@
             'label' => 'Info',
             'value' => $infoCount,
             'sub' => 'Informasi sistem',
-            'color' => 'text-blue-700',
+            'color' => 'text-primary',
             'icon' =>
-                '<svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+                '<svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
         ],
     ];
 @endphp
@@ -188,13 +188,13 @@
                                             ],
                                             default => [
                                                 'bg' => 'bg-blue-100',
-                                                'icon_color' => 'text-blue-600',
+                                                'icon_color' => 'text-primary',
                                                 'border' => 'border-blue-200',
                                             ],
                                         };
                                         $categoryCfg = match ($log->category) {
                                             'auth' => ['label' => 'Auth', 'bg' => 'bg-purple-100 text-purple-700'],
-                                            'queue' => ['label' => 'Queue', 'bg' => 'bg-blue-100   text-blue-700'],
+                                            'queue' => ['label' => 'Queue', 'bg' => 'bg-blue-100   text-primary'],
                                             'config' => [
                                                 'label' => 'Config',
                                                 'bg' => 'bg-gray-100   text-gray-700',
@@ -296,7 +296,7 @@
 
                                             @if (isset($log->raw_properties['attributes']) && count($log->raw_properties['attributes']) > 0)
                                                 <button @click="expanded = !expanded"
-                                                    class="ml-auto text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 transition-colors">
+                                                    class="ml-auto text-primary hover:text-primary font-medium flex items-center gap-1 transition-colors">
                                                     <span x-text="expanded ? 'Sembunyikan Detail' : 'Lihat Detail'">Lihat
                                                         Detail</span>
                                                     <svg class="w-4 h-4 transform transition-transform"

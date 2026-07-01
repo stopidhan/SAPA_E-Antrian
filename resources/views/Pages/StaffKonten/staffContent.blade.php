@@ -1,4 +1,4 @@
-@extends('layouts.testes')
+@extends('layouts.staff')
 
 @section('title', 'Dashboard Staff Konten - SAPA')
 
@@ -86,7 +86,7 @@
                                                         data-id="{{ $content->id }}"
                                                         {{ $content->is_active ? 'checked' : '' }}>
                                                     <div
-                                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
                                                     </div>
                                                 </label>
                                                 <label class="text-sm font-medium text-black">Tampilkan di TV
@@ -131,7 +131,7 @@
                     <h3 class="text-lg font-semibold mb-4">Statistik Media</h3>
                     <div>
                         <h4 class="font-medium">Total Media Terunggah</h4>
-                        <p class="text-2xl font-bold mb-4 text-blue-500">{{ $totalMedia ?? 0 }}</p>
+                        <p class="text-2xl font-bold mb-4 text-primary">{{ $totalMedia ?? 0 }}</p>
                         <hr class="w-full border-gray-300 my-2" />
                     </div>
 
@@ -217,8 +217,8 @@
         const el = (id) => document.getElementById(id);
         const toggleClass = (id, cls, force) => el(id)?.classList.toggle(cls, force);
 
-        function clearFilePreview() {
-            if (el('file')) el('file').value = '';
+        function clearFilePreview(keepFile = false) {
+            if (!keepFile && el('file')) el('file').value = '';
             el('preview-container')?.classList.replace('flex', 'hidden');
             el('video-preview-container')?.classList.replace('flex', 'hidden');
             toggleClass('remove-file-btn', 'hidden', true);
@@ -234,7 +234,7 @@
             const file = el('file')?.files[0];
             if (!file) return clearFilePreview();
 
-            clearFilePreview();
+            clearFilePreview(true);
             toggleClass('upload-placeholder', 'hidden', true);
             toggleClass('remove-file-btn', 'hidden', false);
 
@@ -264,7 +264,6 @@
             el('form_method').disabled = !isEdit;
             el('form_method').value = isEdit ? 'PATCH' : 'POST';
 
-            el('file').required = !isEdit;
             toggleClass('file-required-star', 'hidden', isEdit);
             toggleClass('edit-file-note', 'hidden', !isEdit);
             clearFilePreview();
@@ -296,8 +295,8 @@
         function openDeleteModal(id) {
             const c = contentData.find(x => x.id === id);
             if (!c) return;
-            if (el('deleteForm')) el('deleteForm').action = `{{ route('content.destroy', ['content' => 999999]) }}`.replace('999999', id);
-            if (el('delete-item-name')) el('delete-item-name').textContent = c.title;
+            if (el('deleteForm-delete-content')) el('deleteForm-delete-content').action = `{{ route('content.destroy', ['content' => 999999]) }}`.replace('999999', id);
+            if (el('delete-item-name-delete-content')) el('delete-item-name-delete-content').textContent = c.title;
             openModal('delete-content');
         }
         const closeDeleteModal = () => closeModal('delete-content');
@@ -421,7 +420,7 @@
                 window.location.reload();
             };
 
-            handleAjaxForm('deleteForm', 'Menghapus...', reloadWithToast);
+            handleAjaxForm('deleteForm-delete-content', 'Menghapus...', reloadWithToast);
             handleAjaxForm('contentForm', 'Menyimpan...', reloadWithToast);
             handleAjaxForm('save-order-form', 'Menyimpan...',
                 (data) => {

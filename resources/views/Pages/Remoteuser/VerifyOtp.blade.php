@@ -40,7 +40,7 @@
                         value="{{ old('otp_code') }}"
                         placeholder="Contoh: 123456"
                         oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm tracking-[0.3em] text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm tracking-[0.3em] text-center focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                     @error('otp_code')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -52,14 +52,14 @@
 
                 <button
                     type="submit"
-                    class="w-full rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 active:bg-blue-800 transition"
+                    class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white hover:bg-primary/90 active:bg-blue-800 transition"
                 >
                     Verifikasi dan Login
                 </button>
             </form>
 
             <div class="mt-4 text-center">
-                <a href="{{ route('booking.register') }}" class="text-sm text-blue-700 hover:text-blue-800 font-semibold">
+                <a href="{{ route('booking.register') }}" class="text-sm text-primary hover:text-blue-800 font-semibold">
                     Kembali ke halaman registrasi
                 </a>
             </div>

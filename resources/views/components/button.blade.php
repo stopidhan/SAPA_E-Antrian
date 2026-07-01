@@ -21,17 +21,17 @@
     };
 
     $variantClasses = match ($variant) {
-        'primary' => 'bg-blue-600 hover:bg-blue-700 text-white',
+        'primary' => 'bg-primary hover:bg-primary/90 text-white',
         'secondary' => 'bg-gray-600 hover:bg-gray-700 text-white',
         'success' => 'bg-green-600 hover:bg-green-700 text-white',
         'danger' => 'bg-red-600 hover:bg-red-700 text-white',
         'white' => 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
-        'outline' => 'border border-blue-600 text-blue-600 hover:bg-blue-50 bg-transparent',
+        'outline' => 'border border-primary text-primary hover:bg-primary/10 bg-transparent',
         'outline-danger'
             => 'border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-red-500 hover:border-red-200 bg-transparent',
         'dotted'
-            => 'border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-blue-600 bg-transparent',
-        default => 'bg-blue-600 hover:bg-blue-700 text-white',
+            => 'border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-primary bg-transparent',
+        default => 'bg-primary hover:bg-primary/90 text-white',
     };
 
     $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed' : '';

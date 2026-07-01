@@ -43,7 +43,7 @@
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="is_active" value="1" class="sr-only peer" checked>
                     <div
-                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
                     </div>
                 </label>
                 <label class="text-sm font-medium text-gray-700">Aktifkan di TV Monitor</label>
@@ -52,7 +52,7 @@
             <!-- Upload Area from staffContent -->
             <div
                 class="relative bg-gray-50 text-center px-4 py-8 rounded flex flex-col items-center justify-center border-2 border-gray-300 border-dashed mt-4">
-                <p id="edit-file-note" class="text-sm text-blue-600 mb-2 font-medium hidden">Kosongkan bagian ini jika
+                <p id="edit-file-note" class="text-sm text-primary mb-2 font-medium hidden">Kosongkan bagian ini jika
                     tidak ingin mengganti file</p>
 
                 <!-- Tombol X Hapus File -->
@@ -95,7 +95,7 @@
 
                     <div class="mt-6">
                         <input type="file" name="file" id="file" accept="image/*,video/*"
-                            onchange="previewFile()" class="hidden" required />
+                            onchange="previewFile()" class="hidden" />
                         <label for="file"
                             class="inline-block px-6 py-2.5 rounded text-white text-sm tracking-wider font-semibold border-none outline-none cursor-pointer bg-black hover:bg-gray-700 transition">
                             Browse Files

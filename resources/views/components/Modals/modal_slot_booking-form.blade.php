@@ -18,13 +18,13 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Mulai Waktu <span
                                 class="text-red-500">*</span></label>
                         <input type="time" x-model="slotForm.start_time" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Selesai Waktu <span
                                 class="text-red-500">*</span></label>
                         <input type="time" x-model="slotForm.end_time" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
                     </div>
                 </div>
                 <div>
@@ -32,7 +32,7 @@
                             class="text-red-500">*</span></label>
                     <input type="number" x-model.number="slotForm.capacity" min="1" max="1000"
                         required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition">
                     <p class="text-xs text-gray-500 mt-1">Batas maksimal pendaftar online untuk rentang waktu ini.
                     </p>
                 </div>
@@ -41,7 +41,7 @@
                     <button type="button" @click="closeSlotDialog()"
                         class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition">Batal</button>
                     <button type="submit"
-                        class="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition shadow-sm flex items-center gap-2">
+                        class="px-5 py-2.5 text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary/90 active:bg-blue-800 transition shadow-sm flex items-center gap-2">
                         <svg x-show="isSavingSlot" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                             fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10"

@@ -45,7 +45,7 @@
                 <button @click="panggilBerikutnya()" :disabled="queue.length === 0"
                     class="w-full flex items-center justify-center gap-3 py-4 text-white text-base font-bold rounded-xl shadow-sm transition"
                     :class="queue.length === 0 ? 'bg-gray-300 cursor-not-allowed' :
-                        'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'">
+                        'bg-primary hover:bg-primary/90 active:bg-blue-800'">
                     Panggil Nomor Berikutnya
                 </button>
             </template>

@@ -44,7 +44,7 @@
                     <div class="flex items-center justify-between mb-4">
                         <h4 class="font-semibold text-gray-900">Konter yang Melayani</h4>
                         <button type="button" @click="addCounter()"
-                            class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                            class="text-sm text-primary hover:text-primary font-medium flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 4v16m8-8H4" />

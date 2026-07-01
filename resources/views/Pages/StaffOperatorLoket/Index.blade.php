@@ -6,37 +6,11 @@
 | Menggunakan @include partials agar kode bersih & mudah di-maintain.
 |--------------------------------------------------------------------------
 --}}
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@extends('layouts.staff', ['hideNavbar' => true, 'withSidebar' => false])
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Dashboard Operator — SAPA E-Antrian</title>
-    @php
-        $instanceSlug = request()->route('instance_slug');
-        $instance = $instanceSlug ? \App\Models\Instance::where('instance_slug', $instanceSlug)->first() : null;
-    @endphp
-    @if($instance && $instance->favicon)
-        <link rel="icon" href="{{ asset('storage/' . $instance->favicon) }}">
-    @endif
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        body {
-            font-family: 'Figtree', sans-serif
-        }
+@section('title', 'Dashboard Operator — SAPA E-Antrian')
 
-        [x-cloak] {
-            display: none !important
-        }
-    </style>
-</head>
-
-<body class="antialiased">
-
+@section('content')
     {{-- ====== FULL-SCREEN WRAPPER + ALPINE STATE ====== --}}
     <div x-data="operatorDashboard()" @confirm-close-session.window="closeSession()"
         class="min-h-screen bg-slate-50 flex flex-col">
@@ -101,12 +75,12 @@
                 <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
                     @foreach ($availableCounters as $c)
                         <button @click="openSession({{ $c->id }})"
-                            class="w-full text-left px-5 py-4 rounded-xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex justify-between items-center group">
+                            class="w-full text-left px-5 py-4 rounded-xl border-2 border-slate-100 hover:border-primary hover:bg-primary/10 transition-all flex justify-between items-center group">
                             <div>
                                 <span class="block font-bold text-slate-800">{{ $c->counter_number }}</span>
                                 <span class="block text-sm text-slate-500">{{ $c->service->service_name }}</span>
                             </div>
-                            <span class="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
+                            <span class="text-primary opacity-0 group-hover:opacity-100 transition-opacity">➜</span>
                         </button>
                     @endforeach
                     @if ($availableCounters->isEmpty())
@@ -122,10 +96,11 @@
 
         <!-- Modal Force Complete removed per user request -->
     </div>
+@endsection
 
+@push('scripts')
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         function operatorDashboard() {
             return {
@@ -594,6 +569,4 @@
             }
         }
     </script>
-</body>
-
-</html>
+@endpush

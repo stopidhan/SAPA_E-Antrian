@@ -1,4 +1,4 @@
-@extends('layouts.testes')
+@extends('layouts.staff')
 
 @section('title', 'Kelola Data Instansi - SAPA')
 
@@ -60,7 +60,7 @@
                                             ">
 
                                         <button type="button"
-                                            class="border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-blue-600 bg-transparent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 py-1.5 px-3 text-xs w-full"
+                                            class="border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-primary bg-transparent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 py-1.5 px-3 text-xs w-full"
                                             @click="document.getElementById('logo-input').click()">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -103,7 +103,7 @@
                                             ">
 
                                         <button type="button"
-                                            class="border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-blue-600 bg-transparent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 py-1.5 px-3 text-xs w-full"
+                                            class="border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-primary bg-transparent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 py-1.5 px-3 text-xs w-full"
                                             @click="document.getElementById('favicon-input').click()">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -148,7 +148,7 @@
                                                 <div class="flex items-center gap-3">
                                                     <input type="color" name="brand_color" x-model="color"
                                                         @input="markChanged"
-                                                        class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-blue-500">
+                                                        class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-primary">
                                                     <span
                                                         class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border"
                                                         x-text="color.toUpperCase()"></span>
@@ -161,7 +161,7 @@
                                                 <div class="flex items-center gap-3">
                                                     <input type="color" name="secondary_color" x-model="color"
                                                         @input="markChanged"
-                                                        class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-blue-500">
+                                                        class="h-10 w-16 rounded cursor-pointer border-0 p-0 bg-transparent shadow-sm focus:ring-2 focus:ring-primary">
                                                     <span
                                                         class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border"
                                                         x-text="color.toUpperCase()"></span>
@@ -213,7 +213,7 @@
                                                     </span>
                                                     <input type="text" name="instagram"
                                                         value="{{ $instance->instagram ?? '' }}"
-                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-primary focus:border-primary sm:text-sm"
                                                         placeholder="username_ig">
                                                 </div>
                                             </div>
@@ -227,7 +227,7 @@
                                                     </span>
                                                     <input type="text" name="facebook"
                                                         value="{{ $instance->facebook ?? '' }}"
-                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                        class="flex-1 min-w-0 block w-full px-3 h-10 rounded-none rounded-r-lg border border-gray-300 focus:ring-primary focus:border-primary sm:text-sm"
                                                         placeholder="halaman_fb">
                                                 </div>
                                             </div>
@@ -242,7 +242,7 @@
                     <div class="flex justify-end gap-3 sticky bottom-4">
                         <div class="bg-white p-3 rounded-xl border shadow-lg w-full flex justify-end gap-3">
                             <button type="submit" :disabled="!hasChanges || isLoading"
-                                class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-2 px-6 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span x-show="!isLoading">Simpan Semua Perubahan</span>
                                 <span x-show="isLoading">Menyimpan...</span>
                             </button>

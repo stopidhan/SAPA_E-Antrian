@@ -33,10 +33,11 @@
         .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
         .animate-print-slide { animation: printSlide 2s ease-in-out infinite; }
     </style>
+    @include('components.theme')
 </head>
 <body class="antialiased">
 
-<div class="w-full min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center font-sans select-none relative pb-10">
+<div class="w-full min-h-screen bg-gradient-to-br from-primary to-primary/80 flex flex-col items-center justify-center font-sans select-none relative pb-10">
 
     {{-- ====== DEKORASI LATAR ====== --}}
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -67,7 +68,7 @@
 
         {{-- Nomor Antrean Raksasa --}}
         <div class="text-center pb-4">
-            <p class="text-blue-600 text-7xl font-black tracking-tight leading-none">{{ $nomor }}</p>
+            <p class="text-primary text-7xl font-black tracking-tight leading-none">{{ $nomor }}</p>
         </div>
 
         {{-- Detail Data --}}
@@ -96,9 +97,9 @@
 
         {{-- Instruksi --}}
         <div class="px-8 pb-6 text-center">
-            <div class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3">
-                <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                <p class="text-sm text-blue-700 leading-relaxed text-left">Silakan menuju <strong>Ruang Tunggu</strong>. Nomor Anda akan dipanggil di <strong>TV Monitor</strong>.</p>
+            <div class="bg-primary/10 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3">
+                <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                <p class="text-sm text-primary leading-relaxed text-left">Silakan menuju <strong>Ruang Tunggu</strong>. Nomor Anda akan dipanggil di <strong>TV Monitor</strong>.</p>
             </div>
         </div>
 

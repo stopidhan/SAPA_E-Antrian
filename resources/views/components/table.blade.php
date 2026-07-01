@@ -51,7 +51,7 @@
                 </button>
             @else
                 <a href="{{ $rows->previousPageUrl() }}"
-                    class="px-2 py-1 border border-gray-200 rounded text-gray-600 hover:bg-blue-50 hover:border-blue-300 transition-colors text-sm">
+                    class="px-2 py-1 border border-gray-200 rounded text-gray-600 hover:bg-primary/10 hover:border-blue-300 transition-colors text-sm">
                     &lt;
                 </a>
             @endif
@@ -59,7 +59,7 @@
             {{-- Next Button --}}
             @if ($rows->hasMorePages())
                 <a href="{{ $rows->nextPageUrl() }}"
-                    class="px-2 py-1 border border-gray-200 rounded text-gray-600 hover:bg-blue-50 hover:border-blue-300 transition-colors text-sm">
+                    class="px-2 py-1 border border-gray-200 rounded text-gray-600 hover:bg-primary/10 hover:border-blue-300 transition-colors text-sm">
                     &gt;
                 </a>
             @else

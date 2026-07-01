@@ -30,7 +30,7 @@
         };
     } elseif ($value === 'online' || $value === 'serving' || $value === 'staff_operator') {
         $bgColor = 'bg-blue-100';
-        $textColor = 'text-blue-700';
+        $textColor = 'text-primary';
         $displayText = match ($value) {
             'online' => 'Online',
             'serving' => 'Dilayani',

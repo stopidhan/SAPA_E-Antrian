@@ -20,12 +20,13 @@
             font-family: 'Figtree', sans-serif
         }
     </style>
+    @include('components.theme')
 </head>
 
 <body class="antialiased">
 
     <div
-        class="w-full min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center font-sans select-none relative pb-10">
+        class="w-full min-h-screen bg-gradient-to-br from-primary to-primary/80 flex flex-col items-center justify-center font-sans select-none relative pb-10">
 
         {{-- ====== DEKORASI LATAR ====== --}}
         <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -38,7 +39,7 @@
         <div class="text-center mb-8 relative z-10">
             <div
                 class="inline-flex items-center justify-center bg-white rounded-xl px-5 py-2 shadow-lg shadow-blue-900/20 mb-5">
-                <span class="text-blue-600 text-lg font-black tracking-tight">SAPA</span>
+                <span class="text-primary text-lg font-black tracking-tight">SAPA</span>
             </div>
             <h1 class="text-white text-4xl font-extrabold tracking-tight mb-2">Selamat Datang</h1>
             <p class="text-blue-100 text-lg">Silakan Pilih Layanan</p>
@@ -57,10 +58,10 @@
             @if ($totalKuotaOffline > 0)
                 <div class="px-8 pb-6">
                     <div
-                        class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-center justify-around shadow-sm">
+                        class="bg-primary/10/50 border border-blue-100 rounded-xl p-4 flex items-center justify-around shadow-sm">
                         <div class="text-center">
-                            <p class="text-[10px] text-blue-500 font-bold uppercase tracking-wider mb-1">Total Kuota</p>
-                            <p class="text-2xl font-black text-blue-700">{{ $totalKuotaOffline }}</p>
+                            <p class="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">Total Kuota</p>
+                            <p class="text-2xl font-black text-primary">{{ $totalKuotaOffline }}</p>
                         </div>
                         <div class="w-px h-10 bg-blue-200/50"></div>
                         <div class="text-center">
@@ -92,7 +93,7 @@
                     @php
                         $colorMap = [
                             'A' => [
-                                'bg' => 'bg-blue-600',
+                                'bg' => 'bg-primary',
                                 'hover' => 'hover:border-blue-400',
                                 'shadow' => 'shadow-blue-200',
                                 'hoverShadow' => 'group-hover:shadow-blue-300',

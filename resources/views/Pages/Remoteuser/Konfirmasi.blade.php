@@ -23,10 +23,10 @@
     
     $colorMap = [
         'A' => [
-            'headerBg' => 'bg-blue-600',
+            'headerBg' => 'bg-primary',
             'headerTextSub' => 'text-blue-200',
-            'text' => 'text-blue-600',
-            'bgLight' => 'bg-blue-50',
+            'text' => 'text-primary',
+            'bgLight' => 'bg-primary/10',
             'border' => 'border-blue-100',
         ],
         'B' => [

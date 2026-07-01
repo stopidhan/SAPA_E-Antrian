@@ -80,7 +80,7 @@
                                 : 0;
                     @endphp
                     <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 font-semibold font-mono text-blue-700">{{ $queue->queue_number }}</td>
+                        <td class="px-4 py-3 font-semibold font-mono text-primary">{{ $queue->queue_number }}</td>
                         <td class="px-4 py-3">
                             <div class="font-medium">{{ $queue->service_name }}</div>
                             <div class="text-xs text-gray-400 truncate max-w-[150px]">{{ $queue->service_category }}

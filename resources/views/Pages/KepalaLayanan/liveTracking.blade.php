@@ -58,7 +58,7 @@
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-3">
                             <div
-                                class="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                                class="w-14 h-14 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-lg">
                                 {{ str_replace('Loket ', '', $perf->counter_name) }}
                             </div>
                             <div>
@@ -86,7 +86,7 @@
                         </div>
                         <div class="text-center p-3 bg-white rounded-lg">
                             <div class="text-xs text-gray-500 mb-1">Hari Ini</div>
-                            <div class="text-2xl font-bold text-blue-600">{{ $perf->today_served }}</div>
+                            <div class="text-2xl font-bold text-primary">{{ $perf->today_served }}</div>
                         </div>
                         <div class="text-center p-3 bg-white rounded-lg">
                             <div class="text-xs text-gray-500 mb-1">Efisiensi</div>
@@ -241,7 +241,7 @@
                                             <div class="flex items-center justify-between mb-3">
                                                 <div class="flex items-center gap-3">
                                                     <div
-                                                        class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+                                                        class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-white font-bold shrink-0">
                                                         {{ str_replace('Loket ', '', $counter->name) }}
                                                     </div>
                                                     <div class="flex flex-col">
@@ -257,14 +257,14 @@
                                                 </div>
                                                 <span
                                                     class="px-3 py-1 rounded-full text-xs font-semibold
-                                                    {{ $counter->status === 'serving' ? 'bg-green-100 text-green-700' : ($counter->status === 'calling' ? 'bg-blue-100 text-blue-700' : ($counter->status === 'menunggu' ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-700')) }}">
+                                                    {{ $counter->status === 'serving' ? 'bg-green-100 text-green-700' : ($counter->status === 'calling' ? 'bg-blue-100 text-primary' : ($counter->status === 'menunggu' ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-red-700')) }}">
                                                     {{ $counter->status === 'serving' ? 'Melayani' : ($counter->status === 'calling' ? 'Memanggil' : ($counter->status === 'menunggu' ? 'Menunggu' : 'Tutup')) }}
                                                 </span>
                                             </div>
                                             @if ($counter->current_queue)
-                                                <div class="bg-blue-50 rounded-lg p-3 text-center">
+                                                <div class="bg-primary/10 rounded-lg p-3 text-center">
                                                     <div class="text-xs text-gray-500 mb-1">Antrean Saat Ini</div>
-                                                    <div class="text-2xl font-bold text-blue-600">
+                                                    <div class="text-2xl font-bold text-primary">
                                                         {{ $counter->current_queue }}</div>
                                                 </div>
                                             @endif

@@ -31,7 +31,7 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border"
                   :class="currentQueue?.tipe === 'online'
                       ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'bg-blue-50 text-blue-600 border-blue-200'"
+                      : 'bg-primary/10 text-primary border-blue-200'"
                   x-text="currentQueue?.tipe ?? 'onsite'"></span>
         </div>
 

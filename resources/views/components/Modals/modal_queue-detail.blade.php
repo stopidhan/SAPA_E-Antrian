@@ -12,7 +12,7 @@
 
             <template x-if="detailLoading">
                 <div class="flex items-center justify-center py-10">
-                    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                             stroke-width="4"></circle>
@@ -25,9 +25,9 @@
             <template x-if="!detailLoading && detailData">
                 <div class="space-y-4">
                     {{-- Queue Number Badge --}}
-                    <div class="text-center bg-blue-50 rounded-xl p-4">
+                    <div class="text-center bg-primary/10 rounded-xl p-4">
                         <div class="text-sm text-gray-500 mb-1">No. Antrean</div>
-                        <div class="text-3xl font-bold text-blue-600" x-text="detailData.queue_number"></div>
+                        <div class="text-3xl font-bold text-primary" x-text="detailData.queue_number"></div>
                     </div>
 
                     {{-- Info Grid --}}
@@ -80,7 +80,7 @@
                             </div>
                             <div class="flex justify-between border-t pt-2 mt-2">
                                 <span class="text-gray-500 font-semibold">Durasi</span>
-                                <span class="font-bold text-blue-600"
+                                <span class="font-bold text-primary"
                                     x-text="(detailData.service_duration || 0) + ' menit'"></span>
                             </div>
                         </div>

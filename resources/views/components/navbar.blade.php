@@ -167,7 +167,7 @@
                         class="w-9 h-9 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
                 @else
                     <div
-                        class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
+                        class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
                         <span class="text-white text-xs font-black tracking-tight">SAPA</span>
                     </div>
                 @endif
@@ -197,7 +197,7 @@
                                 <a href="{{ $item['url'] ?? '#' }}" title="{{ $item['label'] }}"
                                     class="font-medium text-sm flex items-center rounded-lg py-2.5 transition-all
                                         {{ request()->routeIs($item['active'])
-                                            ? 'bg-blue-50 text-blue-700'
+                                            ? 'bg-primary/10 text-primary'
                                             : 'text-slate-700 hover:text-slate-900 hover:bg-gray-100' }}"
                                     :class="sidebarOpen
                                         ?
@@ -283,7 +283,7 @@
                 @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
+                        <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -312,7 +312,7 @@
                         class="w-10 h-10 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
                 @else
                     <div
-                        class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
+                        class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
                         <span class="text-white text-xs font-black tracking-tight">SAPA</span>
                     </div>
                 @endif
@@ -370,7 +370,7 @@
                 @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
                     <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2"
+                        <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />

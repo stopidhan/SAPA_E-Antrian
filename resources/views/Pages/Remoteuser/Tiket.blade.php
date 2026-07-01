@@ -104,7 +104,7 @@
                 </div>
 
                 {{-- Blok Nomor Antrean --}}
-                <div class="bg-blue-600 mx-4 rounded-xl py-4 px-5 text-center mb-4">
+                <div class="bg-primary mx-4 rounded-xl py-4 px-5 text-center mb-4">
                     <p class="text-blue-200 text-[10px] font-semibold uppercase tracking-widest">Nomor Antrean Anda</p>
                     <p class="text-white text-4xl font-black tracking-tight mt-1">{{ $nomorAntrean }}</p>
                 </div>
@@ -135,24 +135,24 @@
         </div>
 
         {{-- ====== CARD PETUNJUK CHECK-IN KIOSK ====== --}}
-        <div id="instruction-capture" class="bg-blue-50 rounded-2xl border border-blue-100 p-4">
+        <div id="instruction-capture" class="bg-primary/10 rounded-2xl border border-blue-100 p-4">
             <div class="flex items-center gap-2 mb-3">
-                <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                <div class="w-7 h-7 bg-primary rounded-lg flex items-center justify-center shrink-0">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
                 </div>
                 <p class="text-xs font-bold text-blue-900">Cara Check-in di Kiosk</p>
             </div>
             <div class="space-y-2.5">
                 <div class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
+                    <span class="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">1</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Datang ke instansi pada hari yang ditentukan</p>
                 </div>
                 <div class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <span class="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Buka halaman ini atau akses dari <strong>Dashboard → Tiket Tersimpan</strong></p>
                 </div>
                 <div class="flex items-start gap-2.5">
-                    <span class="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <span class="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Arahkan QR Code ke mesin <strong>Kiosk Scanner</strong> untuk check-in otomatis</p>
                 </div>
             </div>
@@ -163,13 +163,13 @@
     <div class="sticky bottom-0 z-30 bg-white border-t border-gray-100 px-4 sm:px-5 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
         {{-- Unduh QR Full Width --}}
         <button id="btn-download" onclick="downloadFullTicket('{{ $kodeBooking }}')"
-                class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 text-xs font-bold rounded-xl transition {{ $isExpired ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-300 text-blue-600 hover:bg-blue-50 active:bg-blue-100' }}" {{ $isExpired ? 'disabled' : '' }}>
+                class="w-full flex items-center justify-center gap-2 py-3 mb-2 border-2 text-xs font-bold rounded-xl transition {{ $isExpired ? 'border-gray-200 text-gray-400 cursor-not-allowed opacity-70' : 'border-blue-300 text-primary hover:bg-primary/10 active:bg-blue-100' }}" {{ $isExpired ? 'disabled' : '' }}>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             {{ $isExpired ? 'Tiket Hangus' : 'Unduh Gambar Tiket' }}
         </button>
         {{-- Dashboard --}}
         <a href="{{ route('booking.dashboard') }}"
-           class="w-full flex items-center justify-center gap-1.5 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
+           class="w-full flex items-center justify-center gap-1.5 py-3 bg-primary hover:bg-primary/90 active:bg-blue-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504-1.125 1.125-1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
             Dashboard
         </a>

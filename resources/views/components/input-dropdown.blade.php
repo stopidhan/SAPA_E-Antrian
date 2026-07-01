@@ -28,7 +28,7 @@
     <input type="hidden" name="{{ $name }}" x-model="selected" @if ($required) required @endif>
 
     <div class="relative" @click.outside="open = false" x-ref="container">
-        <button type="button" @click="toggleDropdown()" :class="{ 'ring-2 ring-blue-500': open }"
+        <button type="button" @click="toggleDropdown()" :class="{ 'ring-2 ring-primary': open }"
             class="{{ $buttonClass }} @if ($error) border-red-500 @endif @if ($readonly) cursor-not-allowed pointer-events-none @endif">
             <span x-text="selectedLabel"></span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 fill-gray-500 inline"

@@ -22,10 +22,10 @@
         {{-- Dynamic queue items --}}
         <template x-for="(item, index) in queue" :key="item.id">
             <div class="flex items-center gap-3 rounded-xl px-4 py-3"
-                 :class="index === 0 ? 'bg-blue-50 border border-blue-100' : 'bg-gray-50 border border-gray-100'">
+                 :class="index === 0 ? 'bg-primary/10 border border-blue-100' : 'bg-gray-50 border border-gray-100'">
                 {{-- Nomor Urut --}}
                 <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm"
-                     :class="index === 0 ? 'bg-blue-600' : 'bg-gray-400'">
+                     :class="index === 0 ? 'bg-primary' : 'bg-gray-400'">
                     <span class="text-white text-sm font-black" x-text="index + 1"></span>
                 </div>
                 {{-- Info Antrean --}}
@@ -33,12 +33,12 @@
                     <p class="text-sm font-bold text-gray-900" x-text="item.nomor + ' — ' + item.layanan"></p>
                     <div class="flex items-center gap-2 mt-0.5">
                         <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white text-[10px] font-semibold rounded border"
-                              :class="item.tipe === 'onsite' ? 'text-blue-600 border-blue-200' : 'text-emerald-600 border-emerald-200'"
+                              :class="item.tipe === 'onsite' ? 'text-primary border-blue-200' : 'text-emerald-600 border-emerald-200'"
                               x-text="item.tipe"></span>
                     </div>
                 </div>
                 {{-- Label Berikutnya (hanya item pertama) --}}
-                <span x-show="index === 0" class="text-xs font-bold text-blue-600 shrink-0">→ Berikutnya</span>
+                <span x-show="index === 0" class="text-xs font-bold text-primary shrink-0">→ Berikutnya</span>
             </div>
         </template>
 

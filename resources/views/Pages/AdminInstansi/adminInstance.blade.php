@@ -1,4 +1,4 @@
-@extends('layouts.testes')
+@extends('layouts.staff')
 
 @section('title', 'Konfigurasi Sistem - SAPA')
 
@@ -108,7 +108,7 @@
                                                             <input type="checkbox" x-model="day.isOpen"
                                                                 class="sr-only peer">
                                                             <div
-                                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
                                                             </div>
                                                         </label>
                                                         <span class="font-medium"
@@ -121,12 +121,12 @@
                                                         <div x-show="day.isOpen" class="flex items-center gap-3">
                                                             <div class="relative">
                                                                 <input type="time" x-model="day.openTime"
-                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
                                                             </div>
                                                             <span class="text-gray-400 text-sm font-medium">s/d</span>
                                                             <div class="relative">
                                                                 <input type="time" x-model="day.closeTime"
-                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                    class="w-28 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
                                                             </div>
                                                         </div>
                                                         <div x-show="!day.isOpen" class="w-[245px] flex justify-end pr-2">
@@ -187,7 +187,7 @@
                                                         x-text="slot.end_time"></td>
                                                     <td class="px-6 py-4">
                                                         <span
-                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary border border-blue-200">
                                                             <span x-text="slot.capacity"></span>
                                                         </span>
                                                     </td>
@@ -267,7 +267,7 @@
                                             class="p-4 bg-gradient-to-r from-blue-50 to-transparent flex items-center justify-between">
                                             <div class="flex items-center gap-4 flex-1">
                                                 <div
-                                                    class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-blue-700 font-bold text-sm">
+                                                    class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-primary font-bold text-sm">
                                                     <span x-text="service.queue_prefix"></span>
                                                 </div>
                                                 <div>
@@ -286,7 +286,7 @@
 
                                                 <div class="flex items-center gap-2 ml-4">
                                                     <button @click="openToggleModal(service)"
-                                                        class="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                                        class="p-2 text-gray-400 hover:text-primary transition-colors"
                                                         title="Toggle status">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -379,12 +379,12 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Online</p>
-                                    <p class="text-3xl font-bold text-blue-600"
+                                    <p class="text-3xl font-bold text-primary"
                                         x-text="slots.reduce((sum, slot) => sum + parseInt(slot.capacity || 0), 0)"></p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-gray-500">Max Booking Offline</p>
-                                    <p class="text-3xl font-bold text-blue-600"
+                                    <p class="text-3xl font-bold text-primary"
                                         x-text="savedConfig.maxOfflineBookingsPerDay"></p>
                                 </div>
                             </div>
@@ -396,7 +396,7 @@
                             <hr class="border-gray-100">
                             <div>
                                 <p class="text-sm text-gray-500">Layanan Aktif</p>
-                                <p class="text-3xl font-bold text-blue-600" x-text="activeServicesCount"></p>
+                                <p class="text-3xl font-bold text-primary" x-text="activeServicesCount"></p>
                                 <p class="text-sm text-gray-400">dari <span x-text="services.length"></span> layanan</p>
                             </div>
                             <hr class="border-gray-100">

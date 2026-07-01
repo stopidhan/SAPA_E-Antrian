@@ -27,7 +27,7 @@
     {{-- Edit --}}
     @if ($edit && $editAction)
         <button type="button" @click="{{ $editAction }}"
-            class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
+            class="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-primary/10 hover:border-blue-300 hover:text-primary transition-colors"
             title="Edit">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

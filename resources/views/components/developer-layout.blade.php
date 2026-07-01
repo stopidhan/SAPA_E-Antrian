@@ -108,7 +108,7 @@
             <div class="p-4 bg-blue-900 border-t border-blue-800">
                 <div class="flex items-center">
                     <div
-                        class="w-10 h-10 rounded-lg bg-blue-700 flex items-center justify-center font-bold text-sm border border-blue-600 shadow-sm">
+                        class="w-10 h-10 rounded-lg bg-blue-700 flex items-center justify-center font-bold text-sm border border-primary shadow-sm">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
                     <div class="ml-3 overflow-hidden">
@@ -162,7 +162,7 @@
                             class="inline">
                             @csrf
                             <button type="submit"
-                                class="text-gray-500 hover:text-blue-600 bg-transparent border-none p-0 cursor-pointer">
+                                class="text-gray-500 hover:text-primary bg-transparent border-none p-0 cursor-pointer">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">

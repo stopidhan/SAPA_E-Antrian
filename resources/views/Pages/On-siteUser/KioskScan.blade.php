@@ -26,10 +26,11 @@
             animation: scanLine 2.5s ease-in-out infinite;
         }
     </style>
+    @include('components.theme')
 </head>
 <body class="antialiased">
 
-<div class="w-full min-h-screen bg-gradient-to-br from-blue-500 to-blue-700 flex flex-col items-center justify-center font-sans select-none relative pb-10">
+<div class="w-full min-h-screen bg-gradient-to-br from-primary to-primary/80 flex flex-col items-center justify-center font-sans select-none relative pb-10">
 
     {{-- ====== DEKORASI LATAR ====== --}}
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -40,7 +41,7 @@
     {{-- ====== HEADER ====== --}}
     <div class="text-center mb-8 relative z-10">
         <div class="inline-flex items-center justify-center bg-white rounded-xl px-5 py-2 shadow-lg shadow-blue-900/20 mb-5">
-            <span class="text-blue-600 text-lg font-black tracking-tight">SAPA</span>
+            <span class="text-primary text-lg font-black tracking-tight">SAPA</span>
         </div>
         <h1 class="text-white text-4xl font-extrabold tracking-tight mb-2">Validasi Tiket Online</h1>
         <p class="text-blue-100 text-lg">Scan QR Code dari aplikasi booking Anda</p>
@@ -92,9 +93,9 @@
 
         {{-- Instruksi --}}
         <div class="px-8 pb-6 text-center">
-            <div id="instruction-box" class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3 transition-colors">
-                <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                <p id="instruction-text" class="text-sm text-blue-700 leading-relaxed text-left">Arahkan <strong>QR Code</strong> di HP Anda ke arah kamera untuk Check-in otomatis.</p>
+            <div id="instruction-box" class="bg-primary/10 border border-blue-100 rounded-xl px-5 py-4 flex items-start gap-3 transition-colors">
+                <svg class="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+                <p id="instruction-text" class="text-sm text-primary leading-relaxed text-left">Arahkan <strong>QR Code</strong> di HP Anda ke arah kamera untuk Check-in otomatis.</p>
             </div>
         </div>
 
@@ -179,8 +180,8 @@
         msgEl.innerText = message;
 
         if (type === 'loading') {
-            iconContainer.innerHTML = '<div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>';
-            titleEl.className = "text-2xl font-black mb-2 text-blue-600";
+            iconContainer.innerHTML = '<div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>';
+            titleEl.className = "text-2xl font-black mb-2 text-primary";
         } else if (type === 'success') {
             iconContainer.innerHTML = '<div class="bg-emerald-100 p-4 rounded-full"><svg class="w-16 h-16 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>';
             titleEl.className = "text-2xl font-black mb-2 text-emerald-600";
@@ -214,7 +215,7 @@
             .catch(err => {
                 console.error("Gagal menyalakan kamera:", err);
                 document.getElementById('instruction-text').innerHTML = "<span class='text-red-600 font-bold'>Gagal membuka kamera. Harap izinkan akses kamera di browser Anda.</span>";
-                document.getElementById('instruction-box').classList.replace('bg-blue-50', 'bg-red-50');
+                document.getElementById('instruction-box').classList.replace('bg-primary/10', 'bg-red-50');
             });
     });
 </script>

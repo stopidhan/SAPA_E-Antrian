@@ -29,6 +29,7 @@
             cursor: pointer;
         }
     </style>
+    @include('components.theme')
 </head>
 
 <body class="bg-gray-200 antialiased">
@@ -46,7 +47,7 @@
         <nav class="bg-white sticky top-0 z-30 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5">
                 <div class="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                         <span class="text-white text-[10px] font-black">SAPA</span>
                     </div>
                     <div class="min-w-0">
@@ -69,7 +70,7 @@
                         Tiket
                     </a>
                     <a href="{{ route('booking.riwayat') }}"
-                        class="flex items-center gap-1 text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                        class="flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 transition">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -114,7 +115,7 @@
                     <div>
                         <p class="text-xs font-bold text-red-950 mb-0.5">Antrean Aktif Sedang Berjalan</p>
                         <p class="text-[11px] text-red-700 leading-relaxed">
-                            Tiket antrean aktif Anda kini berada di menu <a href="{{ route('booking.inventory') }}" class="font-bold text-blue-600 underline hover:text-blue-800">Tiket</a> di atas (ditandai dengan notifikasi merah). Silakan <strong>selesaikan pelayanan Anda di loket terlebih dahulu</strong> sebelum mengambil antrean baru.
+                            Tiket antrean aktif Anda kini berada di menu <a href="{{ route('booking.inventory') }}" class="font-bold text-primary underline hover:text-blue-800">Tiket</a> di atas (ditandai dengan notifikasi merah). Silakan <strong>selesaikan pelayanan Anda di loket terlebih dahulu</strong> sebelum mengambil antrean baru.
                         </p>
                     </div>
                 </div>
@@ -213,11 +214,11 @@
 
             {{-- Info Footer --}}
             <div class="mt-5">
-                <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-2">
-                    <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <div class="bg-primary/10 border border-blue-100 rounded-xl px-4 py-3 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                     </svg>
-                    <p class="text-[11px] text-blue-700 leading-relaxed">
+                    <p class="text-[11px] text-primary leading-relaxed">
                         Pilih layanan, tentukan <strong>tanggal</strong> dan <strong>slot waktu</strong> kedatangan, lalu datangi instansi sesuai jadwal.
                         Tiket akan hangus jika tidak check-in dalam 30 menit setelah waktu slot dimulai.
                     </p>
@@ -282,7 +283,7 @@
                     {{-- Step 1: Pilih Tanggal (Inline Grid Calendar) --}}
                     <div>
                         <p class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">
-                            <span class="inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full mr-1.5">1</span>
+                            <span class="inline-flex items-center justify-center w-5 h-5 bg-primary text-white text-[10px] font-black rounded-full mr-1.5">1</span>
                             Pilih Tanggal Kunjungan
                         </p>
                         
@@ -320,7 +321,7 @@
                                         @click="day.dateStr && !day.disabled && selectDate(day.dateStr)"
                                         :disabled="day.disabled || !day.dateStr"
                                         :class="{
-                                            'bg-blue-600 text-white font-extrabold border-blue-600 shadow-md shadow-blue-100': selectedDate === day.dateStr && day.dateStr,
+                                            'bg-primary text-white font-extrabold border-primary shadow-md shadow-blue-100': selectedDate === day.dateStr && day.dateStr,
                                             
                                             // Red (sisa === 1)
                                             'bg-red-50 text-red-800 border-red-200 hover:bg-red-100 hover:border-red-300': selectedDate !== day.dateStr && day.isCurrentMonth && !day.disabled && day.dateStr && day.sisa === 1,
@@ -343,7 +344,7 @@
                         </div>
 
                         {{-- Info Jam Operasional Hari terpilih --}}
-                        <div x-show="selectedDate" class="mt-3 flex items-center justify-between bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 text-xs text-blue-700">
+                        <div x-show="selectedDate" class="mt-3 flex items-center justify-between bg-primary/10 border border-blue-100 rounded-xl px-4 py-2.5 text-xs text-primary">
                             <span class="font-semibold leading-none">Jam Operasional:</span>
                             <span class="font-extrabold leading-none text-right" x-text="getSelectedDateOpHours()"></span>
                         </div>
@@ -352,13 +353,13 @@
                     {{-- Step 2: Pilih Slot Waktu --}}
                     <div x-show="selectedDate" x-cloak>
                         <p class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5">
-                            <span class="inline-flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-[10px] font-black rounded-full mr-1.5">2</span>
+                            <span class="inline-flex items-center justify-center w-5 h-5 bg-primary text-white text-[10px] font-black rounded-full mr-1.5">2</span>
                             Pilih Slot Waktu
                         </p>
 
                         {{-- Loading --}}
                         <div x-show="loadingSlots" class="flex items-center justify-center py-8 gap-2">
-                            <svg class="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <svg class="animate-spin w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
@@ -372,8 +373,8 @@
                                     @click="!slot.full && selectSlot(slot.slot)"
                                     :disabled="slot.full"
                                     :class="{
-                                        'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100': selectedSlot === slot.slot,
-                                        'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50': selectedSlot !== slot.slot && !slot.full,
+                                        'bg-primary text-white border-primary shadow-md shadow-blue-100': selectedSlot === slot.slot,
+                                        'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-primary/10': selectedSlot !== slot.slot && !slot.full,
                                         'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed': slot.full
                                     }"
                                     class="flex flex-col items-center py-3 px-2 rounded-xl border-2 transition text-xs font-semibold">
@@ -398,7 +399,7 @@
                     <button
                         @click="proceedToKonfirmasi()"
                         :disabled="!selectedDate || !selectedSlot"
-                        :class="(!selectedDate || !selectedSlot) ? 'opacity-40 cursor-not-allowed bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md shadow-blue-100'"
+                        :class="(!selectedDate || !selectedSlot) ? 'opacity-40 cursor-not-allowed bg-blue-400' : 'bg-primary hover:bg-primary/90 active:bg-blue-800 shadow-md shadow-blue-100'"
                         class="w-full py-3 text-white text-sm font-bold rounded-xl transition flex items-center justify-center gap-2">
                         Lanjut ke Konfirmasi
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">

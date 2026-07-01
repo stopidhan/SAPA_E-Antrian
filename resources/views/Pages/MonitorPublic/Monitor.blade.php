@@ -23,11 +23,8 @@
         body {
             font-family: 'Figtree', sans-serif
         }
-
-        body {
-            font-family: 'Figtree', sans-serif
-        }
     </style>
+    @include('components.theme')
 </head>
 
 <body class="bg-gray-200 antialiased overflow-hidden" x-data="monitorRealtime()" x-init="initMonitor()" @click.once="unlockAudio()">
@@ -37,12 +34,12 @@
         {{-- ====================================================================
     |  1. HEADER (TOP BAR)
     ===================================================================== --}}
-        <header class="bg-blue-600 p-6 flex items-center justify-between shrink-0">
+        <header class="bg-primary p-6 flex items-center justify-between shrink-0">
 
             {{-- Kiri: Logo + Judul --}}
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                    <span class="text-blue-600 text-lg font-black tracking-tight">SAPA</span>
+                    <span class="text-primary text-lg font-black tracking-tight">SAPA</span>
                 </div>
                 <div>
                     <h1 class="text-white text-2xl font-bold leading-tight">{{ $instance->instance_name }}</h1>
@@ -107,7 +104,7 @@
                     </div>
 
                     {{-- Card Info (Bawah) --}}
-                    <div class="bg-blue-600 rounded-3xl p-6 text-white mt-6 shrink-0">
+                    <div class="bg-primary rounded-3xl p-6 text-white mt-6 shrink-0">
                         <div class="grid grid-cols-3 divide-x divide-white/20 text-center">
                             {{-- Jam Operasional --}}
                             <div class="px-4">
@@ -144,7 +141,7 @@
                     {{-- Card 1: Panggilan Saat Ini --}}
                     <div class="bg-white shadow-lg rounded-3xl overflow-hidden border border-gray-100 flex flex-col">
                         {{-- Header --}}
-                        <div class="bg-blue-600 px-6 py-4">
+                        <div class="bg-primary px-6 py-4">
                             <h3 class="text-white text-sm font-bold uppercase tracking-widest text-center">Panggilan
                                 Saat Ini</h3>
                         </div>
@@ -152,7 +149,7 @@
                         <div class="flex-1 flex flex-col items-center justify-center p-10 text-center">
                             <template x-if="currentCall">
                                 <div>
-                                    <p class="text-blue-600 text-8xl font-black tracking-tight leading-none mb-3"
+                                    <p class="text-primary text-8xl font-black tracking-tight leading-none mb-3"
                                         x-text="currentCall.queue_number">A000</p>
                                     <p class="text-gray-900 text-xl font-bold">Silakan ke <span
                                              x-text="currentCall.counter_number.toLowerCase().includes('loket') ? currentCall.counter_number : 'Loket ' + currentCall.counter_number"></span></p>
@@ -171,7 +168,7 @@
                     <div
                         class="bg-white shadow-lg rounded-3xl overflow-hidden border border-gray-100 flex-1 flex flex-col">
                         {{-- Header --}}
-                        <div class="bg-blue-600 px-6 py-4">
+                        <div class="bg-primary px-6 py-4">
                             <h3 class="text-white text-sm font-bold uppercase tracking-widest text-center">Status Loket
                             </h3>
                         </div>
@@ -214,14 +211,14 @@
                                                 <span
                                                     class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full"
                                                     :class="{
-                                                        'bg-blue-100 text-blue-700': counter.status === 'Memanggil',
+                                                        'bg-blue-100 text-primary': counter.status === 'Memanggil',
                                                         'bg-emerald-100 text-emerald-700': counter.status === 'Dilayani',
                                                         'bg-red-100 text-red-700': counter.status === 'Tutup',
                                                         'border border-gray-300 text-gray-400': counter.status === 'Menunggu'
                                                     }">
                                                     <span class="w-2 h-2 rounded-full"
                                                         :class="{
-                                                            'bg-blue-500': counter.status === 'Memanggil',
+                                                            'bg-primary/100': counter.status === 'Memanggil',
                                                             'bg-emerald-500': counter.status === 'Dilayani',
                                                             'bg-red-500': counter.status === 'Tutup',
                                                             'border-2 border-gray-300': counter.status === 'Menunggu'

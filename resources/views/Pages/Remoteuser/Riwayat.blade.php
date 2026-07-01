@@ -24,7 +24,7 @@
             'completed' => ['bg-emerald-50 text-emerald-700 border-emerald-100', 'bg-emerald-500', 'Selesai'],
             'skipped'   => ['bg-red-50 text-red-600 border-red-200', 'bg-red-500', 'Dilewati / Batal'],
             'waiting'   => ['bg-amber-50 text-amber-600 border-amber-200', 'bg-amber-400', 'Menunggu'],
-            'called'    => ['bg-blue-50 text-blue-600 border-blue-200', 'bg-blue-500', 'Dipanggil'],
+            'called'    => ['bg-primary/10 text-primary border-blue-200', 'bg-primary/100', 'Dipanggil'],
             'serving'   => ['bg-purple-50 text-purple-600 border-purple-200', 'bg-purple-500', 'Dilayani'],
             default     => ['bg-gray-50 text-gray-600 border-gray-200', 'bg-gray-500', 'Unknown']
         };
@@ -37,7 +37,7 @@
     <nav class="bg-white sticky top-0 z-30 shadow-sm">
         <div class="flex items-center gap-2.5 px-4 py-3">
             <a href="{{ route('booking.dashboard') }}"
-               class="p-1.5 -ml-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition">
+               class="p-1.5 -ml-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
             </a>
             <h1 class="text-sm font-bold text-gray-900">Riwayat Antrean Saya</h1>
@@ -92,7 +92,7 @@
                         @php
                             $prefix = $item->service ? strtoupper($item->service->queue_prefix) : '-';
                             $kodeBg = match($prefix) {
-                                'A' => 'bg-blue-600',
+                                'A' => 'bg-primary',
                                 'B' => 'bg-emerald-600',
                                 'C' => 'bg-amber-500',
                                 default => 'bg-gray-500',

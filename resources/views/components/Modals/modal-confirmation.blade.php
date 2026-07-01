@@ -102,7 +102,7 @@
                     </div>
 
                     <!-- New Status -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="bg-primary/10 border border-blue-200 rounded-lg p-3">
                         <p class="text-xs text-gray-500 mb-1">Status Akan Diubah Menjadi:</p>
                         <div class="flex items-center gap-2">
                             <span x-show="selectedUser?.is_active"
@@ -138,7 +138,7 @@
                     </div>
 
                     <!-- New Status -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div class="bg-primary/10 border border-blue-200 rounded-lg p-3">
                         <p class="text-xs text-gray-500 mb-1">Status Akan Diubah Menjadi:</p>
                         <div class="flex items-center gap-2">
                             <span x-show="selectedService?.is_active"

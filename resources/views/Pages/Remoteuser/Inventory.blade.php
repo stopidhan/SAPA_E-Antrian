@@ -28,7 +28,7 @@
     <nav class="bg-white sticky top-0 z-30 shadow-sm">
         <div class="flex items-center gap-2.5 px-4 py-3">
             <a href="{{ route('booking.dashboard') }}"
-               class="p-1.5 -ml-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition">
+               class="p-1.5 -ml-1.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-lg transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
             </a>
             <h1 class="text-sm font-bold text-gray-900">Tiket Tersimpan</h1>
@@ -45,15 +45,15 @@
                 <p class="text-[9px] text-gray-400 font-medium">Menunggu</p>
             </div>
             <div class="flex-1 bg-white border border-gray-100 rounded-lg px-2.5 py-2.5 text-center shadow-sm">
-                <p class="text-sm font-black text-blue-600">{{ count($savedTickets) }}</p>
+                <p class="text-sm font-black text-primary">{{ count($savedTickets) }}</p>
                 <p class="text-[9px] text-gray-400 font-medium">Total Tiket</p>
             </div>
         </div>
 
         {{-- Info --}}
-        <div class="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 flex items-start gap-2 mb-4">
-            <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-            <p class="text-[11px] text-blue-700 leading-relaxed">Buka QR Code dari tiket di bawah, lalu scan di mesin <strong>Kiosk</strong> saat tiba di instansi.</p>
+        <div class="bg-primary/10 border border-blue-100 rounded-xl px-3 py-2.5 flex items-start gap-2 mb-4">
+            <svg class="w-4 h-4 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <p class="text-[11px] text-primary leading-relaxed">Buka QR Code dari tiket di bawah, lalu scan di mesin <strong>Kiosk</strong> saat tiba di instansi.</p>
         </div>
 
         {{-- Ticket List --}}
@@ -120,7 +120,7 @@
                                 @csrf
                                 <input type="hidden" name="queue_id" value="{{ $ticket->queueId }}">
                                 <button type="submit"
-                                        class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition">
+                                        class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-primary hover:bg-primary/90 text-white text-[11px] font-bold rounded-lg transition">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -158,7 +158,7 @@
             </div>
             <p class="text-sm font-bold text-gray-900 mb-1">Belum Ada Tiket</p>
             <p class="text-[11px] text-gray-400 leading-relaxed">Tiket yang sudah dikonfirmasi akan muncul di sini.</p>
-            <a href="{{ route('booking.dashboard') }}" class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition">
+            <a href="{{ route('booking.dashboard') }}" class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-lg transition">
                 Pilih Layanan
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </a>
@@ -166,24 +166,24 @@
         @endif
 
         {{-- Cara Check-in --}}
-        <div class="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3.5">
+        <div class="mt-4 bg-primary/10 border border-blue-100 rounded-xl p-3.5">
             <div class="flex items-center gap-2 mb-2.5">
-                <div class="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center shrink-0">
+                <div class="w-6 h-6 bg-primary rounded-md flex items-center justify-center shrink-0">
                     <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/></svg>
                 </div>
                 <p class="text-xs font-bold text-blue-900">Cara Check-in di Kiosk</p>
             </div>
             <div class="space-y-2">
                 <div class="flex items-start gap-2">
-                    <span class="w-4.5 h-4.5 bg-blue-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5 w-5 h-5">1</span>
+                    <span class="w-4.5 h-4.5 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5 w-5 h-5">1</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Datang ke instansi pada hari yang ditentukan</p>
                 </div>
                 <div class="flex items-start gap-2">
-                    <span class="w-5 h-5 bg-blue-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
+                    <span class="w-5 h-5 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">2</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Buka QR dari halaman ini atau unduh gambarnya</p>
                 </div>
                 <div class="flex items-start gap-2">
-                    <span class="w-5 h-5 bg-blue-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <span class="w-5 h-5 bg-primary text-white text-[9px] font-bold rounded-full flex items-center justify-center shrink-0 mt-0.5">3</span>
                     <p class="text-[11px] text-blue-800 leading-relaxed">Arahkan QR ke mesin <strong>Kiosk Scanner</strong> untuk check-in</p>
                 </div>
             </div>

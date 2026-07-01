@@ -10,10 +10,15 @@
     @php
         $instanceSlug = request()->route('instance_slug');
         $instance = $instanceSlug ? \App\Models\Instance::where('instance_slug', $instanceSlug)->first() : null;
+        if (!$instance && auth()->check()) {
+            $instance = auth()->user()->instance;
+        }
     @endphp
     @if ($instance && $instance->favicon)
         <link rel="icon" href="{{ asset('storage/' . $instance->favicon) }}">
     @endif
+
+    @include('components.theme')
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -117,7 +122,7 @@ $nextTick(() => mounted = true)">
                 success: 'bg-green-600',
                 error: 'bg-red-600',
                 warning: 'bg-yellow-500',
-                info: 'bg-blue-600',
+                info: 'bg-primary',
             };
             const icons = {
                 success: '✓',
