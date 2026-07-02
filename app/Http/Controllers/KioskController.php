@@ -172,6 +172,19 @@ class KioskController extends Controller
             return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]);
         }
 
+        $currentServed = Queue::where('instance_id', $instance->id)
+            ->where('service_id', $queue->service_id)
+            ->whereDate('queue_date', $queue->queue_date)
+            ->whereNotIn('queue_status', ['waiting', 'skipped'])
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $lastQueue = Queue::where('instance_id', $instance->id)
+            ->where('service_id', $queue->service_id)
+            ->whereDate('queue_date', $queue->queue_date)
+            ->orderBy('id', 'desc')
+            ->first();
+
         return view('Pages.On-siteUser.KioskCetak', [
             'instance' => $instance,
             'queue' => $queue,
@@ -180,6 +193,8 @@ class KioskController extends Controller
             'nomor' => $queue->queue_number,
             'nama' => str_replace(' (On-Site)', '', $queue->customer->name ?? ''),
             'tanggal' => \Carbon\Carbon::parse($queue->queue_date)->format('d M Y') . ' — ' . \Carbon\Carbon::parse($queue->taken_time)->format('H:i'),
+            'sedang_dilayani' => $currentServed ? $currentServed->queue_number : '-',
+            'total_antrean' => $lastQueue ? $lastQueue->queue_number : $queue->queue_number,
         ]);
     }
 
@@ -201,12 +216,27 @@ class KioskController extends Controller
             return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]);
         }
 
+        $currentServed = Queue::where('instance_id', $instance->id)
+            ->where('service_id', $queue->service_id)
+            ->whereDate('queue_date', $queue->queue_date)
+            ->whereNotIn('queue_status', ['waiting', 'skipped'])
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $lastQueue = Queue::where('instance_id', $instance->id)
+            ->where('service_id', $queue->service_id)
+            ->whereDate('queue_date', $queue->queue_date)
+            ->orderBy('id', 'desc')
+            ->first();
+
         $data = [
             'instance' => $instance,
             'layanan' => $queue->service->service_name ?? '-',
             'nomor' => $queue->queue_number,
             'nama' => str_replace(' (On-Site)', '', $queue->customer->name ?? ''),
             'tanggal' => \Carbon\Carbon::parse($queue->queue_date)->format('d M Y') . ' — ' . \Carbon\Carbon::parse($queue->taken_time)->format('H:i'),
+            'sedang_dilayani' => $currentServed ? $currentServed->queue_number : '-',
+            'total_antrean' => $lastQueue ? $lastQueue->queue_number : $queue->queue_number,
         ];
 
         // Load PDF using dompdf
