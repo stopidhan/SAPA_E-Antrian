@@ -103,6 +103,7 @@ Route::middleware([\App\Http\Middleware\IdentifyTenant::class, \App\Http\Middlew
         Route::get('/input', [KioskController::class, 'halamanInput'])->name('kiosk.input');
         Route::post('/input/simpan', [KioskController::class, 'simpanAntreanOffline'])->name('kiosk.input.simpan');
         Route::get('/cetak', [KioskController::class, 'halamanCetak'])->name('kiosk.cetak');
+        Route::get('/cetak/pdf', [KioskController::class, 'unduhStruk'])->name('kiosk.cetak.pdf');
         Route::get('/scan', [KioskController::class, 'halamanScan'])->name('kiosk.scan');
         Route::post('/verify-scan', [KioskController::class, 'verifyScan'])->name('kiosk.verify-scan');
     });

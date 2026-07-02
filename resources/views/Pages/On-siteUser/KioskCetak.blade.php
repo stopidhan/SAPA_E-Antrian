@@ -105,11 +105,11 @@
 
         {{-- Tombol Selesai --}}
         <div class="px-8 pb-8 flex flex-col items-center">
-            <a href="{{ route('kiosk.home') }}"
+            <a href="{{ route('kiosk.home', ['instance_slug' => $instance->instance_slug]) }}"
                class="w-full flex items-center justify-center gap-2 py-4 border-2 border-gray-200 text-gray-600 text-base font-bold rounded-xl hover:bg-gray-50 active:bg-gray-100 transition shadow-sm mb-3">
                 Selesai
             </a>
-            <p class="text-xs text-gray-400">Otomatis kembali ke awal dalam <span id="countdown">5</span> detik</p>
+            <p class="text-xs text-gray-400">Otomatis kembali ke awal dalam <span id="countdown">7</span> detik</p>
         </div>
     </div>
 
@@ -120,9 +120,12 @@
 
 </div>
 
+{{-- Hidden iframe untuk memicu unduh otomatis PDF --}}
+<iframe src="{{ route('kiosk.cetak.pdf', ['instance_slug' => $instance->instance_slug]) }}" style="display:none;"></iframe>
+
 <script>
-    // Redirect otomatis setelah 5 detik
-    let timeLeft = 5;
+    // Redirect otomatis setelah 7 detik
+    let timeLeft = 7;
     const countdownEl = document.getElementById('countdown');
     
     const timer = setInterval(() => {
@@ -131,7 +134,7 @@
         
         if (timeLeft <= 0) {
             clearInterval(timer);
-            window.location.href = "{{ route('kiosk.home') }}";
+            window.location.href = "{{ route('kiosk.home', ['instance_slug' => $instance->instance_slug]) }}";
         }
     }, 1000);
 </script>

@@ -184,6 +184,41 @@ class KioskController extends Controller
     }
 
     /**
+     * Mengunduh file PDF Struk Antrean.
+     */
+    public function unduhStruk(string $instanceSlug)
+    {
+        $instance = app(\App\Services\TenantManager::class)->getInstance();
+        $queueId = session('kiosk_last_queue_id');
+        
+        if (!$queueId) {
+            return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]);
+        }
+
+        $queue = Queue::where('instance_id', $instance->id)->with(['service', 'customer'])->find($queueId);
+        
+        if (!$queue) {
+            return redirect()->route('kiosk.home', ['instance_slug' => $instanceSlug]);
+        }
+
+        $data = [
+            'instance' => $instance,
+            'layanan' => $queue->service->service_name ?? '-',
+            'nomor' => $queue->queue_number,
+            'nama' => str_replace(' (On-Site)', '', $queue->customer->name ?? ''),
+            'tanggal' => \Carbon\Carbon::parse($queue->queue_date)->format('d M Y') . ' — ' . \Carbon\Carbon::parse($queue->taken_time)->format('H:i'),
+        ];
+
+        // Load PDF using dompdf
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('Pages.On-siteUser.KioskStrukPdf', $data);
+        
+        // Atur ukuran kertas struk thermal: Lebar ~80mm (226pt) tinggi disesuaikan
+        $pdf->setPaper([0, 0, 226.77, 350], 'portrait'); 
+
+        return $pdf->download('Struk-Antrean-' . $queue->queue_number . '.pdf');
+    }
+
+    /**
      * Menampilkan halaman Scanner QR Code.
      */
     public function halamanScan(string $instanceSlug)
