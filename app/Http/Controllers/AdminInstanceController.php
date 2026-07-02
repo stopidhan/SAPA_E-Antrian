@@ -365,28 +365,67 @@ class AdminInstanceController extends Controller
         $instanceId = app(\App\Services\TenantManager::class)->getInstanceId();
 
         $validated = $request->validate([
+            'id' => ['nullable', 'integer', 'exists:instance_slots,id'],
             'start_time' => ['required', 'string', 'regex:/^\d{2}:\d{2}$/'],
             'end_time' => ['required', 'string', 'regex:/^\d{2}:\d{2}$/'],
             'capacity' => ['required', 'integer', 'min:1'],
         ]);
 
+        if ($validated['start_time'] >= $validated['end_time']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Waktu mulai harus lebih kecil dari waktu selesai.',
+            ], 422);
+        }
+
+        // Check for overlapping slots
+        $query = InstanceSlot::where('instance_id', $instanceId)
+            ->where(function ($q) use ($validated) {
+                $q->where('start_time', '<', $validated['end_time'])
+                  ->where('end_time', '>', $validated['start_time']);
+            });
+
+        if (!empty($validated['id'])) {
+            $query->where('id', '!=', $validated['id']);
+        }
+
+        if ($query->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slot waktu bertabrakan dengan slot yang sudah ada.',
+            ], 422);
+        }
+
         try {
-            $slot = InstanceSlot::create([
-                'instance_id' => $instanceId,
-                'start_time' => $validated['start_time'],
-                'end_time' => $validated['end_time'],
-                'capacity' => $validated['capacity'],
-            ]);
+            if (!empty($validated['id'])) {
+                $slot = InstanceSlot::where('id', $validated['id'])
+                    ->where('instance_id', $instanceId)
+                    ->firstOrFail();
+                $slot->update([
+                    'start_time' => $validated['start_time'],
+                    'end_time' => $validated['end_time'],
+                    'capacity' => $validated['capacity'],
+                ]);
+                $message = 'Slot berhasil diperbarui';
+            } else {
+                $slot = InstanceSlot::create([
+                    'instance_id' => $instanceId,
+                    'start_time' => $validated['start_time'],
+                    'end_time' => $validated['end_time'],
+                    'capacity' => $validated['capacity'],
+                ]);
+                $message = 'Slot berhasil dibuat';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Slot berhasil dibuat',
+                'message' => $message,
                 'data' => $slot,
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membuat slot: ' . $e->getMessage(),
+                'message' => 'Gagal menyimpan slot: ' . $e->getMessage(),
             ], 500);
         }
     }
