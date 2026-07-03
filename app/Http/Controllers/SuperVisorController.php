@@ -182,7 +182,7 @@ class SuperVisorController extends Controller
             // Get target standards to display in UI
             $fastTarget = 2;
             $normalTarget = 5;
-            
+
             if ($session && $session->counter->service) {
                 $serviceName = $session->counter->service->service_name;
                 $stds = $session->counter->service->performance_standards;
@@ -333,39 +333,51 @@ class SuperVisorController extends Controller
      */
     private function getFilteredHistory(Request $request, $instanceId)
     {
-        return Queue::where('instance_id', $instanceId)
+        $startDate = $request->input('start_date', date('Y-m-d'));
+        $endDate = $request->input('end_date', date('Y-m-d'));
+        $serviceId = $request->input('service_id', 'all');
+        $operatorId = $request->input('operator', 'all');
+        $counterId = $request->input('counter_id', 'all');
+        $source = $request->input('source', 'all');
+        $search = $request->input('search');
+
+        $queryBase = Queue::where('instance_id', $instanceId)
             ->where('queue_status', 'completed')
-            ->with(['service', 'counter', 'user', 'photos', 'customer'])
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('queue_number', 'like', "%{$search}%")
-                        ->orWhereHas('customer', function ($cq) use ($search) {
-                            $cq->where('name', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->when($request->input('start_date', date('Y-m-d')), function ($query, $date) {
-                $query->whereDate('queue_date', '>=', $date);
-            })
-            ->when($request->input('end_date', date('Y-m-d')), function ($query, $date) {
-                $query->whereDate('queue_date', '<=', $date);
-            })
-            ->when($request->service_id && $request->service_id !== 'all', function ($query) use ($request) {
-                $query->where('service_id', $request->service_id);
-            })
-            ->when($request->operator && $request->operator !== 'all', function ($query) use ($request) {
-                $query->whereHas('counter', function ($q) use ($request) {
-                    $q->where('user_id', $request->operator);
-                });
-            })
-            ->when($request->counter_id && $request->counter_id !== 'all', function ($query) use ($request) {
-                $query->where('service_counter_id', $request->counter_id);
-            })
-            ->when($request->source && $request->source !== 'all', function ($query) use ($request) {
-                $query->where('queue_source', $request->source);
-            })
-            ->orderBy('queue_date', 'desc')
+            ->with(['service', 'counter', 'user', 'photos', 'customer']);
+
+        if ($search) {
+            $queryBase->where(function ($q) use ($search) {
+                $q->where('queue_number', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+        if ($startDate) {
+            $queryBase->whereDate('queue_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $queryBase->whereDate('queue_date', '<=', $endDate);
+        }
+        if ($serviceId !== 'all') {
+            $queryBase->where('service_id', $serviceId);
+        }
+        if ($operatorId !== 'all') {
+            $queryBase->whereHas('counter', function ($q) use ($operatorId) {
+                $q->where('user_id', $operatorId);
+            });
+        }
+        if ($counterId && $counterId !== 'all') {
+            $queryBase->where('service_counter_id', $counterId);
+        }
+        if ($source && $source !== 'all') {
+            $queryBase->where('queue_source', $source);
+        }
+
+        $queryBase->orderBy('queue_date', 'desc')
             ->orderBy('service_end_time', 'desc');
+
+        return $queryBase;
     }
 
     /**
@@ -394,20 +406,20 @@ class SuperVisorController extends Controller
         // Filter Options for History Tab
         $serviceOptions = Service::where('instance_id', $instanceId)
             ->get(['id', 'service_name'])
-            ->map(fn ($s) => ['value' => (string)$s->id, 'label' => $s->service_name])
+            ->map(fn($s) => ['value' => (string) $s->id, 'label' => $s->service_name])
             ->prepend(['value' => 'all', 'label' => 'Semua Layanan'])
             ->toArray();
 
         $operatorOptions = User::where('instance_id', $instanceId)
             ->where('role', 'staff_operator')
             ->get(['id', 'name'])
-            ->map(fn ($u) => ['value' => (string)$u->id, 'label' => $u->name])
+            ->map(fn($u) => ['value' => (string) $u->id, 'label' => $u->name])
             ->prepend(['value' => 'all', 'label' => 'Semua Operator'])
             ->toArray();
 
         $counterOptions = ServiceCounter::where('instance_id', $instanceId)
             ->get(['id', 'counter_number'])
-            ->map(fn ($c) => ['value' => (string)$c->id, 'label' => 'Loket ' . preg_replace('/^Loket\s*/i', '', $c->counter_number)])
+            ->map(fn($c) => ['value' => (string) $c->id, 'label' => 'Loket ' . preg_replace('/^Loket\s*/i', '', $c->counter_number)])
             ->prepend(['value' => 'all', 'label' => 'Semua Loket'])
             ->toArray();
 
@@ -451,7 +463,8 @@ class SuperVisorController extends Controller
                     : null,
                 'photos' => $queue->photos->map(function ($photo) {
                     $path = $photo->photo_path;
-                    if (str_starts_with($path, 'http')) return $path;
+                    if (str_starts_with($path, 'http'))
+                        return $path;
                     return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
                 })->toArray(),
             ];
@@ -548,7 +561,8 @@ class SuperVisorController extends Controller
             'operator_name' => $queue->user?->name ?? '-',
             'photos' => $queue->photos->map(function ($photo) {
                 $path = $photo->photo_path;
-                if (str_starts_with($path, 'http')) return $path;
+                if (str_starts_with($path, 'http'))
+                    return $path;
                 return str_starts_with($path, 'uploads/') ? asset($path) : asset('uploads/' . $path);
             })->toArray(),
         ]);
