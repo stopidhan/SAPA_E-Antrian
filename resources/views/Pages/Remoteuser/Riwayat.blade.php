@@ -11,6 +11,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Riwayat — SAPA E-Antrian</title>
+    @if(isset($instansi) && $instansi->favicon)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $instansi->favicon) }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -121,9 +124,9 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-[11px] text-gray-400 flex items-center gap-1.5">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z"/></svg>
-                                    ID Tiket (Sistem)
+                                    Nomor Antrean
                                 </span>
-                                <span class="text-[11px] font-bold text-gray-900">#{{ str_pad($item->id, 6, '0', STR_PAD_LEFT) }}</span>
+                                <span class="text-[11px] font-bold text-gray-900">{{ $item->queue_number }}</span>
                             </div>
 
                             @if($item->queue_status === 'completed')
@@ -149,7 +152,7 @@
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
                                     Loket
                                 </span>
-                                <span class="text-[11px] font-bold text-gray-900">{{ $item->serviceCounter ? $item->serviceCounter->counter_number : '-' }}</span>
+                                <span class="text-[11px] font-bold text-gray-900">{{ $item->counter ? $item->counter->counter_number : '-' }}</span>
                             </div>
                             {{-- Petugas --}}
                             <div class="flex items-center justify-between">
@@ -157,7 +160,7 @@
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                                     Petugas
                                 </span>
-                                <span class="text-[11px] font-bold text-gray-900">{{ $item->serviceCounter && $item->serviceCounter->user ? $item->serviceCounter->user->name : '-' }}</span>
+                                <span class="text-[11px] font-bold text-gray-900">{{ $item->user ? $item->user->name : '-' }}</span>
                             </div>
                             @elseif($item->queue_status === 'skipped')
                             {{-- Alasan Batal --}}
@@ -175,7 +178,7 @@
                         @if($item->queue_status === 'completed')
                         <div class="mt-2.5 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="text-[10px] text-emerald-700 leading-relaxed">Pelayanan telah selesai dilayani oleh <strong>{{ $item->serviceCounter && $item->serviceCounter->user ? $item->serviceCounter->user->name : '-' }}</strong> di <strong>{{ $item->serviceCounter ? $item->serviceCounter->counter_number : '-' }}</strong>.<br>Catatan: <strong>{{ $item->service_description ?? 'Tidak ada catatan' }}</strong></p>
+                            <p class="text-[10px] text-emerald-700 leading-relaxed">Pelayanan telah selesai dilayani oleh <strong>{{ $item->user ? $item->user->name : '-' }}</strong> di <strong>{{ $item->counter ? $item->counter->counter_number : '-' }}</strong>.<br>Catatan: <strong>{{ $item->service_description ?? 'Tidak ada catatan' }}</strong></p>
                         </div>
                         @elseif($item->queue_status === 'skipped')
                         <div class="mt-2.5 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-2 flex items-center gap-2">

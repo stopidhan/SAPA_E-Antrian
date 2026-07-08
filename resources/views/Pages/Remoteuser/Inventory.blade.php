@@ -11,6 +11,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Tiket Tersimpan — SAPA E-Antrian</title>
+    @if(isset($instansi) && $instansi->favicon)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $instansi->favicon) }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -40,14 +43,10 @@
     <div class="flex-1 px-4 sm:px-5 py-4">
 
         {{-- Summary --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
-            <div class="flex-1 bg-white border border-gray-100 rounded-lg px-2.5 py-2.5 text-center shadow-sm">
-                <p class="text-sm font-black text-emerald-600">{{ collect($savedTickets)->where('status', 'Menunggu')->count() }}</p>
-                <p class="text-[9px] text-gray-400 font-medium">Menunggu</p>
-            </div>
-            <div class="flex-1 bg-white border border-gray-100 rounded-lg px-2.5 py-2.5 text-center shadow-sm">
+        <div class="mb-4">
+            <div class="bg-white border border-gray-100 rounded-lg px-2.5 py-2.5 text-center shadow-sm">
                 <p class="text-sm font-black text-primary">{{ count($savedTickets) }}</p>
-                <p class="text-[9px] text-gray-400 font-medium">Total Tiket</p>
+                <p class="text-[9px] text-gray-400 font-medium">Total Tiket Tersimpan</p>
             </div>
         </div>
 
@@ -68,9 +67,11 @@
                         <svg class="w-3.5 h-3.5 {{ $ticket->warnaText }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <span class="text-[10px] font-semibold {{ $ticket->warnaText }}">Tersimpan</span>
                     </div>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white/80 text-[9px] font-semibold {{ $ticket->isExpired ? 'text-red-600 border-red-200' : 'text-amber-600 border-amber-200' }} rounded-full border">
-                        <span class="w-1.5 h-1.5 {{ $ticket->isExpired ? 'bg-red-400' : 'bg-amber-400 animate-pulse' }} rounded-full"></span> {{ $ticket->status }}
+                    @if($ticket->isExpired)
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-white/80 text-[9px] font-semibold text-red-600 border-red-200 rounded-full border">
+                        <span class="w-1.5 h-1.5 bg-red-400 rounded-full"></span> {{ $ticket->status }}
                     </span>
+                    @endif
                 </div>
 
                 {{-- Countdown Timer --}}
@@ -106,7 +107,7 @@
                                     </div>
                                     <p class="text-xs font-bold text-gray-900 truncate">{{ $ticket->layanan }}</p>
                                 </div>
-                                <p class="text-[10px] text-gray-400 font-bold tracking-wider">{{ $ticket->nomor }} &middot; {{ $ticket->kode }}</p>
+                                <p class="text-[10px] text-gray-400 font-bold tracking-wider">{{ $ticket->nomor }}</p>
                                 <p class="text-[10px] text-gray-400">{{ $ticket->tanggal }}</p>
                             </div>
                         </div>

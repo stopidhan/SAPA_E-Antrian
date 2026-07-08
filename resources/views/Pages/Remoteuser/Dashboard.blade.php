@@ -12,6 +12,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pilih Layanan — SAPA E-Antrian</title>
+    @if(isset($instansi) && $instansi->favicon)
+        <link rel="icon" type="image/png" href="{{ asset('storage/' . $instansi->favicon) }}">
+    @endif
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -40,16 +43,21 @@
              '{{ route('booking.konfirmasi') }}',
              '{{ json_encode($operationalHours) }}',
              '{{ json_encode($dayAvailability) }}',
-             {{ $hasSlotsConfigured ? 'true' : 'false' }}
+             {{ $hasSlotsConfigured ? 'true' : 'false' }},
+             '{{ $maxBookingDate }}'
          )">
 
         {{-- ====== TOP BAR ====== --}}
         <nav class="bg-white sticky top-0 z-30 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5">
                 <div class="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-                        <span class="text-white text-[10px] font-black">SAPA</span>
-                    </div>
+                    @if(isset($instansi) && $instansi->logo)
+                        <img src="{{ asset('storage/' . $instansi->logo) }}" alt="Logo Instansi" class="h-8 w-auto max-w-[120px] object-contain rounded p-1">
+                    @else
+                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                            <span class="text-white text-[10px] font-black">SAPA</span>
+                        </div>
+                    @endif
                     <div class="min-w-0">
                         <p class="text-xs text-gray-400 leading-none">Selamat datang</p>
                         <p class="text-sm font-bold text-gray-900 truncate">{{ $namaUser }}</p>
@@ -268,7 +276,7 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 min-h-[380px] pb-24">
+                <div id="modal-content-scroll" class="flex-1 overflow-y-auto px-5 py-4 space-y-5 min-h-[380px] pb-24">
 
                     @if(!$hasSlotsConfigured)
                         <div class="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3 shadow-sm mb-3">
@@ -417,10 +425,11 @@
         // =====================================================================
         // Alpine.js: Slot Picker (Modal Tanggal & Slot Waktu)
         // =====================================================================
-        function slotPicker(apiUrl, konfirmasiUrl, operationalHoursJson, dayAvailabilityJson, hasSlotsConfigured) {
+        function slotPicker(apiUrl, konfirmasiUrl, operationalHoursJson, dayAvailabilityJson, hasSlotsConfigured, maxBookingDateStr) {
             return {
                 modalOpen: false,
                 hasSlotsConfigured: !!hasSlotsConfigured,
+                maxBookingDate: maxBookingDateStr,
                 selectedServiceSlug: '',
                 selectedServiceName: '',
                 selectedDate: '',
@@ -455,11 +464,10 @@
                         });
                     }
 
-                    // Hari bulan sekarang
                     const today = new Date();
                     today.setHours(0,0,0,0);
-                    const maxDate = new Date();
-                    maxDate.setDate(maxDate.getDate() + 30);
+                    const maxDate = new Date(this.maxBookingDate);
+                    maxDate.setHours(23,59,59,999);
                     maxDate.setHours(23,59,59,999);
 
                     const jsDayMap = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -572,6 +580,14 @@
                     this.selectedSlot = '';
                     this.slots = [];
                     await this.fetchSlots();
+                    
+                    // Auto-scroll ke bagian bawah untuk memperlihatkan pemilihan slot
+                    setTimeout(() => {
+                        const modalContent = document.getElementById('modal-content-scroll');
+                        if (modalContent) {
+                            modalContent.scrollTo({ top: modalContent.scrollHeight, behavior: 'smooth' });
+                        }
+                    }, 100);
                 },
 
                 getSelectedDateOpHours() {
