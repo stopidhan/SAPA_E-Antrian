@@ -38,9 +38,11 @@
 
             {{-- Kiri: Logo + Judul --}}
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                    <span class="text-primary text-lg font-black tracking-tight">SAPA</span>
-                </div>
+                @if (isset($instance) && $instance->logo)
+                    <img src="{{ asset('storage/' . $instance->logo) }}" alt="Logo" class="w-14 h-14 object-contain rounded-2xl bg-white shadow-sm p-1">
+                @else
+                    <img src="{{ asset('Icon-SAPA.jpeg') }}" alt="Logo SAPA" class="w-14 h-14 object-contain rounded-2xl bg-white shadow-sm p-1">
+                @endif
                 <div>
                     <h1 class="text-white text-2xl font-bold leading-tight">{{ $instance->instance_name }}</h1>
                     <p class="text-white/60 text-sm font-medium">Sistem Antrean Publik</p>

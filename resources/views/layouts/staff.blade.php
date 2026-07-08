@@ -16,6 +16,8 @@
     @endphp
     @if ($instance && $instance->favicon)
         <link rel="icon" href="{{ asset('storage/' . $instance->favicon) }}">
+    @else
+        <link rel="icon" href="{{ asset('Icon-SAPA.jpeg') }}">
     @endif
 
     @include('components.theme')

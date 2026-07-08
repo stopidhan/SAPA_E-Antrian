@@ -126,7 +126,7 @@
     </div>
 
     <div class="footer">
-        <p style="margin-bottom: 8px;">Tanggal Cetak: {{ $tanggal }}</p>
+        <p style="margin-bottom: 8px;">Waktu Cetak: {{ $tanggal }}</p>
         <p>Silakan menuju ruang tunggu dan perhatikan panggilan pada layar monitor.</p>
 
         @if ($instance->email || $instance->instagram || $instance->facebook)

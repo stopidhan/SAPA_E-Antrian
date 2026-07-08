@@ -40,8 +40,12 @@
 
     {{-- ====== HEADER ====== --}}
     <div class="text-center mb-8 relative z-10">
-        <div class="inline-flex items-center justify-center bg-white rounded-xl px-5 py-2 shadow-lg shadow-blue-900/20 mb-5">
-            <span class="text-primary text-lg font-black tracking-tight">SAPA</span>
+        <div class="inline-flex items-center justify-center bg-white rounded-xl px-2 py-2 shadow-lg shadow-blue-900/20 mb-5">
+            @if (isset($instance) && $instance->logo)
+                <img src="{{ asset('storage/' . $instance->logo) }}" alt="Logo" class="h-10 w-auto object-contain rounded-lg">
+            @else
+                <img src="{{ asset('Icon-SAPA.jpeg') }}" alt="Logo SAPA" class="h-10 w-auto object-contain rounded-lg">
+            @endif
         </div>
         <h1 class="text-white text-4xl font-extrabold tracking-tight mb-2">Validasi Tiket Online</h1>
         <p class="text-blue-100 text-lg">Scan QR Code dari aplikasi booking Anda</p>

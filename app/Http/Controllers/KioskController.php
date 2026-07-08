@@ -245,7 +245,11 @@ class KioskController extends Controller
         // Atur ukuran kertas struk thermal: Lebar ~80mm (226pt) tinggi disesuaikan
         $pdf->setPaper([0, 0, 226.77, 350], 'portrait'); 
 
-        return $pdf->download('Struk-Antrean-' . $queue->queue_number . '.pdf');
+        $tanggal = \Carbon\Carbon::parse($queue->queue_date)->format('d-m-Y');
+        $namaInstansi = \Illuminate\Support\Str::slug($instance->instance_name);
+        $filename = "Struk-{$namaInstansi}-{$queue->queue_number}-{$tanggal}.pdf";
+
+        return $pdf->download($filename);
     }
 
     /**

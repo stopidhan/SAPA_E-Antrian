@@ -23,10 +23,8 @@
                 <img src="{{ asset('storage/' . $instanceLogo) }}" alt="Logo"
                     class="w-10 h-10 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
             @else
-                <div
-                    class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm shadow-blue-200">
-                    <span class="text-white text-xs font-black tracking-tight">SAPA</span>
-                </div>
+                <img src="{{ asset('Icon-SAPA.jpeg') }}" alt="Logo SAPA"
+                    class="w-10 h-10 rounded-xl object-contain shadow-sm bg-white border border-gray-100 p-0.5">
             @endif
             <div class="flex items-baseline gap-2">
                 <h1 class="text-xl font-bold text-gray-900">{{ $instanceName }}</h1>
