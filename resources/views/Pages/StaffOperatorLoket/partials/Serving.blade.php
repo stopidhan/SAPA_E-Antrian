@@ -28,11 +28,14 @@
                x-text="currentQueue?.nomor ?? '-'">-</p>
             <p class="text-lg font-bold text-gray-900 mb-2"
                x-text="currentQueue?.layanan ?? '-'">-</p>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border"
-                  :class="currentQueue?.tipe === 'online'
-                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      : 'bg-primary/10 text-primary border-blue-200'"
-                  x-text="currentQueue?.tipe ?? 'onsite'"></span>
+            <div class="flex items-center justify-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border"
+                      :class="currentQueue?.tipe === 'online'
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          : 'bg-primary/10 text-primary border-blue-200'"
+                      x-text="currentQueue?.tipe ?? 'onsite'"></span>
+                <span class="text-sm font-medium text-gray-500 max-w-[200px] truncate" x-text="currentQueue?.nama ?? 'Anonim'"></span>
+            </div>
         </div>
 
         {{-- Area Pelayanan --}}

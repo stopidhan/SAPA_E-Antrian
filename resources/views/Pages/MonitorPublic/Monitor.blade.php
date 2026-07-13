@@ -175,26 +175,39 @@
                             </h3>
                         </div>
                         {{-- Body: Daftar Loket (Carousel > 4) --}}
-                        <div class="flex-1 flex flex-col relative overflow-hidden bg-white" x-data="{ 
-                            page: 0, 
+                        <div class="flex-1 flex flex-col relative overflow-hidden bg-white" x-ref="carouselContainer" x-data="{ 
+                            page: 0,
+                            itemsPerPage: 4, 
                             initCarousel() {
+                                this.calculateItems();
+                                window.addEventListener('resize', () => this.calculateItems());
                                 setInterval(() => {
-                                    let total = Math.ceil(this.counters.length / 4);
+                                    let total = Math.ceil(this.counters.length / this.itemsPerPage);
                                     if(total > 1) {
                                         this.page = (this.page + 1) % total;
                                     } else {
                                         this.page = 0;
                                     }
                                 }, 6000); // Slide setiap 6 detik
+                            },
+                            calculateItems() {
+                                this.$nextTick(() => {
+                                    if(this.$refs.carouselContainer) {
+                                        let h = this.$refs.carouselContainer.clientHeight;
+                                        // Perkiraan tinggi 1 baris loket adalah sekitar 85px
+                                        let count = Math.floor(h / 85);
+                                        this.itemsPerPage = count > 0 ? count : 1;
+                                    }
+                                });
                             }
                         }" x-init="initCarousel()">
                             
-                            <div class="flex-1 flex transition-transform duration-700 ease-in-out w-full" :style="`transform: translateX(-${page * 100}%)`">
+                            <div class="flex-1 flex transition-transform duration-700 ease-in-out w-full h-full" :style="`transform: translateX(-${page * 100}%)`">
                                 
-                                <template x-for="p in Math.ceil(counters.length / 4)" :key="p">
-                                    <div class="w-full flex-shrink-0 flex flex-col divide-y divide-gray-100">
-                                        <template x-for="counter in counters.slice((p-1)*4, p*4)" :key="counter.id">
-                                            <div class="flex items-center justify-between px-6 py-5" :class="counter.status_bg">
+                                <template x-for="p in Math.ceil(counters.length / itemsPerPage)" :key="p">
+                                    <div class="w-full h-full flex-shrink-0 divide-y divide-gray-100" :style="`display: grid; grid-template-rows: repeat(${itemsPerPage}, minmax(0, 1fr));`">
+                                        <template x-for="counter in counters.slice((p-1)*itemsPerPage, p*itemsPerPage)" :key="counter.id">
+                                            <div class="flex items-center justify-between px-6" :class="counter.status_bg">
                                                 <div class="flex items-center gap-3">
                                                     <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                                         :class="counter.icon_bg">

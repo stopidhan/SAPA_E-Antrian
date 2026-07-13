@@ -372,6 +372,7 @@ class BookingOnlineController extends Controller
 
         // Wajib Hadir Sebelum = estimasi mulai pelayanan - 30 menit
         $arrivalLimitTime = $estimatedServiceStart->copy()->subMinutes(30)->format('H:i');
+        $estimatedServiceTimeStr = $estimatedServiceStart->format('H:i');
 
         $instansi = \App\Models\Instance::find($authCustomer->instance_id);
 
@@ -383,6 +384,7 @@ class BookingOnlineController extends Controller
             'selectedSlot'         => $selectedSlot,
             'slotEndTime'          => $slotEndTime,
             'arrivalLimitTime'     => $arrivalLimitTime,
+            'estimatedServiceTime' => $estimatedServiceTimeStr,
             'slotDuration'         => $slotDuration,
             'slotSisa'             => $slotSisa,
             'estimatedQueueNumber' => $estimatedQueueNumber,
@@ -807,7 +809,8 @@ class BookingOnlineController extends Controller
                 $estimatedServiceStart = Carbon::createFromFormat('Y-m-d H:i', $scheduledDateStr . ' ' . $queue->scheduled_slot, $tz)
                     ->addMinutes($slotFilledBefore * $interval);
 
-                return $estimatedServiceStart->copy()->subMinutes(30);
+                // Tiket QR code valid / tidak hangus sampai waktu pelayanannya benar-benar dimulai
+                return $estimatedServiceStart->copy();
             }
 
             $slotStart = Carbon::createFromFormat('Y-m-d H:i', $scheduledDateStr . ' ' . $queue->scheduled_slot, $tz);

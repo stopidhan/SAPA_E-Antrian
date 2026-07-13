@@ -73,7 +73,7 @@ class OperatorController extends Controller
         // Get history for today (completed, skipped, cancelled) handled by this user's counter
         $historyData = collect();
         if ($idLoket) {
-            $historyData = Queue::with('service')
+            $historyData = Queue::with(['service', 'customer'])
                 ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
                 ->whereDate('queue_date', today())
                 ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
@@ -86,6 +86,7 @@ class OperatorController extends Controller
                         'id'      => $q->id,
                         'nomor'   => $q->queue_number,
                         'status'  => $q->queue_status,
+                        'nama'    => $q->customer ? str_replace(' (On-Site)', '', $q->customer->name) : 'Anonim',
                         'waktu'   => $q->updated_at->format('H:i')
                     ];
                 });
@@ -96,7 +97,7 @@ class OperatorController extends Controller
         $timerSeconds = 0;
 
         if ($idLoket) {
-            $activeQueueRaw = Queue::with('service')
+            $activeQueueRaw = Queue::with(['service', 'customer'])
                 ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
                 ->whereDate('queue_date', today())
                 ->whereIn('queue_status', ['called', 'serving'])
@@ -110,6 +111,7 @@ class OperatorController extends Controller
                     'nomor'   => $activeQueueRaw->queue_number,
                     'layanan' => $activeQueueRaw->service ? $activeQueueRaw->service->service_name : 'Lainnya',
                     'tipe'    => $activeQueueRaw->queue_source ?? 'onsite',
+                    'nama'    => $activeQueueRaw->customer ? str_replace(' (On-Site)', '', $activeQueueRaw->customer->name) : 'Anonim',
                     'status'  => $activeQueueRaw->queue_status
                 ];
 
@@ -209,7 +211,7 @@ class OperatorController extends Controller
         $serviceId = $counter ? $counter->service_id : null;
 
         // Get today's waiting queues in JSON format for polling (filtered by instance and service if any)
-        $queuesQuery = Queue::with('service')
+        $queuesQuery = Queue::with(['service', 'customer'])
             ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
             ->whereDate('queue_date', today())
             ->where('queue_status', 'waiting')
@@ -229,13 +231,14 @@ class OperatorController extends Controller
                     'id'      => $q->id,
                     'nomor'   => $q->queue_number,
                     'layanan' => $q->service ? $q->service->service_name : 'Lainnya',
-                    'tipe'    => $q->queue_source ?? 'onsite'
+                    'tipe'    => $q->queue_source ?? 'onsite',
+                    'nama'    => $q->customer ? str_replace(' (On-Site)', '', $q->customer->name) : 'Anonim'
                 ];
             });
 
         $historyData = collect();
         if ($counter) {
-            $historyData = Queue::with('service')
+            $historyData = Queue::with(['service', 'customer'])
                 ->where('instance_id', app(\App\Services\TenantManager::class)->getInstanceId())
                 ->whereDate('queue_date', today())
                 ->whereIn('queue_status', ['completed', 'skipped', 'cancelled'])
@@ -248,6 +251,7 @@ class OperatorController extends Controller
                         'id'      => $q->id,
                         'nomor'   => $q->queue_number,
                         'status'  => $q->queue_status,
+                        'nama'    => $q->customer ? str_replace(' (On-Site)', '', $q->customer->name) : 'Anonim',
                         'waktu'   => $q->updated_at->format('H:i')
                     ];
                 });

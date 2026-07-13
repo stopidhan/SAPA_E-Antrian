@@ -106,10 +106,10 @@
             <div class="flex-1">
                 <span class="block text-[10px] font-bold text-amber-800 uppercase tracking-widest">Waktu Batas Kedatangan</span>
                 <span class="block text-xs font-extrabold text-amber-950 mt-0.5">
-                    Wajib Hadir Sebelum: <span class="bg-amber-200 px-2 py-0.5 rounded font-black text-amber-950 text-xs tabular-nums">{{ $arrivalLimitTime }} WIB</span>
+                    Wajib hadir di lokasi 30 menit sebelum jam: <span class="bg-amber-200 px-2 py-0.5 rounded font-black text-amber-950 text-xs tabular-nums">{{ $estimatedServiceTime }} WIB</span>
                 </span>
                 <span class="block text-[10px] text-amber-700/90 mt-1 leading-normal">
-                    Harap tiba di lokasi paling lambat <strong>30 menit sebelum</strong> estimasi pelayanan dimulai.
+                    Maka batas waktu Anda tiba adalah pukul <strong>{{ $arrivalLimitTime }} WIB</strong>.
                 </span>
             </div>
         </div>

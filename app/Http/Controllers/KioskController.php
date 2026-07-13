@@ -332,6 +332,9 @@ class KioskController extends Controller
             // Kirim sinyal Real-time ke Monitor/Admin
             broadcast(new QueueCheckedIn($queue))->toOthers();
 
+            // Simpan session agar bisa mengunduh PDF (seperti cetak struk)
+            session(['kiosk_last_queue_id' => $queue->id]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Check-in Berhasil! Silakan menuju ruang tunggu.',
@@ -341,6 +344,9 @@ class KioskController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Kiosk Scan - Broadcast Error (Ignore): ' . $e->getMessage());
             
+            // Simpan session agar bisa mengunduh PDF
+            session(['kiosk_last_queue_id' => $queue->id]);
+
             // Meskipun sinyal monitor gagal, kita tetap anggap check-in BERHASIL di sistem
             return response()->json([
                 'success' => true,

@@ -91,66 +91,116 @@
             @endif
 
             {{-- Grid Layanan --}}
-            <div class="px-8 pb-8">
-                <div class="grid grid-cols-2 gap-4">
-                    @php
-                        $colorMap = [
-                            'A' => [
-                                'bg' => 'bg-primary',
-                                'hover' => 'hover:border-blue-400',
-                                'shadow' => 'shadow-blue-200',
-                                'hoverShadow' => 'group-hover:shadow-blue-300',
-                            ],
-                            'B' => [
-                                'bg' => 'bg-emerald-600',
-                                'hover' => 'hover:border-emerald-400',
-                                'shadow' => 'shadow-emerald-200',
-                                'hoverShadow' => 'group-hover:shadow-emerald-300',
-                            ],
-                            'C' => [
-                                'bg' => 'bg-amber-500',
-                                'hover' => 'hover:border-amber-400',
-                                'shadow' => 'shadow-amber-200',
-                                'hoverShadow' => 'group-hover:shadow-amber-300',
-                            ],
-                            'D' => [
-                                'bg' => 'bg-purple-600',
-                                'hover' => 'hover:border-purple-400',
-                                'shadow' => 'shadow-purple-200',
-                                'hoverShadow' => 'group-hover:shadow-purple-300',
-                            ],
-                        ];
-                        $defaultColor = [
-                            'bg' => 'bg-slate-600',
-                            'hover' => 'hover:border-slate-400',
-                            'shadow' => 'shadow-slate-200',
-                            'hoverShadow' => 'group-hover:shadow-slate-300',
-                        ];
-                    @endphp
+            @php
+                $chunks = $services->chunk(4);
+                $totalPages = $chunks->count();
+                $colorMap = [
+                    'A' => [
+                        'bg' => 'bg-primary',
+                        'hover' => 'hover:border-blue-400',
+                        'shadow' => 'shadow-blue-200',
+                        'hoverShadow' => 'group-hover:shadow-blue-300',
+                    ],
+                    'B' => [
+                        'bg' => 'bg-emerald-600',
+                        'hover' => 'hover:border-emerald-400',
+                        'shadow' => 'shadow-emerald-200',
+                        'hoverShadow' => 'group-hover:shadow-emerald-300',
+                    ],
+                    'C' => [
+                        'bg' => 'bg-amber-500',
+                        'hover' => 'hover:border-amber-400',
+                        'shadow' => 'shadow-amber-200',
+                        'hoverShadow' => 'group-hover:shadow-amber-300',
+                    ],
+                    'D' => [
+                        'bg' => 'bg-purple-600',
+                        'hover' => 'hover:border-purple-400',
+                        'shadow' => 'shadow-purple-200',
+                        'hoverShadow' => 'group-hover:shadow-purple-300',
+                    ],
+                ];
+                $defaultColor = [
+                    'bg' => 'bg-slate-600',
+                    'hover' => 'hover:border-slate-400',
+                    'shadow' => 'shadow-slate-200',
+                    'hoverShadow' => 'group-hover:shadow-slate-300',
+                ];
+            @endphp
 
-                    @forelse($services as $service)
-                        @php
-                            $prefix = strtoupper($service->queue_prefix);
-                            $color = $colorMap[$prefix] ?? $defaultColor;
-                            $slug = Str::slug($service->service_name);
-                            $isFull = $totalKuotaOffline > 0 && $sisaKuotaOffline <= 0;
-                        @endphp
-                        <a href="{{ $isFull ? '#' : route('kiosk.input', ['layanan' => $slug]) }}"
-                            class="group border-2 border-gray-100 {{ $isFull ? 'bg-gray-50 opacity-60 cursor-not-allowed' : $color['hover'] . ' hover:shadow-lg ' . str_replace('shadow-', 'hover:shadow-', $color['shadow']) . ' hover:scale-[1.02] active:scale-[0.98]' }} rounded-xl p-6 text-center transition-all duration-200">
-                            <div
-                                class="w-14 h-14 {{ $isFull ? 'bg-gray-400' : $color['bg'] }} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md {{ $color['shadow'] }} {{ $isFull ? '' : $color['hoverShadow'] }} transition">
-                                <span class="text-white text-xl font-black">{{ $prefix }}</span>
+            <div class="px-8 pb-8" x-data="{ currentPage: 0, totalPages: {{ $totalPages }} }">
+                @if($services->isEmpty())
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 font-medium">Belum ada layanan yang aktif untuk instansi ini.</p>
+                    </div>
+                @else
+                    <div>
+                        <!-- Carousel and Buttons Wrapper -->
+                        <div class="relative">
+                            <!-- Carousel Wrapper -->
+                            <div class="overflow-hidden p-1 -m-1">
+                                <div class="flex transition-transform duration-500 ease-out" 
+                                     x-bind:style="'transform: translateX(-' + (currentPage * 100) + '%)'">
+                                     
+                                    @foreach($chunks as $chunk)
+                                        <div class="w-full shrink-0 grid grid-cols-2 gap-4 px-1">
+                                            @foreach($chunk as $service)
+                                                @php
+                                                    $prefix = strtoupper($service->queue_prefix);
+                                                    $color = $colorMap[$prefix] ?? $defaultColor;
+                                                    $slug = Str::slug($service->service_name);
+                                                    $isFull = $totalKuotaOffline > 0 && $sisaKuotaOffline <= 0;
+                                                @endphp
+                                                <a href="{{ $isFull ? '#' : route('kiosk.input', ['layanan' => $slug]) }}"
+                                                    class="group border-2 border-gray-100 {{ $isFull ? 'bg-gray-50 opacity-60 cursor-not-allowed' : $color['hover'] . ' hover:shadow-lg ' . str_replace('shadow-', 'hover:shadow-', $color['shadow']) . ' hover:scale-[1.02] active:scale-[0.98]' }} rounded-xl p-6 text-center transition-all duration-200">
+                                                    <div
+                                                        class="w-14 h-14 {{ $isFull ? 'bg-gray-400' : $color['bg'] }} rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md {{ $color['shadow'] }} {{ $isFull ? '' : $color['hoverShadow'] }} transition">
+                                                        <span class="text-white text-xl font-black">{{ $prefix }}</span>
+                                                    </div>
+                                                    <p class="text-base font-bold text-gray-900 mb-1">{{ $service->service_name }}</p>
+                                                    <p class="text-sm text-gray-400">{{ $service->description ?? 'Ambil Antrean' }}</p>
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                            <p class="text-base font-bold text-gray-900 mb-1">{{ $service->service_name }}</p>
-                            <p class="text-sm text-gray-400">{{ $service->description ?? 'Ambil Antrean' }}</p>
-                        </a>
-                    @empty
-                        <div class="col-span-2 text-center py-8">
-                            <p class="text-gray-500 font-medium">Belum ada layanan yang aktif untuk instansi ini.</p>
-                        </div>
-                    @endforelse
 
-                </div>
+                            <!-- Prev Button -->
+                            <button type="button" 
+                                    x-show="currentPage > 0" 
+                                    x-cloak
+                                    @click="if(currentPage > 0) currentPage--"
+                                    class="absolute top-1/2 -left-6 transform -translate-y-1/2 bg-white text-primary rounded-full p-2 shadow-lg border border-gray-100 hover:scale-110 active:scale-95 transition-all z-50">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+
+                            <!-- Next Button -->
+                            <button type="button" 
+                                    x-show="currentPage < (totalPages - 1)" 
+                                    x-cloak
+                                    @click="if(currentPage < totalPages - 1) currentPage++"
+                                    class="absolute top-1/2 -right-6 transform -translate-y-1/2 bg-white text-primary rounded-full p-2 shadow-lg border border-gray-100 hover:scale-110 active:scale-95 transition-all z-50">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Indicators -->
+                        @if($totalPages > 1)
+                            <div class="flex justify-center gap-2 mt-6">
+                                <template x-for="i in totalPages">
+                                    <button @click="currentPage = i - 1"
+                                            class="h-2.5 rounded-full transition-all duration-300 focus:outline-none"
+                                            :class="currentPage === (i - 1) ? 'bg-primary w-8' : 'bg-gray-300 w-2.5'"></button>
+                                </template>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
 

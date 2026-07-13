@@ -155,7 +155,7 @@
                                                 </div>
                                             </div>
 
-                                            <div x-data="{ color: '{{ $instance->secondary_color ?? '#10B981' }}' }">
+                                            <!-- <div x-data="{ color: '{{ $instance->secondary_color ?? '#10B981' }}' }">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Warna Sekunder
                                                     (Secondary)</label>
                                                 <div class="flex items-center gap-3">
@@ -166,7 +166,7 @@
                                                         class="text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded border"
                                                         x-text="color.toUpperCase()"></span>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
                                     </div>
 

@@ -35,6 +35,7 @@
                         <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white text-[10px] font-semibold rounded border"
                               :class="item.tipe === 'onsite' ? 'text-primary border-blue-200' : 'text-emerald-600 border-emerald-200'"
                               x-text="item.tipe"></span>
+                        <span class="text-[11px] text-gray-500 font-medium truncate max-w-[120px]" x-text="item.nama"></span>
                     </div>
                 </div>
                 {{-- Label Berikutnya (hanya item pertama) --}}
@@ -64,7 +65,11 @@
             <div class="flex items-center justify-between rounded-xl px-4 py-3 bg-gray-50 border border-gray-100">
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-bold text-gray-900" x-text="item.nomor"></p>
-                    <p class="text-xs text-gray-500 mt-0.5" x-text="item.waktu"></p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <p class="text-[11px] text-gray-500 font-medium truncate max-w-[120px]" x-text="item.nama ?? 'Anonim'"></p>
+                        <span class="text-[10px] text-gray-400">&bull;</span>
+                        <p class="text-[11px] text-gray-500" x-text="item.waktu"></p>
+                    </div>
                 </div>
                 
                 {{-- Status Badge --}}

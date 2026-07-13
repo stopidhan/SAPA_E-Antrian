@@ -280,7 +280,7 @@
                     </div>
                 @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
-                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+                    <div class="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -365,7 +365,7 @@
                     @endif
                 @endif
                 <div class="flex items-center gap-2.5 bg-gray-50 rounded-lg px-3.5 py-2 border border-gray-100">
-                    <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+                    <div class="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-width="2"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"

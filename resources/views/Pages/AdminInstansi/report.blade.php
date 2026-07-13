@@ -379,10 +379,9 @@
                                 labels: this.chartData.regType.labels,
                                 datasets: [{
                                     data: this.chartData.regType.data,
-                                    backgroundColor: [
-                                        'rgba(16, 185, 129, 0.8)', // Green for Online/Onsite
-                                        'rgba(99, 102, 241, 0.8)' // Indigo for the other
-                                    ],
+                                    backgroundColor: this.chartData.regType.labels.map(label => 
+                                        label.toLowerCase() === 'online' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(16, 185, 129, 0.8)'
+                                    ),
                                 }]
                             },
                             options: {

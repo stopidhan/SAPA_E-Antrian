@@ -65,7 +65,7 @@
                 <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     <div class="flex items-center justify-center gap-2 mb-1.5">
                         <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <p class="text-[11px] font-bold text-amber-800">Batas Waktu Kedatangan</p>
+                        <p class="text-[11px] font-bold text-amber-800">Batas Hangus Tiket</p>
                     </div>
                     <div class="flex items-center justify-center gap-1.5">
                         <div class="bg-white rounded-lg px-2 py-1 border border-amber-200 min-w-[36px] text-center">

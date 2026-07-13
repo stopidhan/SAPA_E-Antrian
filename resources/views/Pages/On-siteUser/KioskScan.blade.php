@@ -148,9 +148,9 @@
                 showStatus('success', 'Berhasil!', `${data.queue_number} - ${data.service_name}`);
                 playAudio('success');
                 
-                // Tunggu 3 detik, lalu alihkan kembali ke Halaman Utama Kiosk
+                // Tunggu 3 detik, lalu alihkan ke Halaman Cetak Struk (untuk unduh PDF otomatis)
                 setTimeout(() => {
-                    window.location.href = "{{ route('kiosk.home') }}";
+                    window.location.href = "{{ route('kiosk.cetak', ['instance_slug' => $instance->slug ?? request()->route('instance_slug')]) }}";
                 }, 3000);
             } else {
                 showStatus('error', 'Gagal', data.message + ' (Data: ' + decodedText + ')');

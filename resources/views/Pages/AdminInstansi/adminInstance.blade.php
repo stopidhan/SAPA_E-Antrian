@@ -187,7 +187,7 @@
                                                         x-text="slot.end_time"></td>
                                                     <td class="px-6 py-4">
                                                         <span
-                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary border border-blue-200">
+                                                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary border border-primary/20">
                                                             <span x-text="slot.capacity"></span>
                                                         </span>
                                                     </td>
@@ -224,7 +224,7 @@
                                         </svg>
                                         <h2 class="text-lg font-bold">Manajemen Layanan & Loket</h2>
                                     </div>
-                                    <p class="text-sm text-gray-500 mt-1">Kelola layanan dan Loket yang tersedia di sistem
+                                <p class="text-sm text-gray-500 mt-1">Kelola layanan dan Loket yang tersedia di sistem
                                         antrean</p>
                                 </div>
                                 <x-button type="button" variant="primary" @click="openServiceDialog()"
@@ -267,7 +267,7 @@
                                             class="p-4 bg-gradient-to-r from-blue-50 to-transparent flex items-center justify-between">
                                             <div class="flex items-center gap-4 flex-1">
                                                 <div
-                                                    class="w-12 h-12 rounded-lg flex items-center justify-center bg-blue-100 text-primary font-bold text-sm">
+                                                    class="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/10 text-primary font-bold text-sm">
                                                     <span x-text="service.queue_prefix"></span>
                                                 </div>
                                                 <div>
