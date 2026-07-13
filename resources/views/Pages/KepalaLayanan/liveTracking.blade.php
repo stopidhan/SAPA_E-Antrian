@@ -72,7 +72,7 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="grid grid-cols-3 gap-4 mb-4">
                         <div class="text-center p-3 bg-white rounded-lg">
                             <div class="text-xs text-gray-500 mb-1">Rata-rata Waktu</div>
                             <div class="text-2xl font-bold {{ $textColor }}">
@@ -81,12 +81,8 @@
                             </div>
                         </div>
                         <div class="text-center p-3 bg-white rounded-lg">
-                            <div class="text-xs text-gray-500 mb-1">Total Dilayani</div>
+                            <div class="text-xs text-gray-500 mb-1">Total Dilayani (Hari Ini)</div>
                             <div class="text-2xl font-bold text-gray-800">{{ $perf->total_served }}</div>
-                        </div>
-                        <div class="text-center p-3 bg-white rounded-lg">
-                            <div class="text-xs text-gray-500 mb-1">Hari Ini</div>
-                            <div class="text-2xl font-bold text-primary">{{ $perf->today_served }}</div>
                         </div>
                         <div class="text-center p-3 bg-white rounded-lg">
                             <div class="text-xs text-gray-500 mb-1">Efisiensi</div>

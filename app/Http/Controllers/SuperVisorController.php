@@ -138,20 +138,19 @@ class SuperVisorController extends Controller
         $performance = [];
 
         foreach ($operators as $operator) {
-            // All completed queues for this operator (all time)
-            $totalServed = Queue::where('user_id', $operator->id)
-                ->where('queue_status', 'completed')
-                ->count();
-
             // Today's completed queues
             $todayServed = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
                 ->where('queue_date', $date)
                 ->count();
 
-            // Average service time for this operator's completed queues
+            // Total served is now only for today to match Live Tracking intent
+            $totalServed = $todayServed;
+
+            // Average service time for this operator's completed queues (Today)
             $avgServiceTime = Queue::where('user_id', $operator->id)
                 ->where('queue_status', 'completed')
+                ->where('queue_date', $date)
                 ->whereNotNull('service_duration')
                 ->avg('service_duration') ?? 0;
 
@@ -159,6 +158,7 @@ class SuperVisorController extends Controller
             $baseQuery = Queue::join('services', 'queues.service_id', '=', 'services.id')
                 ->where('queues.user_id', $operator->id)
                 ->where('queues.queue_status', 'completed')
+                ->where('queues.queue_date', $date)
                 ->whereNotNull('queues.service_duration');
 
             $fastServices = (clone $baseQuery)
