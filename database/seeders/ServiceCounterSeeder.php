@@ -34,7 +34,7 @@ class ServiceCounterSeeder extends Seeder
                 $counter = ServiceCounter::create([
                     'instance_id' => $service->instance_id,
                     'service_id' => $service->id,
-                    'counter_number' => 'Loket ' . $i,
+                    'counter_number' => 'Loket ' . $i . ($service->queue_prefix ? ' ' . strtoupper($service->queue_prefix) : ''),
                     'is_active' => true,
                 ]);
 

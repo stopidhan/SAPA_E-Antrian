@@ -63,7 +63,7 @@
                                 <div class="flex-1">
                                     <x-input-text x-bind:id="'counter_' + index" x-bind:name="'counter[' + index + ']'"
                                         type="text" label="Nomor Konter" placeholder="Contoh: 1, 2, 3"
-                                        x-model="counter.counter_number" required />
+                                        x-model="counter.counter_number" required :readonly="true" class="opacity-70" />
                                 </div>
                                 <button type="button" @click="removeCounter(index)"
                                     class="p-2 mb-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"

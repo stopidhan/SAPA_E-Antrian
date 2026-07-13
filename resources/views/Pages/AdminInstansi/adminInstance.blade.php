@@ -658,9 +658,36 @@
                 },
 
                 addCounter() {
+                    let maxCounter = 0;
+                    
+                    // Cek angka loket tertinggi dari semua layanan yang sudah ada
+                    this.services.forEach(service => {
+                        if (service.counters) {
+                            service.counters.forEach(counter => {
+                                const match = String(counter.counter_number).match(/\d+/);
+                                if (match) {
+                                    const num = parseInt(match[0], 10);
+                                    if (num > maxCounter) maxCounter = num;
+                                }
+                            });
+                        }
+                    });
+
+                    // Cek juga angka loket tertinggi dari list yang sedang diedit/ditambah di form ini
+                    this.countersList.forEach(counter => {
+                        const match = String(counter.counter_number).match(/\d+/);
+                        if (match) {
+                            const num = parseInt(match[0], 10);
+                            if (num > maxCounter) maxCounter = num;
+                        }
+                    });
+
+                    const nextNumber = maxCounter + 1;
+                    const prefix = this.serviceForm.queue_prefix ? ` ${this.serviceForm.queue_prefix.toUpperCase()}` : '';
+                    
                     this.countersList.push({
                         id: null,
-                        counter_number: '',
+                        counter_number: `Loket ${nextNumber}${prefix}`,
                     });
                 },
 
