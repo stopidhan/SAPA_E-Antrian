@@ -17,25 +17,41 @@ class ServiceSeeder extends Seeder
                 'service_name' => 'Pelayanan Administrasi',
                 'queue_prefix' => 'ADM',
                 'description' => 'Layanan administrasi umum',
-                'performance_standards' => ['max_wait_time' => 15, 'max_service_time' => 30],
+                'performance_standards' => [
+                    'fast' => ['max' => 5],
+                    'normal' => ['min' => 6, 'max' => 15],
+                    'slow' => ['min' => 16]
+                ],
             ],
             [
                 'service_name' => 'Pelayanan Dokumen',
                 'queue_prefix' => 'DOK',
                 'description' => 'Layanan pengurusan dokumen',
-                'performance_standards' => ['max_wait_time' => 20, 'max_service_time' => 45],
+                'performance_standards' => [
+                    'fast' => ['max' => 10],
+                    'normal' => ['min' => 11, 'max' => 20],
+                    'slow' => ['min' => 21]
+                ],
             ],
             [
                 'service_name' => 'Pelayanan Konsultasi',
                 'queue_prefix' => 'KON',
                 'description' => 'Layanan konsultasi publik',
-                'performance_standards' => ['max_wait_time' => 10, 'max_service_time' => 60],
+                'performance_standards' => [
+                    'fast' => ['max' => 15],
+                    'normal' => ['min' => 16, 'max' => 30],
+                    'slow' => ['min' => 31]
+                ],
             ],
             [
                 'service_name' => 'Pembayaran Retribusi',
                 'queue_prefix' => 'BAY',
                 'description' => 'Layanan pembayaran retribusi',
-                'performance_standards' => ['max_wait_time' => 10, 'max_service_time' => 15],
+                'performance_standards' => [
+                    'fast' => ['max' => 5],
+                    'normal' => ['min' => 6, 'max' => 10],
+                    'slow' => ['min' => 11]
+                ],
             ]
         ];
 

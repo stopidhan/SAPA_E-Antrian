@@ -321,7 +321,7 @@
                                                                 Nilai Lama</h4>
                                                             <div class="space-y-1.5">
                                                                 @foreach ($log->raw_properties['old'] as $key => $value)
-                                                                    @if (in_array($key, ['created_at', 'updated_at']))
+                                                                    @if (in_array($key, ['created_at', 'updated_at', 'id', 'instance_id', 'service_id', 'counters']))
                                                                         @continue
                                                                     @endif
                                                                     <div class="flex flex-col text-sm">
@@ -331,6 +331,15 @@
                                                                             class="text-gray-800 break-all">{{ is_array($value) ? json_encode($value) : (string) $value }}</span>
                                                                     </div>
                                                                 @endforeach
+                                                                
+                                                                @if (isset($log->raw_properties['old']['counters']))
+                                                                    <div class="flex flex-col text-sm">
+                                                                        <span
+                                                                            class="text-gray-500 text-xs font-mono">counters</span>
+                                                                        <span
+                                                                            class="text-gray-800 break-all">{{ is_array($log->raw_properties['old']['counters']) ? json_encode($log->raw_properties['old']['counters']) : (string) $log->raw_properties['old']['counters'] }}</span>
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     @endif
@@ -342,7 +351,7 @@
                                                             Nilai Baru</h4>
                                                         <div class="space-y-1.5">
                                                             @foreach ($log->raw_properties['attributes'] as $key => $value)
-                                                                @if (in_array($key, ['created_at', 'updated_at']))
+                                                                @if (in_array($key, ['created_at', 'updated_at', 'id', 'instance_id', 'service_id', 'counters']))
                                                                     @continue
                                                                 @endif
                                                                 <div class="flex flex-col text-sm">
@@ -352,6 +361,15 @@
                                                                         class="text-gray-800 break-all">{{ is_array($value) ? json_encode($value) : (string) $value }}</span>
                                                                 </div>
                                                             @endforeach
+                                                            
+                                                            @if (isset($log->raw_properties['attributes']['counters']))
+                                                                <div class="flex flex-col text-sm">
+                                                                    <span
+                                                                        class="text-gray-500 text-xs font-mono">counters</span>
+                                                                    <span
+                                                                        class="text-gray-800 break-all">{{ is_array($log->raw_properties['attributes']['counters']) ? json_encode($log->raw_properties['attributes']['counters']) : (string) $log->raw_properties['attributes']['counters'] }}</span>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </div>

@@ -212,7 +212,7 @@
                                                     <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                                         :class="counter.icon_bg">
                                                         <span class="text-white text-sm font-black"
-                                                            x-text="counter.counter_number.replace(/loket/gi, '').trim()"></span>
+                                                            x-text="counter.counter_number.match(/\d+/) ? counter.counter_number.match(/\d+/)[0] : counter.counter_number.replace(/loket/gi, '').trim()"></span>
                                                     </div>
                                                     <div class="flex flex-col">
                                                         <span class="text-base font-bold text-gray-900 leading-tight"

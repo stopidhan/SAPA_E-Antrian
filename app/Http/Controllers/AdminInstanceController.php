@@ -156,6 +156,18 @@ class AdminInstanceController extends Controller
 
             $service->load(['counters']);
 
+            // Update log activity untuk memasukkan list konter
+            $latestActivity = \App\Models\Activity::where('subject_type', Service::class)
+                ->where('subject_id', $service->id)
+                ->latest()
+                ->first();
+            if ($latestActivity && $latestActivity->created_at->diffInSeconds(now()) < 5) {
+                $props = $latestActivity->properties->toArray();
+                $props['attributes']['counters'] = $service->counters->pluck('counter_number')->toArray();
+                $latestActivity->properties = $props;
+                $latestActivity->save();
+            }
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -213,6 +225,8 @@ class AdminInstanceController extends Controller
         ]);
 
         try {
+            $oldCounters = $service->counters->pluck('counter_number')->toArray();
+
             $service->update([
                 'service_name' => $validated['service_name'],
                 'queue_prefix' => $validated['queue_prefix'],
@@ -255,6 +269,33 @@ class AdminInstanceController extends Controller
             }
 
             $service->load(['counters']);
+
+            // Update log activity untuk memasukkan list konter
+            $newCountersList = $service->counters->pluck('counter_number')->toArray();
+            if ($oldCounters !== $newCountersList) {
+                $latestActivity = \App\Models\Activity::where('subject_type', Service::class)
+                    ->where('subject_id', $service->id)
+                    ->latest()
+                    ->first();
+                if ($latestActivity && $latestActivity->created_at->diffInSeconds(now()) < 5) {
+                    $props = $latestActivity->properties->toArray();
+                    $props['attributes']['counters'] = $newCountersList;
+                    $props['old']['counters'] = $oldCounters;
+                    $latestActivity->properties = $props;
+                    $latestActivity->save();
+                } else {
+                    activity('service')
+                        ->performedOn($service)
+                        ->withProperties([
+                            'attributes' => ['counters' => $newCountersList],
+                            'old' => ['counters' => $oldCounters],
+                            'status' => 'success',
+                            'action_label' => 'Update Loket Layanan',
+                            'ip_address' => request()->ip(),
+                        ])
+                        ->log("Data Loket pada Layanan '{$service->service_name}' berhasil diperbarui.");
+                }
+            }
 
             if ($request->wantsJson()) {
                 return response()->json([

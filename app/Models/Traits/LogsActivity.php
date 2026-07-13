@@ -23,7 +23,8 @@ trait LogsActivity
         $className = class_basename(static::class);
         return match($className) {
             'Queue' => 'queue',
-            'Service', 'ServiceCounter' => 'service',
+            'Service' => 'service',
+            'InstanceSlot' => 'config',
             'User' => 'user',
             'MediaContent' => 'content',
             'Instance' => 'config',
@@ -38,6 +39,7 @@ trait LogsActivity
             'Queue' => 'Antrean',
             'Service' => 'Layanan',
             'ServiceCounter' => 'Loket',
+            'InstanceSlot' => 'Slot Waktu',
             'User' => 'Pengguna',
             'MediaContent' => 'Konten Media',
             'Instance' => 'Pengaturan Instansi',
@@ -47,6 +49,9 @@ trait LogsActivity
         
         // Coba ambil nama/judul spesifik dari data yang diubah
         $itemName = $this->name ?? $this->username ?? $this->service_name ?? $this->counter_number ?? $this->title ?? $this->instance_name ?? '';
+        if (empty($itemName) && isset($this->start_time, $this->end_time)) {
+            $itemName = "{$this->start_time} - {$this->end_time}";
+        }
         $identifier = $itemName ? " '{$itemName}'" : '';
 
         return match ($eventName) {
@@ -64,6 +69,7 @@ trait LogsActivity
             'Queue' => 'Antrean',
             'Service' => 'Layanan',
             'ServiceCounter' => 'Loket',
+            'InstanceSlot' => 'Slot Waktu',
             'User' => 'Pengguna',
             'MediaContent' => 'Konten',
             'Instance' => 'Instansi',

@@ -18,7 +18,7 @@ class QueueSeeder extends Seeder
         $faker = Faker::create('id_ID');
         $instances = Instance::all();
 
-        $statuses = ['waiting', 'called', 'serving', 'completed', 'skipped'];
+        $statuses = ['waiting', 'called', 'serving', 'completed'];
         $sources = ['onsite', 'online'];
 
         foreach ($instances as $instance) {
@@ -33,7 +33,7 @@ class QueueSeeder extends Seeder
                 // Ensure the counter belongs to the selected service
                 $serviceCounters = $counters->where('service_id', $service->id);
                 $counter = $serviceCounters->isEmpty() ? $counters->random() : $serviceCounters->random();
-                
+
                 // Get user from the counter's session
                 $session = \App\Models\CounterSession::where('service_counter_id', $counter->id)->first();
                 $user_id = $session ? $session->user_id : null;

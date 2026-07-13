@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             QueueSeeder::class,
             MediaContentSeeder::class,
-            QrCodeSeeder::class,
         ]);
     }
 }
