@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Events\QueueCheckedIn;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class KioskController extends Controller
 {
@@ -105,38 +106,39 @@ class KioskController extends Controller
         // Generate Nomor Antrean (Dengan Locking Level Service untuk mencegah duplikasi/race condition)
         $today = now()->toDateString();
         
-        // Kunci baris Service agar proses generate nomor urut menjadi antrean linear (satu per satu)
-        $lockedService = \App\Models\Service::where('id', $service->id)->lockForUpdate()->first();
+        $queue = DB::transaction(function () use ($service, $customer, $today) {
+            // Kunci baris Service agar proses generate nomor urut menjadi antrean linear (satu per satu)
+            $lockedService = \App\Models\Service::where('id', $service->id)->lockForUpdate()->first();
 
-        $lastQueue = Queue::query()
-            ->where('service_id', $service->id)
-            ->whereDate('queue_date', $today)
-            ->lockForUpdate()
-            ->latest('id')
-            ->first();
+            $lastQueue = Queue::query()
+                ->where('service_id', $service->id)
+                ->whereDate('queue_date', $today)
+                ->latest('id')
+                ->first();
 
-        if ($lastQueue) {
-            $parts = explode('-', $lastQueue->queue_number);
-            $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
-            $nextSequence = $urutan + 1;
-        } else {
-            $nextSequence = 1;
-        }
+            if ($lastQueue) {
+                $parts = explode('-', $lastQueue->queue_number);
+                $urutan = isset($parts[1]) ? (int) $parts[1] : 0;
+                $nextSequence = $urutan + 1;
+            } else {
+                $nextSequence = 1;
+            }
 
-        $queuePrefix = strtoupper($service->queue_prefix ?: substr($service->service_name, 0, 1));
-        $queueNumber = $queuePrefix . '-' . str_pad($nextSequence, 3, '0', STR_PAD_LEFT);
+            $queuePrefix = strtoupper($service->queue_prefix ?: substr($service->service_name, 0, 1));
+            $queueNumber = $queuePrefix . '-' . str_pad($nextSequence, 3, '0', STR_PAD_LEFT);
 
-        // Langsung simpan ke Queue (sebagai checked_in)
-        $queue = Queue::create([
-            'instance_id' => $service->instance_id,
-            'customer_id' => $customer->id,
-            'service_id' => $service->id,
-            'queue_number' => $queueNumber,
-            'queue_date' => $today,
-            'taken_time' => now()->format('H:i:s'),
-            'queue_status' => 'waiting',
-            'queue_source' => 'onsite',
-        ]);
+            // Langsung simpan ke Queue (sebagai checked_in)
+            return Queue::create([
+                'instance_id' => $service->instance_id,
+                'customer_id' => $customer->id,
+                'service_id' => $service->id,
+                'queue_number' => $queueNumber,
+                'queue_date' => $today,
+                'taken_time' => now()->format('H:i:s'),
+                'queue_status' => 'waiting',
+                'queue_source' => 'onsite',
+            ]);
+        });
 
         // Catat Check-in time juga
         $queue->update([
@@ -302,6 +304,22 @@ class KioskController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Tiket sudah kedaluwarsa (hangus).'
+            ], 422);
+        }
+
+        // Cegah scan berulang jika sudah pernah check-in
+        if ($queue->check_in_time !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tiket ini sudah pernah di-scan sebelumnya.'
+            ], 422);
+        }
+
+        // Cegah scan jika status antrean sudah bukan waiting
+        if ($queue->queue_status !== 'waiting') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tiket ini sudah diproses atau selesai.'
             ], 422);
         }
 

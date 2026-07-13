@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BookingOnlineController extends Controller
@@ -88,16 +89,15 @@ class BookingOnlineController extends Controller
         $today = now()->toDateString();
         $hasActiveQueue = Queue::query()
             ->where('customer_id', $authCustomer->id ?? 0)
-            ->whereDate('queue_date', $today)
             ->whereIn('queue_status', ['waiting', 'called', 'serving'])
             ->exists();
 
         // Cek antrean aktif hari ini yang belum di-scan (untuk tampilkan QR tiket di dashboard)
         $activeQueue = Queue::query()
             ->where('customer_id', $authCustomer->id ?? 0)
-            ->whereDate('queue_date', $today)
             ->whereIn('queue_status', ['waiting', 'called', 'serving'])
             ->whereNull('check_in_time')
+            ->orderBy('queue_date', 'asc')
             ->with('service')
             ->first();
 
@@ -426,7 +426,6 @@ class BookingOnlineController extends Controller
         // 2. Cek jika ada antrean aktif yang sedang berjalan (waiting, called, serving)
         $activeQueue = Queue::query()
             ->where('customer_id', $authCustomer->id)
-            ->whereDate('queue_date', now()->toDateString())
             ->whereIn('queue_status', ['waiting', 'called', 'serving'])
             ->exists();
 
@@ -478,37 +477,39 @@ class BookingOnlineController extends Controller
                 return null;
             }
 
-            // Database-level lock
-            Service::where('id', $service->id)->lockForUpdate()->first();
+            // Database-level lock (Race condition fix)
+            return DB::transaction(function () use ($service, $authCustomer, $validated) {
+                Service::where('id', $service->id)->lockForUpdate()->first();
 
-            $queueDate   = $validated['tanggal'];
-            $prefix      = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
+                $queueDate   = $validated['tanggal'];
+                $prefix      = $service->queue_prefix ?: strtoupper(substr($service->service_name, 0, 1));
 
-            $lastQueue = Queue::query()
-                ->where('instance_id', $service->instance_id)
-                ->where('service_id', $service->id)
-                ->whereDate('queue_date', $queueDate)
-                ->latest('id')
-                ->first();
+                $lastQueue = Queue::query()
+                    ->where('instance_id', $service->instance_id)
+                    ->where('service_id', $service->id)
+                    ->whereDate('queue_date', $queueDate)
+                    ->latest('id')
+                    ->first();
 
-            $urutan = $lastQueue
-                ? ((int) explode('-', $lastQueue->queue_number)[1] ?? 0) + 1
-                : 1;
+                $urutan = $lastQueue
+                    ? ((int) explode('-', $lastQueue->queue_number)[1] ?? 0) + 1
+                    : 1;
 
-            $queueNumber = $prefix . '-' . str_pad((string) $urutan, 3, '0', STR_PAD_LEFT);
+                $queueNumber = $prefix . '-' . str_pad((string) $urutan, 3, '0', STR_PAD_LEFT);
 
-            return Queue::create([
-                'instance_id'    => $service->instance_id,
-                'customer_id'    => $authCustomer->id,
-                'service_id'     => $service->id,
-                'queue_number'   => $queueNumber,
-                'queue_date'     => $queueDate,
-                'scheduled_date' => $validated['tanggal'],
-                'scheduled_slot' => $validated['slot'],
-                'taken_time'     => now()->format('H:i:s'),
-                'queue_status'   => 'waiting',
-                'queue_source'   => 'online',
-            ]);
+                return Queue::create([
+                    'instance_id'    => $service->instance_id,
+                    'customer_id'    => $authCustomer->id,
+                    'service_id'     => $service->id,
+                    'queue_number'   => $queueNumber,
+                    'queue_date'     => $queueDate,
+                    'scheduled_date' => $validated['tanggal'],
+                    'scheduled_slot' => $validated['slot'],
+                    'taken_time'     => now()->format('H:i:s'),
+                    'queue_status'   => 'waiting',
+                    'queue_source'   => 'online',
+                ]);
+            });
         });
 
         if (!$queue) {

@@ -71,6 +71,18 @@
     {{-- ====== CONTENT ====== --}}
     <div class="flex-1 px-4 sm:px-5 pb-28 relative z-10">
 
+        {{-- ====== ERROR MESSAGES ====== --}}
+        @if ($errors->any())
+            <div class="mt-4 mb-4 flex items-start gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3.5">
+                <span class="text-base shrink-0">⚠️</span>
+                <div>
+                    @foreach ($errors->all() as $error)
+                        <p class="text-[13px] text-red-800 leading-snug">{{ $error }}</p>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- Judul Konfirmasi --}}
         <div class="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-3">
             <div class="flex items-center gap-3 mb-2">
