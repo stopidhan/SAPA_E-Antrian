@@ -161,7 +161,7 @@
 
                     <div>
                         <h4 class="font-medium">Media Aktif</h4>
-                        <p class="text-2xl font-bold text-green-500">{{ $activeMedia ?? 0 }}</p>
+                        <p id="active-media-count" class="text-2xl font-bold text-green-500">{{ $activeMedia ?? 0 }}</p>
                         <p class="text-gray-600 mb-4 text-sm">yang sedang ditayangkan</p>
                         <hr class="w-full border-gray-300 my-2" />
                     </div>
@@ -268,9 +268,17 @@
                 el('preview-filename-image').textContent = file.name;
                 el('preview-container').classList.replace('hidden', 'flex');
             } else if (file.type.startsWith('video/')) {
-                el('previewVideo').src = url;
+                const videoEl = el('previewVideo');
+                videoEl.src = url;
                 el('preview-filename-video').textContent = file.name;
                 el('video-preview-container').classList.replace('hidden', 'flex');
+                
+                videoEl.onloadedmetadata = function() {
+                    const durationInput = document.querySelector('input[name="duration"]');
+                    if (durationInput) {
+                        durationInput.value = Math.ceil(videoEl.duration);
+                    }
+                };
             }
         }
 
@@ -353,6 +361,11 @@
                                     el(`status-label-${contentId}`).innerHTML = data.is_active ?
                                         `<span class="px-3 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">Aktif</span>` :
                                         `<span class="px-3 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">Nonaktif</span>`;
+                                }
+                                let activeCountEl = el('active-media-count');
+                                if (activeCountEl) {
+                                    let currentCount = parseInt(activeCountEl.innerText) || 0;
+                                    activeCountEl.innerText = data.is_active ? currentCount + 1 : Math.max(0, currentCount - 1);
                                 }
                             } else {
                                 this.checked = !isChecked;
