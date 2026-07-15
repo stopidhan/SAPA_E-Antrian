@@ -83,7 +83,7 @@
                                              <img :src="media.url" class="w-full h-full" :class="media.fit_mode || 'object-cover'" />
                                          </template>
                                          <template x-if="media.type === 'video'">
-                                             <video :id="'media-video-' + index" :src="media.url" class="w-full h-full" :class="media.fit_mode || 'object-cover'" muted playsinline></video>
+                                             <video :id="'media-video-' + index" :src="media.url" class="w-full h-full" :class="media.fit_mode || 'object-cover'" muted playsinline loop></video>
                                          </template>
                                     </div>
                                 </template>

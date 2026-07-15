@@ -91,7 +91,7 @@
                     <h4 class="text-base font-semibold text-slate-600">Drag and drop files here</h4>
                     <p class="text-xs text-slate-500 mt-4">PNG, JPG, GIF, MP4, AVI, MOV (Max: 50MB) <span
                             class="text-red-500" id="file-required-star">*</span></p>
-                    <p class="text-xs text-slate-500 mt-1">Rekomendasi Resolusi: 1920x1080 (16:9)</p>
+                    <p class="text-xs text-slate-500 mt-1">Rekomendasi Resolusi: 1080x800 pixels (Rasio 4:3)</p>
 
                     <div class="mt-6">
                         <input type="file" name="file" id="file" accept="image/*,video/*"
