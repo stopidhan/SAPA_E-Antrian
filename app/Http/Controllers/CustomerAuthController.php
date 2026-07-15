@@ -58,6 +58,12 @@ class CustomerAuthController extends Controller
 
             $customer = $this->findCustomerByPhone($phone, $instance->id);
 
+            if ($customer) {
+                throw ValidationException::withMessages([
+                    'whatsapp' => 'Nomor WhatsApp ini sudah terdaftar. Silakan gunakan menu login.',
+                ]);
+            }
+
             $rateLimitKey = 'send_otp_' . $phone;
             if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
                 $waitSeconds = RateLimiter::availableIn($rateLimitKey);
