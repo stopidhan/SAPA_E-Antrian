@@ -36,7 +36,11 @@ class SuperVisorController extends Controller
         $date = $date ?? today()->toDateString();
 
         $baseQuery = Queue::where('instance_id', $instanceId)
-            ->where('queue_date', $date);
+            ->where('queue_date', $date)
+            ->where(function ($q) {
+                $q->where('queue_source', '!=', 'online')
+                  ->orWhereNotNull('check_in_time');
+            });
 
         $total = (clone $baseQuery)->count();
         $completed = (clone $baseQuery)->where('queue_status', 'completed')->count();
@@ -275,6 +279,7 @@ class SuperVisorController extends Controller
         $online = Queue::where('instance_id', $instanceId)
             ->where('queue_date', $date)
             ->where('queue_source', 'online')
+            ->whereNotNull('check_in_time')
             ->count();
 
         $onsite = Queue::where('instance_id', $instanceId)
@@ -294,6 +299,10 @@ class SuperVisorController extends Controller
 
         $queues = Queue::where('instance_id', $instanceId)
             ->where('queue_date', $date)
+            ->where(function ($q) {
+                $q->where('queue_source', '!=', 'online')
+                  ->orWhereNotNull('check_in_time');
+            })
             ->with('service')
             ->get();
 
